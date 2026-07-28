@@ -1,0 +1,114 @@
+.shop-screen {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fs-space-sm);
+}
+
+.shop-screen__wish {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--fs-space-sm);
+  letter-spacing: 0.08em;
+}
+
+.shop-screen__shelves {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fs-space-xxl);
+  padding: var(--fs-space-md) var(--fs-space-xs) var(--fs-space-xl);
+}
+
+/* 奥の列ほど、少しだけ内側に寄る（自然な遠近感） */
+.shop-screen__row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  gap: var(--fs-space-md);
+  padding: 0 var(--fs-space-sm);
+}
+
+/* 花を眺めているあいだ、店頭はそっと後ろへ下がる */
+.shop-screen__shelves {
+  transition: filter var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.shop-screen.is-inspecting .shop-screen__shelves,
+.shop-screen.is-inspecting .shop-screen__basket,
+.shop-screen.is-inspecting .shop-screen__wish,
+.shop-screen.is-inspecting .topbar {
+  filter: blur(7px) brightness(0.86);
+  pointer-events: none;
+}
+
+.shop-screen__basket {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--fs-space-md);
+  padding: var(--fs-space-md);
+}
+
+.shop-screen__basket > .button {
+  flex: 0 0 auto;
+}
+
+.shop-screen__picked {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--fs-space-sm);
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-height: 62px;
+}
+
+.shop-screen__empty {
+  margin: 0;
+  padding-left: var(--fs-space-sm);
+}
+
+.shop-screen__chip {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 58px;
+  padding: 2px;
+  border-radius: var(--fs-radius-md);
+  background: var(--fs-color-glass);
+  border: 1px solid var(--fs-color-line-soft);
+  transition: transform var(--fs-duration-quick) var(--fs-easing-rise),
+    box-shadow var(--fs-duration-quick) var(--fs-easing-soft);
+  animation: appear var(--fs-duration-base) var(--fs-easing-rise) both;
+}
+
+.shop-screen__chip:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--fs-shadow-card);
+}
+
+.shop-screen__chip img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.shop-screen__chip-name {
+  font-family: var(--fs-font-family-ui);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--fs-color-ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

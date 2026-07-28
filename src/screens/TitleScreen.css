@@ -1,0 +1,57 @@
+.title-screen {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  padding: var(--fs-space-xxl) 0 var(--fs-space-lg);
+}
+
+.title-screen__center {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fs-space-md);
+  padding: var(--fs-space-xl) var(--fs-space-lg);
+  border-radius: var(--fs-radius-xl);
+  background: var(--fs-color-glass-soft);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--fs-shadow-soft);
+}
+
+.title-screen__name {
+  font-size: var(--fs-font-display);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+}
+
+.title-screen__lead {
+  margin: 0;
+  font-size: var(--fs-font-md);
+  color: var(--fs-color-ink-soft);
+  line-height: var(--fs-font-line-base);
+}
+
+.title-screen__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-md);
+  animation-delay: var(--fs-duration-slow);
+}
+
+.title-screen__season {
+  max-width: 22em;
+}
+
+.title-screen__open {
+  min-width: 220px;
+}
+
+.title-screen__links {
+  display: flex;
+  gap: var(--fs-space-md);
+}

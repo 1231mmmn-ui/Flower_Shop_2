@@ -1,0 +1,339 @@
+/**
+ * 画面全体の下地。
+ * 色・角丸・余白・影・時間の値は書かない。すべて src/design/tokens.ts から
+ * 流し込まれた --fs-* 変数を使う。
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--fs-font-family-base);
+  color: var(--fs-color-ink);
+  background: var(--fs-color-beige);
+  line-height: var(--fs-font-line-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* --------------------------------------------------------------------------
+   お店の器
+   -------------------------------------------------------------------------- */
+
+.shop {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: var(--fs-color-sand);
+}
+
+/* 店内。窓からの光と、季節。 */
+.scene {
+  position: absolute;
+  inset: 0;
+  background-position: center 34%;
+  background-size: cover;
+  transform: scale(1.06);
+  transition: opacity var(--fs-duration-slow) var(--fs-easing-soft),
+    filter var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+.scene--blurred {
+  filter: blur(9px) saturate(0.92);
+}
+
+.scene--dim::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--fs-color-veil);
+  transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+/* 手前の作業台 */
+.counter {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: 0;
+  width: 108%;
+  pointer-events: none;
+}
+
+/* 左上から差し込む光 */
+.daylight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+      120% 90% at 14% 2%,
+      rgba(255, 246, 226, 0.5) 0%,
+      rgba(255, 246, 226, 0) 58%
+    ),
+    radial-gradient(140% 120% at 50% 120%, rgba(92, 70, 52, 0.22) 0%, rgba(92, 70, 52, 0) 60%);
+  animation: breathe var(--fs-duration-breath) ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 画面はスマホの比率に収める */
+.stage {
+  position: relative;
+  height: 100%;
+  max-width: var(--fs-layout-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: max(var(--fs-space-md), env(safe-area-inset-top)) var(--fs-space-md)
+    max(var(--fs-space-md), env(safe-area-inset-bottom));
+}
+
+/* --------------------------------------------------------------------------
+   共通の面
+   -------------------------------------------------------------------------- */
+
+.panel {
+  background: var(--fs-color-glass);
+  border: 1px solid var(--fs-color-line);
+  border-radius: var(--fs-radius-lg);
+  box-shadow: var(--fs-shadow-card), var(--fs-shadow-inset);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  padding: var(--fs-space-lg);
+}
+
+.panel--soft {
+  background: var(--fs-color-glass-soft);
+}
+
+.panel--deep {
+  background: var(--fs-color-glass-deep);
+}
+
+.panel--flat {
+  box-shadow: var(--fs-shadow-soft);
+}
+
+/* 木札 */
+.tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--fs-space-sm);
+  padding: var(--fs-space-xs) var(--fs-space-md);
+  border-radius: var(--fs-radius-pill);
+  background: var(--fs-color-glass);
+  border: 1px solid var(--fs-color-line);
+  box-shadow: var(--fs-shadow-soft);
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-sm);
+  color: var(--fs-color-ink-soft);
+  letter-spacing: var(--fs-font-letter);
+  white-space: nowrap;
+}
+
+.tag__value {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
+  color: var(--fs-color-ink);
+}
+
+/* ボタンは少なく、やわらかく */
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fs-space-sm);
+  min-height: 52px;
+  padding: 0 var(--fs-space-xl);
+  border-radius: var(--fs-radius-pill);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-lg);
+  letter-spacing: var(--fs-font-letter);
+  white-space: nowrap;
+  color: var(--fs-color-cream);
+  background: linear-gradient(
+    170deg,
+    var(--fs-color-sage) 0%,
+    var(--fs-color-sage-deep) 100%
+  );
+  box-shadow: var(--fs-shadow-card), var(--fs-shadow-inset);
+  transition: transform var(--fs-duration-quick) var(--fs-easing-rise),
+    box-shadow var(--fs-duration-quick) var(--fs-easing-soft),
+    opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--fs-shadow-lifted);
+}
+
+.button:active {
+  transform: translateY(1px);
+  box-shadow: var(--fs-shadow-soft);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+  box-shadow: var(--fs-shadow-soft);
+}
+
+.button--quiet {
+  color: var(--fs-color-ink);
+  background: var(--fs-color-glass);
+  border: 1px solid var(--fs-color-line);
+}
+
+.button--small {
+  min-height: 40px;
+  padding: 0 var(--fs-space-lg);
+  font-size: var(--fs-font-md);
+}
+
+.button--icon {
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0 var(--fs-space-md);
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-sm);
+}
+
+/* --------------------------------------------------------------------------
+   文字
+   -------------------------------------------------------------------------- */
+
+.title {
+  font-size: var(--fs-font-xxl);
+  letter-spacing: 0.14em;
+  line-height: var(--fs-font-line-tight);
+  margin: 0;
+  font-weight: 500;
+}
+
+.subtitle {
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.2em;
+  color: var(--fs-color-ink-soft);
+  margin: 0;
+}
+
+.label {
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-xs);
+  letter-spacing: 0.16em;
+  color: var(--fs-color-ink-faint);
+  margin: 0 0 var(--fs-space-xs);
+}
+
+.body {
+  font-size: var(--fs-font-md);
+  color: var(--fs-color-ink-soft);
+  margin: 0;
+}
+
+.whisper {
+  font-size: var(--fs-font-sm);
+  color: var(--fs-color-ink-faint);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   ゆっくり現れる
+   -------------------------------------------------------------------------- */
+
+.appear {
+  animation: appear var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+.appear--slow {
+  animation-duration: var(--fs-duration-bloom);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade {
+  animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* スクロールは静かに */
+.scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--fs-color-line) transparent;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--fs-color-line);
+  border-radius: var(--fs-radius-pill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

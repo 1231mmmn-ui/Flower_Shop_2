@@ -1,0 +1,31 @@
+.topbar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fs-space-sm);
+  flex-wrap: wrap;
+}
+
+.topbar__left,
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--fs-space-sm);
+}
+
+.topbar__day {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
+  color: var(--fs-color-ink);
+}
+
+/* 予算を超えても赤字で叱らない。ほんのり色が変わるだけ。 */
+.tag--gentle {
+  background: linear-gradient(
+    180deg,
+    var(--fs-color-glass) 0%,
+    var(--fs-color-petal-soft) 100%
+  );
+}

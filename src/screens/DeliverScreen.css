@@ -1,0 +1,111 @@
+.deliver {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fs-space-md);
+  padding-bottom: var(--fs-space-md);
+}
+
+.deliver__scene {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--fs-space-sm);
+}
+
+.deliver__bouquet {
+  width: min(76%, 300px);
+  filter: drop-shadow(0 22px 34px rgba(96, 74, 54, 0.22));
+}
+
+.deliver__smile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fs-space-md);
+}
+
+.deliver__smile .label {
+  margin: 0;
+}
+
+.deliver__flowers {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.deliver__mark {
+  font-size: var(--fs-font-lg);
+  color: var(--fs-color-line);
+  transition: color var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+.deliver__mark.is-on {
+  color: var(--fs-color-petal);
+  animation: mark-bloom var(--fs-duration-slow) var(--fs-easing-rise) both;
+}
+
+@keyframes mark-bloom {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.deliver__card {
+  animation-delay: var(--fs-duration-base);
+}
+
+.deliver__praise {
+  margin: 0;
+  font-size: var(--fs-font-md);
+  line-height: var(--fs-font-line-base);
+}
+
+.deliver__meaning {
+  margin: var(--fs-space-md) 0 0;
+  padding-top: var(--fs-space-md);
+  border-top: 1px solid var(--fs-color-line-soft);
+  font-size: var(--fs-font-sm);
+  color: var(--fs-color-ink-faint);
+  line-height: var(--fs-font-line-base);
+}
+
+.deliver__advice {
+  animation-delay: var(--fs-duration-slow);
+  background: linear-gradient(
+    180deg,
+    var(--fs-color-glass) 0%,
+    rgba(243, 220, 224, 0.55) 100%
+  );
+}
+
+.deliver__advice .body {
+  color: var(--fs-color-ink);
+}
+
+.deliver__budget {
+  margin: var(--fs-space-sm) 0 0;
+}
+
+.deliver__farewell {
+  text-align: center;
+  margin: 0;
+}
+
+.deliver__foot {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: var(--fs-space-sm);
+}
+
+.deliver__foot .button {
+  min-width: 220px;
+}

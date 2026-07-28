@@ -1,0 +1,166 @@
+.detail {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.detail__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--fs-color-veil);
+  cursor: default;
+  animation: fade var(--fs-duration-base) var(--fs-easing-soft) both;
+}
+
+/* 選んだ花だけが前に出て、光が当たる */
+.detail__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--fs-space-lg) 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.detail__flower {
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  max-width: 78%;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(10px 20px 26px rgba(48, 36, 28, 0.45));
+  animation: flower-step-forward var(--fs-duration-bloom) var(--fs-easing-rise) both;
+}
+
+@keyframes flower-step-forward {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.detail__light {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 120%;
+  height: 100%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    52% 46% at 42% 38%,
+    rgba(255, 246, 224, 0.5) 0%,
+    rgba(255, 246, 224, 0) 70%
+  );
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
+}
+
+.detail__card {
+  position: relative;
+  max-height: 52%;
+  margin-top: var(--fs-space-md);
+  animation: appear var(--fs-duration-slow) var(--fs-easing-rise) both;
+}
+
+.detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fs-space-md);
+}
+
+.detail__name {
+  margin: 0;
+  font-size: var(--fs-font-xl);
+  letter-spacing: 0.12em;
+  font-weight: 500;
+}
+
+.detail__price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.detail__yen {
+  font-size: var(--fs-font-lg);
+  color: var(--fs-color-ink);
+}
+
+.detail__meanings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fs-space-sm);
+  margin: var(--fs-space-md) 0 0;
+}
+
+.detail__meaning {
+  padding: 3px var(--fs-space-md);
+  border-radius: var(--fs-radius-pill);
+  background: var(--fs-color-petal-soft);
+  color: var(--fs-color-ink-soft);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.08em;
+}
+
+.detail__note {
+  margin: var(--fs-space-md) 0 0;
+  font-size: var(--fs-font-md);
+  color: var(--fs-color-ink-soft);
+  line-height: var(--fs-font-line-base);
+}
+
+.detail__rows {
+  margin: var(--fs-space-lg) 0 0;
+  display: grid;
+  gap: var(--fs-space-md);
+}
+
+.detail__row {
+  margin: 0;
+}
+
+.detail__row dd {
+  margin: 0;
+}
+
+.detail__badge {
+  margin-left: var(--fs-space-sm);
+  padding: 2px var(--fs-space-md);
+  border-radius: var(--fs-radius-pill);
+  background: var(--fs-color-sage);
+  color: var(--fs-color-cream);
+  font-size: var(--fs-font-xs);
+}
+
+.detail__hint {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-font-sm);
+  color: var(--fs-color-ink-faint);
+}
+
+.detail__actions {
+  display: flex;
+  gap: var(--fs-space-md);
+  margin-top: var(--fs-space-lg);
+}
+
+.detail__actions .button {
+  flex: 1 1 auto;
+}
+
+.detail__picked {
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-xs);
+  opacity: 0.85;
+}

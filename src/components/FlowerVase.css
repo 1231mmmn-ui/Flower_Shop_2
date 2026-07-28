@@ -1,0 +1,109 @@
+.vase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  transform: scale(var(--vase-scale));
+  transform-origin: bottom center;
+  transition: transform var(--fs-duration-quick) var(--fs-easing-rise),
+    filter var(--fs-duration-base) var(--fs-easing-soft);
+  filter: saturate(calc(0.86 + var(--vase-depth) * 0.14))
+    brightness(calc(0.97 + var(--vase-depth) * 0.05));
+}
+
+/* 花を選ぶと、0.2秒ほどで少し浮き上がり、影が濃くなる。 */
+.vase:hover,
+.vase:focus-visible {
+  transform: scale(calc(var(--vase-scale) * 1.04)) translateY(-6px);
+  outline: none;
+}
+
+.vase:active {
+  transform: scale(calc(var(--vase-scale) * 1.01)) translateY(-2px);
+}
+
+.vase__image {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(6px 12px 14px rgba(96, 74, 54, 0.24));
+  transition: filter var(--fs-duration-quick) var(--fs-easing-soft);
+}
+
+.vase:hover .vase__image {
+  filter: drop-shadow(8px 18px 22px rgba(96, 74, 54, 0.34));
+}
+
+/* 花の色が、床にほんのり落ちている */
+.vase__glow {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  width: 62%;
+  height: 16%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.vase__plate {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  max-width: 108%;
+  padding: 3px var(--fs-space-sm);
+  border-radius: var(--fs-radius-sm);
+  background: linear-gradient(175deg, rgba(84, 74, 64, 0.9), rgba(62, 54, 46, 0.92));
+  box-shadow: var(--fs-shadow-soft);
+  white-space: nowrap;
+}
+
+.vase__name {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  letter-spacing: 0.04em;
+  color: #f4ece0;
+}
+
+.vase__price {
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-xs);
+  color: #d9cdbc;
+}
+
+.vase__season,
+.vase__count {
+  position: absolute;
+  top: 4%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: var(--fs-radius-pill);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  box-shadow: var(--fs-shadow-soft);
+}
+
+.vase__season {
+  left: 2%;
+  padding: 0 8px;
+  color: var(--fs-color-ink-soft);
+  background: var(--fs-color-glass);
+  border: 1px solid var(--fs-color-line);
+}
+
+.vase__count {
+  right: 2%;
+  color: var(--fs-color-cream);
+  background: linear-gradient(170deg, var(--fs-color-sage), var(--fs-color-sage-deep));
+  animation: appear var(--fs-duration-base) var(--fs-easing-rise) both;
+}
