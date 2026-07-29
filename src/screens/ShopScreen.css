@@ -8,6 +8,14 @@
   gap: var(--fs-space-sm);
 }
 
+.shop-screen__wish > .whisper {
+  padding: 3px var(--fs-space-lg);
+  border-radius: var(--fs-radius-pill);
+  background: var(--fs-color-glass-soft);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 .shop-screen__wish {
   display: flex;
   align-items: center;
@@ -96,10 +104,17 @@
   box-shadow: var(--fs-shadow-card);
 }
 
-.shop-screen__chip img {
+.shop-screen__chip-art {
+  display: block;
   width: 44px;
-  height: 44px;
-  object-fit: contain;
+  height: 40px;
+  overflow: hidden;
+}
+
+.shop-screen__chip-art img {
+  width: 170%;
+  margin-left: -35%;
+  margin-top: -18%;
 }
 
 .shop-screen__chip-name {

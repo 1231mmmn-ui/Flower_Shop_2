@@ -1,5 +1,6 @@
 /**
- * 画像素材のパスはここでだけ組み立てる（IMAGE_ASSETS.md §1）。
+ * 画像素材のパスはここでだけ組み立てる。
+ * 置き場所・ファイル名・命名規則は IMAGE_ASSETS.md の通り。
  * 画面側でパスを直書きしないこと。差し替えはファイルを上書きするだけで済む。
  */
 
@@ -7,45 +8,52 @@ import type { SeasonId } from '../data/seasons';
 
 const BASE = `${import.meta.env.BASE_URL}assets`;
 
-export type CustomerMood = 'normal' | 'smile';
+/** お客さまの表情差分（IMAGE_ASSETS.md §4） */
+export type CustomerMood = 'normal' | 'happy';
 
-/** 切り花1本（900x1400・花の中心 450,340） */
-export const flowerStem = (id: string) => `${BASE}/flowers/flower_${id}_stem.png`;
+/** 茎付きの1本の花（1024x1024・透過・下端近くまで茎）— §1 */
+export const flower = (id: string) => `${BASE}/flowers/${id}.png`;
 
-/** ガラスの花瓶に生けた状態（900x1100） */
-export const flowerVase = (id: string) => `${BASE}/flowers/flower_${id}_vase.png`;
+/** 店内背景（1600x1200・季節ごと）— §3 */
+export const shopScene = (season: SeasonId) => `${BASE}/scenes/shop-${season}.jpg`;
 
-/** 図鑑・カード用（300x300） */
-export const flowerThumb = (id: string) => `${BASE}/flowers/flower_${id}_thumb.png`;
+/** タイトル用の店内（下中央を空けた構図）— §3 */
+export const titleScene = () => `${BASE}/scenes/shop-title.jpg`;
 
-/** 店内背景（2048x1152） */
-export const shopScene = (season: SeasonId) => `${BASE}/scene/scene_shop_${season}.png`;
+/** 窓の景色だけの差し替え用（800x600・透過）— §3 */
+export const windowView = (season: SeasonId) => `${BASE}/scenes/window-${season}.png`;
 
-/** 手前の作業台（2048x640・透過） */
-export const counter = () => `${BASE}/scene/scene_counter.png`;
-
-/** ラッピングペーパー（1200x1200） */
-export const wrapping = (id: string) => `${BASE}/wrapping/wrap_${id}.png`;
-
-/** リボン（800x500・結び目の中心 400,250） */
-export const ribbon = (id: string) => `${BASE}/ribbon/ribbon_${id}.png`;
-
-/** お客様（900x1200・顔の中心 450,430） */
+/** お客さま（800x800・透過・バストアップ）— §4 */
 export const customer = (id: string, mood: CustomerMood = 'normal') =>
-  `${BASE}/customers/customer_${id}_${mood}.png`;
+  `${BASE}/customers/${id}-${mood}.png`;
 
-export const uiPaper = () => `${BASE}/ui/ui_paper.png`;
-export const uiWoodSign = () => `${BASE}/ui/ui_wood_sign.png`;
-export const uiChalkBoard = () => `${BASE}/ui/ui_chalk_board.png`;
+/** 小物（512x512・透過）— §5 */
+export const vase = () => `${BASE}/props/vase.png`;
+export const basket = () => `${BASE}/props/basket.png`;
+export const basketFull = () => `${BASE}/props/basket-full.png`;
+export const cardBlank = () => `${BASE}/props/card-blank.png`;
+
+/** カウンターの木目テクスチャ（タイル可）— §5 */
+export const counterTexture = () => `${BASE}/props/counter.jpg`;
+
+/** ラッピング資材（512x512・透過）— §6。id は paper-* / ribbon-* をそのまま渡す。 */
+export const wrapMaterial = (id: string) => `${BASE}/wrap/${id}.png`;
+
+/** 温室の生育段階（512x512・透過）— §7 */
+export const greenhouseStage = (stage: 0 | 1 | 2 | 3) =>
+  `${BASE}/greenhouse/stage-${stage}.png`;
 
 /**
- * 素材の規定サイズ。合成時の基準点計算に使う（IMAGE_ASSETS.md §3, §6, §7）。
+ * 素材の規定サイズ。合成時の基準の計算に使う。
+ *
+ * 花は正方形で「下端中央＝茎の切り口」。ブーケはこの点を軸に扇状へ回す。
+ * 花の中心のおおよその高さ（headY）は、店頭で花瓶に生けるときの沈め具合に使う。
  */
 export const assetSize = {
-  stem: { w: 900, h: 1400, headX: 450, headY: 340 },
-  vase: { w: 900, h: 1100 },
-  thumb: { w: 300, h: 300 },
-  wrapping: { w: 1200, h: 1200 },
-  ribbon: { w: 800, h: 500, knotX: 400, knotY: 250 },
-  customer: { w: 900, h: 1200, faceX: 450, faceY: 430 },
+  flower: { w: 1024, h: 1024, headY: 0.30 },
+  scene: { w: 1600, h: 1200 },
+  windowView: { w: 800, h: 600 },
+  customer: { w: 800, h: 800 },
+  prop: { w: 512, h: 512 },
+  card: { w: 512, h: 384 },
 } as const;

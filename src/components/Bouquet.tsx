@@ -1,16 +1,18 @@
 /**
  * ブーケ。ゲームでいちばん美しい画面になる場所。
  *
- * 花は結び目を中心に扇状に開く。素材の基準点は IMAGE_ASSETS.md の通り：
- *   切り花は「下端中央＝切り口」、包み紙は「下端付近＝結び目」、
- *   リボンは「画像の中心＝結び目」。
+ * IMAGE_ASSETS.md §2 の通り、「1本の花」の画像を扇状に重ねて束にする。
+ * 花の画像は下端中央が切り口なので、そこを軸に回す。
+ * 包み紙とリボンは資材の色を借りて BouquetWrap で描く。
  */
 
 import { useRef, type CSSProperties, type PointerEvent } from 'react';
 
 import './Bouquet.css';
-import { flowerStem, ribbon as ribbonPath, wrapping as wrappingPath } from '../assets/paths';
+import { flower as flowerImage } from '../assets/paths';
+import { RibbonBow, WrapCone } from './BouquetWrap';
 import { flowerById } from '../data/flowers';
+import { ribbonById, wrappingById } from '../data/wrapping';
 import { byDepth } from '../game/arrange';
 import type { Bouquet as BouquetModel } from '../game/types';
 
@@ -96,23 +98,13 @@ export function Bouquet({
             }
             onPointerDown={handlePointerDown(stem.uid)}
           >
-            <img src={flowerStem(flower.id)} alt={flower.name} draggable={false} />
+            <img src={flowerImage(flower.id)} alt={flower.name} draggable={false} />
           </div>
         );
       })}
 
-      <img
-        className="bouquet__wrap"
-        src={wrappingPath(bouquet.wrappingId)}
-        alt=""
-        aria-hidden
-      />
-      <img
-        className="bouquet__ribbon"
-        src={ribbonPath(bouquet.ribbonId)}
-        alt=""
-        aria-hidden
-      />
+      <WrapCone wrapping={wrappingById(bouquet.wrappingId)} />
+      <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />
     </div>
   );
 }

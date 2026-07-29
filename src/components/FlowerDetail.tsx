@@ -5,7 +5,7 @@
  */
 
 import './FlowerDetail.css';
-import { flowerStem } from '../assets/paths';
+import { flower as flowerImage } from '../assets/paths';
 import { flowerById, formatPrice, type Flower } from '../data/flowers';
 
 interface FlowerDetailProps {
@@ -39,7 +39,7 @@ export function FlowerDetail({
         <span className="detail__light" aria-hidden />
         <img
           className="detail__flower"
-          src={flowerStem(flower.id)}
+          src={flowerImage(flower.id)}
           alt={flower.name}
           draggable={false}
         />

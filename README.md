@@ -15,8 +15,8 @@
    → お渡しして言葉を受け取る → 次のお客様へ
 ```
 
-- 花をタップすると、その花だけが前に出ます。名前・花言葉・価格・旬・おすすめ用途・
-  ブーケとの相性を、ゆっくり眺められます。
+- 21種の切り花が、季節をまたいで並びます。花をタップすると、その花だけが前に出ます。
+  名前・花言葉・価格・旬・おすすめ用途・ブーケとの相性を、ゆっくり眺められます。
 - 束ねる画面では、花を指でつまんで好きな向きに動かせます。包み紙とリボンも選べます。
 - お客様は、どんな束でも必ず笑顔で受け取ってくれます。返ってくるのは前向きな助言だけです。
 - 出会った花は図鑑に残ります。
@@ -39,8 +39,9 @@ npm run typecheck
 
 ```bash
 pip install Pillow
-npm run assets                                                # すべて
+npm run assets                                                # すべて（約80秒）
 python3 tools/generate_placeholder_assets.py --only flowers   # 花だけ
+# 対象: flowers / scenes / customers / props / wrap / greenhouse
 ```
 
 ---
@@ -57,13 +58,22 @@ python3 tools/generate_placeholder_assets.py --only flowers   # 花だけ
 
 参照パスを組み立てるのは `src/assets/paths.ts` だけです。画面側でパスを直書きしません。
 
-ブーケ合成のために、素材には基準点の約束があります（詳細は `IMAGE_ASSETS.md`）。
+### コード側での組み立て方
 
-| 素材 | 基準点 |
-|---|---|
-| `flower_<id>_stem.png` | 下端中央＝切り口 / 花の中心＝(450, 340) |
-| `wrap_<id>.png` | 画像の下から 10% の高さ＝結び目 |
-| `ribbon_<id>.png` | 画像の中心＝結び目 |
+仕様書が「1本の花を扇状に合成する現行方式」を薦めているので、そのまま踏襲しています。
+
+| 見た目 | 素材 | 組み立て方 |
+|---|---|---|
+| 店頭の花瓶 | `props/vase.png` ＋ `flowers/<id>.png` | 花瓶の水面に切り口が沈むよう重ねる（3本） |
+| ブーケ | `flowers/<id>.png` ×N | 画像の**下端中央＝切り口**を軸に、扇状へ回す |
+| 包み紙・リボン | （画像なし） | 資材の色を借りて CSS で描く。`assets/wrap/` の画像は資材を選ぶ画面で使う |
+| 店内 | `scenes/shop-<season>.jpg` | 上に置き、下端を壁の色へ溶かす。手前に `props/counter.jpg` を敷く |
+| 図鑑・かご | `flowers/<id>.png` | 花の頭のあたりだけを切り出して見せる |
+
+`scenes/shop-<season>.jpg` は、共通の店内へ `scenes/window-<season>.png` を
+はめ込んで書き出しています（仕様書が薦める「窓だけ差し替える」やり方を、
+実行時ではなく画像を作る段階でやっています）。窓の位置は
+`tools/placeholder_art/scene.py` の `WINDOW_BOX` にあります。
 
 ---
 
@@ -75,20 +85,23 @@ tools/
   generate_placeholder_assets.py   仕様通りにプレースホルダ画像を書き出す
   placeholder_art/
     paint.py               水彩の筆（にじみ・花びら・茎・葉・影）。光源は左上で統一
-    flowers.py             12種の切り花・花瓶・サムネイル
-    scene.py               店内（四季）と作業台
-    props.py               ラッピング・リボン・お客様・UIテクスチャ
-public/assets/             上の仕様に従った画像一式
+    flowers.py             21種の切り花
+    scene.py               窓の景色（四季）と店内
+    props.py               花瓶・カゴ・カウンター・ラッピング資材・お客さま・温室
+public/assets/
+  flowers/    21枚          scenes/  窓4枚 + 店内5枚
+  customers/  8人×2表情      props/   花瓶・カゴ・カウンター・カード
+  wrap/       紙6 + リボン5   greenhouse/ 4段階
 src/
   design/tokens.ts         デザイン定数。色・角丸・余白・文字・影・時間はここだけ
   assets/paths.ts          画像パスの組み立て（直書き禁止）
-  data/                    花・お客様・ラッピング・季節
+  data/                    花・お客さま・ラッピング・季節
   game/
     types.ts               状態の形
     arrange.ts             花の束ね方（葉ものは外、主役は中心と手前）
     evaluation.ts          お客様の受け取り方（採点ではない）
     GameContext.tsx        状態と、その変え方
-  components/              Scene / FlowerVase / FlowerDetail / Bouquet / CustomerFigure …
+  components/              Scene / FlowerVase / FlowerDetail / Bouquet / BouquetWrap …
   screens/                 Title / Greeting / Shop / Arrange / Deliver / Library
   audio/ambience.ts        店の音（音源ファイルを持たず Web Audio で鳴らす）
   styles/global.css        下地。値は書かず --fs-* 変数だけを使う
@@ -106,12 +119,17 @@ src/
 
 ### 花を増やすとき
 
-1. `src/data/flowers.ts` に 1 件足す（`id` は英小文字のスラッグ）。
-2. `IMAGE_ASSETS.md` §2 の一覧に和名を足す。
-3. `tools/placeholder_art/flowers.py` の `RECIPES` に同じ `id` で描き方を足す。
-4. `npm run assets -- --only flowers` で画像を書き出す。
+仕様書の「`FLOWERS` 配列に1行足せば全画面へ自動反映」と同じ仕組みです。
 
-画面側の変更は要りません。お客様・ラッピング・リボンも同じ手順です。
+1. `src/data/flowers.ts` の `FLOWERS` に 1 件足す（`id` は英小文字のスラッグ）。
+   → 画像は `assets/flowers/<id>.png` が `id` から自動で引かれ、
+     店頭・詳細・ブーケ・図鑑のすべてに出ます。
+2. `IMAGE_ASSETS.md` §1 の一覧にも和名とプロンプトを足す。
+3. 完成画がまだなら、`tools/placeholder_art/flowers.py` の `RECIPES` に
+   同じ `id` で描き方を足し、`npm run assets -- --only flowers` で書き出す。
+
+お客さま（`src/data/customers.ts`）とラッピング（`src/data/wrapping.ts`）も同じで、
+`id` を仕様書の一覧に合わせておけば、画像は自動で引かれます。
 
 ---
 

@@ -30,6 +30,7 @@ export function App() {
     <div className="shop">
       <Scene
         season={season.id}
+        title={state.phase === 'title'}
         blurred={blurred}
         dimmed={inspecting}
         counterVisible={state.phase !== 'library'}

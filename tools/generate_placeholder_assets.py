@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """IMAGE_ASSETS.md に従って、プレースホルダ画像一式を書き出す。
 
-    python3 tools/generate_placeholder_assets.py [--only flowers,scene,...]
+    python3 tools/generate_placeholder_assets.py [--only flowers,scenes,...]
 
 ここで生成されるのは「仕様を満たす仮の絵」です。
-完成画（半写実・水彩）に差し替える際も、サイズ・透過・ファイル名は
+完成画に差し替える際も、画像サイズ・透過・保存場所・ファイル名・命名規則は
 IMAGE_ASSETS.md の規定のままにしてください。
 """
 
@@ -24,76 +24,75 @@ from tools.placeholder_art import scene as S
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "public" / "assets"
 
-# src/data/customers.ts の id と一致させること（IMAGE_ASSETS.md §7）
-CUSTOMER_SPECS = [
-    dict(id="haruka", hair="#5A4436", cloth="#D9C7A8", skin="#F3DCC6", hair_len=250),
-    dict(id="yoshiko", hair="#9E9A93", cloth="#B9C0B2", skin="#F0DAC6", hair_len=120),
-    dict(id="taichi", hair="#42352C", cloth="#8E9AA6", skin="#EFD6BE", hair_len=90),
-    dict(id="mei", hair="#4B3A30", cloth="#E4C3C6", skin="#F5DFCB", hair_len=300),
-    dict(id="souta", hair="#3B3029", cloth="#7E8C7A", skin="#EDD4BB", hair_len=95),
-    dict(id="rin", hair="#6A5240", cloth="#C9B79C", skin="#F2DAC4", hair_len=190),
-    dict(id="kaoru", hair="#54443A", cloth="#C2B6C6", skin="#F1DAC5", hair_len=160),
-    dict(id="nao", hair="#4A3B33", cloth="#AFBBA8", skin="#F4DEC9", hair_len=210),
-]
 
-
-def out(*parts: str) -> Path:
+def save(img, *parts: str, quality: int = 88) -> None:
     path = ASSETS.joinpath(*parts)
     path.parent.mkdir(parents=True, exist_ok=True)
-    return path
-
-
-def save(img, *parts: str) -> None:
-    path = out(*parts)
-    img.save(path, "PNG", optimize=True)
+    if path.suffix == ".jpg":
+        img.convert("RGB").save(path, "JPEG", quality=quality, optimize=True)
+    else:
+        img.save(path, "PNG", optimize=True)
     print(f"  {path.relative_to(ROOT)}  {img.size[0]}x{img.size[1]}")
 
 
 def build_flowers() -> None:
-    print("花（切り花・花瓶・サムネイル）")
+    """§1 花（1024x1024・透過）"""
+    print("花")
     for i, (fid, recipe) in enumerate(F.RECIPES.items()):
-        stem = F.render_stem(recipe, seed=i * 101 + 7)
-        save(stem, "flowers", f"flower_{fid}_stem.png")
-        save(F.render_thumb(stem, recipe), "flowers", f"flower_{fid}_thumb.png")
-        save(F.render_vase(recipe, seed=i * 101 + 7), "flowers", f"flower_{fid}_vase.png")
+        save(F.render_flower(recipe, seed=i * 101 + 7), "flowers", f"{fid}.png")
 
 
-def build_scene() -> None:
-    print("店内")
+def build_scenes() -> None:
+    """§3 店内背景（1600x1200）と窓の景色（800x600・透過）"""
+    print("店内と窓")
     for season in S.SEASONS:
-        save(S.render_shop(season, seed=11), "scene", f"scene_shop_{season}.png")
-    save(S.render_counter(seed=11), "scene", "scene_counter.png")
-
-
-def build_wrapping() -> None:
-    print("ラッピング・リボン")
-    for wid in P.WRAPS:
-        save(P.render_wrap(wid, seed=23), "wrapping", f"wrap_{wid}.png")
-    for rid in P.RIBBONS:
-        save(P.render_ribbon(rid, seed=29), "ribbon", f"ribbon_{rid}.png")
+        save(S.render_window(season, seed=11), "scenes", f"window-{season}.png")
+        save(S.render_shop(season, seed=11), "scenes", f"shop-{season}.jpg")
+    save(S.render_shop("spring", seed=11, title=True), "scenes", "shop-title.jpg")
 
 
 def build_customers() -> None:
-    print("お客様")
-    for i, spec in enumerate(CUSTOMER_SPECS):
-        for mood in ("normal", "smile"):
+    """§4 お客さま（800x800・透過・表情2種）"""
+    print("お客さま")
+    for i, spec in enumerate(P.CUSTOMER_SPECS):
+        for mood in ("normal", "happy"):
             save(P.render_customer(spec, mood, seed=i * 37 + 3),
-                 "customers", f"customer_{spec['id']}_{mood}.png")
+                 "customers", f"{spec['id']}-{mood}.png")
 
 
-def build_ui() -> None:
-    print("UI テクスチャ")
-    save(P.render_ui_paper(seed=41), "ui", "ui_paper.png")
-    save(P.render_wood_sign(seed=41), "ui", "ui_wood_sign.png")
-    save(P.render_chalk_board(seed=41), "ui", "ui_chalk_board.png")
+def build_props() -> None:
+    """§5・§8 花瓶・カゴ・カウンター・メッセージカード"""
+    print("小物")
+    save(P.render_vase(seed=13), "props", "vase.png")
+    save(P.render_basket(seed=13), "props", "basket.png")
+    save(P.render_basket(seed=13, full=True), "props", "basket-full.png")
+    save(P.render_counter(seed=13), "props", "counter.jpg")
+    save(P.render_card(seed=13), "props", "card-blank.png")
+
+
+def build_wrap() -> None:
+    """§6 ラッピング資材（512x512・透過）"""
+    print("ラッピング資材")
+    for paper_id in P.PAPERS:
+        save(P.render_paper_roll(paper_id, seed=23), "wrap", f"{paper_id}.png")
+    for ribbon_id in P.RIBBONS:
+        save(P.render_ribbon_spool(ribbon_id, seed=29), "wrap", f"{ribbon_id}.png")
+
+
+def build_greenhouse() -> None:
+    """§7 温室（512x512・透過）"""
+    print("温室")
+    for stage in range(4):
+        save(P.render_greenhouse_stage(stage, seed=31), "greenhouse", f"stage-{stage}.png")
 
 
 BUILDERS = {
     "flowers": build_flowers,
-    "scene": build_scene,
-    "wrapping": build_wrapping,
+    "scenes": build_scenes,
     "customers": build_customers,
-    "ui": build_ui,
+    "props": build_props,
+    "wrap": build_wrap,
+    "greenhouse": build_greenhouse,
 }
 
 

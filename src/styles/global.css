@@ -54,15 +54,34 @@ img {
   background: var(--fs-color-sand);
 }
 
-/* 店内。窓からの光と、季節。 */
+/* 店内。窓からの光と、季節。
+   横長の絵をたて長の画面に置くので、上に店内、下は壁の色で続ける。 */
 .scene {
   position: absolute;
   inset: 0;
-  background-position: center 34%;
-  background-size: cover;
-  transform: scale(1.06);
+  background-image: var(--scene-image),
+    linear-gradient(180deg, var(--fs-color-beige) 0%, var(--fs-color-sand) 100%);
+  background-position: center top, center;
+  background-size: auto 58%, cover;
+  background-repeat: no-repeat, no-repeat;
   transition: opacity var(--fs-duration-slow) var(--fs-easing-soft),
     filter var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+/* 店内の絵の下端を、壁の色へそっと溶かす */
+.scene::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 46%;
+  height: 18%;
+  background: linear-gradient(
+    180deg,
+    rgba(237, 226, 206, 0) 0%,
+    rgba(237, 226, 206, 0.92) 72%,
+    var(--fs-color-beige) 100%
+  );
 }
 
 .scene--blurred {
@@ -77,14 +96,32 @@ img {
   transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
 }
 
-/* 手前の作業台 */
+/* 手前の作業台。木目のテクスチャを敷いて、上端を面取りする。 */
 .counter {
   position: absolute;
-  left: -4%;
-  right: -4%;
+  left: 0;
+  right: 0;
   bottom: 0;
-  width: 108%;
+  height: 16%;
+  background-size: 320px 320px;
+  background-repeat: repeat;
   pointer-events: none;
+  box-shadow: inset 0 8px 18px rgba(96, 74, 54, 0.28),
+    0 -10px 26px rgba(96, 74, 54, 0.18);
+}
+
+.counter::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 6px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 246, 228, 0.62) 0%,
+    rgba(255, 246, 228, 0) 100%
+  );
 }
 
 /* 左上から差し込む光 */

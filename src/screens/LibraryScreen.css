@@ -67,13 +67,21 @@
   box-shadow: var(--fs-shadow-card);
 }
 
-.library__card img {
-  width: 84px;
+/* 花の画像は正方形で茎が長い。図鑑では花の頭のあたりだけを見せる。 */
+.library__thumb {
+  display: block;
+  width: 92px;
   height: 84px;
-  object-fit: contain;
+  overflow: hidden;
 }
 
-.library__card.is-unmet img {
+.library__thumb img {
+  width: 150%;
+  margin-left: -25%;
+  margin-top: -12%;
+}
+
+.library__card.is-unmet .library__thumb img {
   opacity: 0.28;
   filter: grayscale(0.7);
 }

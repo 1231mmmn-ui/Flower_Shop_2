@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import './LibraryScreen.css';
-import { flowerThumb } from '../assets/paths';
+import { flower as flowerImage } from '../assets/paths';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { FLOWERS, flowerById } from '../data/flowers';
 import { useGame } from '../game/GameContext';
@@ -71,7 +71,9 @@ export function LibraryScreen() {
               className={`library__card panel panel--flat ${entry ? '' : 'is-unmet'}`}
               onClick={() => setOpened(item.id)}
             >
-              <img src={flowerThumb(item.id)} alt={item.name} />
+              <span className="library__thumb">
+                <img src={flowerImage(item.id)} alt={item.name} />
+              </span>
               <span className="library__name">{item.name}</span>
               <span className="library__meaning">
                 {entry

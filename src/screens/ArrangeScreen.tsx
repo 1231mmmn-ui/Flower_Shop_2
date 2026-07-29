@@ -8,6 +8,7 @@ import { useState } from 'react';
 import './ArrangeScreen.css';
 import { Bouquet } from '../components/Bouquet';
 import { TopBar } from '../components/TopBar';
+import { wrapMaterial } from '../assets/paths';
 import { flowerById } from '../data/flowers';
 import { RIBBONS, WRAPPINGS } from '../data/wrapping';
 import { bouquetPrice } from '../game/evaluation';
@@ -140,9 +141,10 @@ export function ArrangeScreen() {
                   }`}
                   onClick={() => dispatch({ type: 'set-wrapping', id: wrap.id })}
                 >
-                  <span
-                    className="arrange__paper"
-                    style={{ background: wrap.swatch }}
+                  <img
+                    className="arrange__material-art"
+                    src={wrapMaterial(wrap.id)}
+                    alt=""
                     aria-hidden
                   />
                   <span className="arrange__material-body">
@@ -165,9 +167,10 @@ export function ArrangeScreen() {
                   }`}
                   onClick={() => dispatch({ type: 'set-ribbon', id: item.id })}
                 >
-                  <span
-                    className="arrange__paper"
-                    style={{ background: item.swatch }}
+                  <img
+                    className="arrange__material-art"
+                    src={wrapMaterial(item.id)}
+                    alt=""
                     aria-hidden
                   />
                   <span className="arrange__material-body">

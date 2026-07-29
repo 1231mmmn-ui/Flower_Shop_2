@@ -1,10 +1,15 @@
 /**
  * 店頭の一台。花は棚ではなく、ガラスの花瓶に生けられている。
  * 手前の花は少し大きく、奥の花は少し小さく見える。
+ *
+ * 花瓶（assets/props/vase.png）と切り花（assets/flowers/<id>.png）は
+ * 別々の素材なので、ここで重ねて「生けた状態」を作る。
  */
 
+import type { CSSProperties } from 'react';
+
 import './FlowerVase.css';
-import { flowerVase } from '../assets/paths';
+import { flower as flowerImage, vase } from '../assets/paths';
 import { formatPrice, type Flower } from '../data/flowers';
 
 interface FlowerVaseProps {
@@ -17,6 +22,13 @@ interface FlowerVaseProps {
   onSelect: () => void;
 }
 
+/** 花瓶に生ける本数と、その傾き・奥行き。 */
+const STEMS = [
+  { angle: -8, scale: 0.92, depth: 0 },
+  { angle: 7, scale: 0.95, depth: 1 },
+  { angle: -1, scale: 1.0, depth: 2 },
+];
+
 export function FlowerVase({ flower, depth, inSeason, picked, onSelect }: FlowerVaseProps) {
   const scale = 0.84 + depth * 0.28;
 
@@ -24,16 +36,36 @@ export function FlowerVase({ flower, depth, inSeason, picked, onSelect }: Flower
     <button
       type="button"
       className="vase"
-      style={{
-        // 手前ほど大きく、奥ほど淡く。自然な遠近感。
-        '--vase-scale': scale,
-        '--vase-depth': depth,
-      } as React.CSSProperties}
+      style={
+        {
+          '--vase-scale': scale,
+          '--vase-depth': depth,
+        } as CSSProperties
+      }
       onClick={onSelect}
       aria-label={`${flower.name}を見る`}
     >
+      <span className="vase__stems">
+        {STEMS.map((stem) => (
+          <img
+            key={stem.depth}
+            className="vase__stem"
+            src={flowerImage(flower.id)}
+            alt=""
+            aria-hidden
+            style={
+              {
+                '--angle': `${stem.angle}deg`,
+                '--stem-scale': stem.scale,
+                zIndex: stem.depth,
+              } as CSSProperties
+            }
+          />
+        ))}
+      </span>
+
+      <img className="vase__glass" src={vase()} alt={`${flower.name}の花瓶`} />
       <span className="vase__glow" style={{ background: flower.swatch }} aria-hidden />
-      <img className="vase__image" src={flowerVase(flower.id)} alt={flower.name} />
 
       <span className="vase__plate">
         <span className="vase__name">{flower.name}</span>

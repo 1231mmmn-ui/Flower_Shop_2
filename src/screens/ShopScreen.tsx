@@ -6,7 +6,7 @@
 import { useMemo } from 'react';
 
 import './ShopScreen.css';
-import { flowerThumb } from '../assets/paths';
+import { flower as flowerImage } from '../assets/paths';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { FlowerVase } from '../components/FlowerVase';
 import { TopBar } from '../components/TopBar';
@@ -92,7 +92,9 @@ export function ShopScreen() {
                   onClick={() => dispatch({ type: 'unpick', uid: stem.uid })}
                   title={`${flower.name}を花瓶に戻す`}
                 >
-                  <img src={flowerThumb(flower.id)} alt={flower.name} />
+                  <span className="shop-screen__chip-art">
+                    <img src={flowerImage(flower.id)} alt={flower.name} />
+                  </span>
                   <span className="shop-screen__chip-name">{flower.name}</span>
                 </button>
               );

@@ -25,7 +25,7 @@ export function DeliverScreen() {
 
       <CustomerFigure
         customer={customer}
-        mood="smile"
+        mood="happy"
         lines={result.words}
         showName={false}
       />

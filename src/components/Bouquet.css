@@ -5,7 +5,8 @@
   touch-action: none;
   /* 結び目は下から 22% のあたり。ここを中心に花が開く。 */
   --knot-bottom: 20%;
-  --stem-width: 54%;
+  /* 花の画像は正方形。頭は上から約3割の位置にある。 */
+  --stem-width: 82%;
 }
 
 /* 花が扇の中心にする、見えない一点 */
@@ -66,35 +67,6 @@
   to {
     opacity: 1;
   }
-}
-
-.bouquet__wrap {
-  position: absolute;
-  left: 50%;
-  bottom: var(--knot-bottom);
-  width: calc(52% * var(--bouquet-scale, 1));
-  /* 包み紙は画像の下から 10% の位置が結び目（IMAGE_ASSETS.md §5）。
-     translate の % は要素自身の大きさに対する割合なので、そこを結び目に合わせる。 */
-  transform: translate(-50%, 10%);
-  z-index: 60;
-  pointer-events: none;
-  filter: drop-shadow(6px 10px 14px rgba(96, 74, 54, 0.22));
-  /* appear は transform を上書きしてしまう。基準点を保つため opacity だけで現す。 */
-  animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
-}
-
-.bouquet__ribbon {
-  position: absolute;
-  left: 50%;
-  bottom: var(--knot-bottom);
-  width: calc(26% * var(--bouquet-scale, 1));
-  /* リボンは画像の中心が結び目（IMAGE_ASSETS.md §6）。 */
-  transform: translate(-50%, 50%);
-  z-index: 61;
-  pointer-events: none;
-  filter: drop-shadow(3px 6px 8px rgba(96, 74, 54, 0.24));
-  animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
-  animation-delay: var(--fs-duration-quick);
 }
 
 /* 何も挿さっていないとき */

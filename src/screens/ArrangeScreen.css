@@ -14,7 +14,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-top: var(--fs-space-sm);
+  padding-top: var(--fs-space-lg);
 }
 
 .arrange__stage .bouquet {
@@ -118,12 +118,12 @@
   border-color: var(--fs-color-sage);
 }
 
-.arrange__paper {
+/* 資材そのものの写し（紙のロール／リボンの巻き） */
+.arrange__material-art {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--fs-radius-sm);
-  box-shadow: var(--fs-shadow-soft), var(--fs-shadow-inset);
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
 }
 
 .arrange__material-body {
