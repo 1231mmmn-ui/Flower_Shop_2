@@ -11,6 +11,7 @@ import { useState } from 'react';
 import './ArrangeScreen.css';
 import { wrapMaterial } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
+import { ApronMemo } from '../components/ApronMemo';
 import { QuietBar } from '../components/QuietBar';
 import { flowerById } from '../data/flowers';
 import { RIBBONS, WRAPPINGS, ribbonById, wrappingById } from '../data/wrapping';
@@ -18,7 +19,7 @@ import { bouquetPrice } from '../game/evaluation';
 import { useGame } from '../game/GameContext';
 
 export function ArrangeScreen() {
-  const { state, dispatch } = useGame();
+  const { state, dispatch, customer } = useGame();
   const [selected, setSelected] = useState<string | null>(null);
 
   const total = bouquetPrice(state.bouquet);
@@ -29,6 +30,9 @@ export function ArrangeScreen() {
   return (
     <div className="arrange">
       <QuietBar />
+
+      {/* 束ねているあいだも、お客さまの言葉は手元にある。 */}
+      <ApronMemo customer={customer} />
 
       <div className="arrange__stage">
         <Bouquet

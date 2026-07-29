@@ -6,18 +6,22 @@
  * 小さな木札としてそっと出る。
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import './ShopScreen.css';
+import { ApronMemo } from '../components/ApronMemo';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { FlowerStand } from '../components/FlowerStand';
 import { QuietBar } from '../components/QuietBar';
-import { FLOWERS, flowerById, formatPrice } from '../data/flowers';
+import { flowerById, formatPrice } from '../data/flowers';
+import { shelfFor } from '../data/shelf';
 import { useGame } from '../game/GameContext';
 
 export function ShopScreen() {
   const { state, dispatch, customer, season, pickedTotal } = useGame();
   const counterRef = useRef<HTMLDivElement>(null);
+  // 今日の棚。季節で花は入れ替えず、旬のものが手前に来るだけ。
+  const shelf = useMemo(() => shelfFor(season.id, state.day), [season.id, state.day]);
   const [center, setCenter] = useState(0);
 
   /** いま画面の中央にある花を見つける。 */
@@ -51,7 +55,7 @@ export function ShopScreen() {
   const countOf = (flowerId: string) =>
     state.picked.filter((stem) => stem.flowerId === flowerId).length;
 
-  const front = FLOWERS[Math.min(center, FLOWERS.length - 1)];
+  const front = shelf[Math.min(center, shelf.length - 1)];
   const overBudget = pickedTotal > customer.budget;
 
   return (
@@ -61,8 +65,14 @@ export function ShopScreen() {
       {/* お客様の望みは、一行のつぶやきとして残しておく */}
       <p className="shop-view__murmur">{customer.wish.toneLabel}</p>
 
+      {/*
+        エプロンのメモ。選んでいるあいだ、お客さまの言葉がずっと手元にある。
+        こちらからは開かない。気づかない人がいてよい。
+      */}
+      {!inspecting && <ApronMemo customer={customer} />}
+
       <div className="shop-view__counter" ref={counterRef}>
-        {FLOWERS.map((flower, index) => (
+        {shelf.map((flower, index) => (
           <FlowerStand
             key={flower.id}
             flower={flower}

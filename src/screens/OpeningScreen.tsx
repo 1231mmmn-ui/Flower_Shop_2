@@ -15,13 +15,14 @@
  * 滞在0秒でも成立します。それでも置くのは、素通りしない人のためです。
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import './OpeningScreen.css';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { FlowerStand } from '../components/FlowerStand';
 import { ambience } from '../audio/ambience';
-import { FLOWERS, flowerById } from '../data/flowers';
+import { flowerById } from '../data/flowers';
+import { shelfFor } from '../data/shelf';
 import { useGame } from '../game/GameContext';
 import { useBreeze } from '../game/useBreeze';
 
@@ -31,6 +32,8 @@ const SIGN_FLIP_MS = 900;
 export function OpeningScreen() {
   const { state, dispatch, season } = useGame();
   const shelfRef = useRef<HTMLDivElement>(null);
+  // ④花選択とまったく同じ棚。並びも同じ。
+  const shelf = useMemo(() => shelfFor(season.id, state.day), [season.id, state.day]);
   const [center, setCenter] = useState(0);
   const [flipping, setFlipping] = useState(false);
   const breeze = useBreeze();
@@ -68,7 +71,7 @@ export function OpeningScreen() {
   const inspecting = state.inspectingFlowerId
     ? flowerById(state.inspectingFlowerId)
     : null;
-  const front = FLOWERS[Math.min(center, FLOWERS.length - 1)];
+  const front = shelf[Math.min(center, shelf.length - 1)];
 
   /** 札を裏返す。ゆっくり返って、揺れて止まり、そこでベルが鳴る。 */
   const flipSign = () => {
@@ -113,7 +116,7 @@ export function OpeningScreen() {
 
       {/* ④花選択と同じ棚、同じ見え方。別の画面に見せない。 */}
       <div className="morning__shelf" ref={shelfRef}>
-        {FLOWERS.map((flower, index) => (
+        {shelf.map((flower, index) => (
           <FlowerStand
             key={flower.id}
             flower={flower}
