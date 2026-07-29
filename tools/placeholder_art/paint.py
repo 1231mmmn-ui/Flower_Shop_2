@@ -57,6 +57,86 @@ def lit_amount(angle: float) -> float:
     return math.cos(math.radians(angle - LIGHT_ANGLE))
 
 
+def through_amount(angle: float) -> float:
+    """
+    その向きが、どれだけ光を「通す」か（0〜1）。
+
+    人は花びらを見ているようで、実は光を見ている。
+    光を正面から受けた面より、**光に背を向けて透けている面**のほうが目を引く。
+
+    前の版はここが逆だった。lit（-1〜1）で明るさを上下させるだけだったので、
+    光の向こう側にある花びらが、ただ暗くなっていた。
+    実際の花では、向こうから光が抜けて、明るく・色が濃くなる。
+    """
+    return max(0.0, -lit_amount(angle)) ** 1.35
+
+
+def translucent(color: RGB, amount: float) -> RGB:
+    """
+    光が透けた花びらの色。
+
+    明るくするだけでは白っぽくなって、かえって薄く見える。
+    **彩度を上げながら、暖色へ寄せる。** 花びらは薄い膜で、
+    通った光がその色に染まって出てくるため。
+    """
+    if amount <= 0:
+        return color
+    r, g, b = color
+    mean = (r + g + b) / 3.0
+    # 彩度を上げる（平均から遠ざける）
+    k = 1.0 + 0.55 * amount
+    r = mean + (r - mean) * k
+    g = mean + (g - mean) * k
+    b = mean + (b - mean) * k
+    # 通ってきた光ぶん、わずかに暖色へ
+    warm = 26 * amount
+    return (max(0, min(255, int(r + warm))),
+            max(0, min(255, int(g + warm * 0.72))),
+            max(0, min(255, int(b + warm * 0.28))))
+
+
+def contact_shadow(layer: Image.Image, mask: Image.Image, x: int, y: int,
+                   angle: float, strength: float = 0.30) -> None:
+    """
+    重なりの、接触影。
+
+    これから置く花びらの影を、**すでに置いてある下の層に**落とす。
+    水彩画で奥行きを作っているのは花びらの形ではなく、この接触部分の影で、
+    これが無いと何枚重ねても「順番」にしか見えず「厚み」に見えない。
+
+    影は光と反対側（右下寄り）へ、ごくわずかにずらす。
+    """
+    if strength <= 0:
+        return
+    # 光と反対の向きへ、花びらの大きさに応じて少しだけ寄せる
+    span = max(mask.size) * 0.055 + 2.0
+    dx = int(round(math.sin(math.radians(LIGHT_ANGLE + 180)) * span))
+    dy = int(round(-math.cos(math.radians(LIGHT_ANGLE + 180)) * span))
+
+    blur = max(1.6, max(mask.size) * 0.045)
+    soft = mask.filter(ImageFilter.GaussianBlur(blur))
+    soft = soft.point(lambda v: int(v * strength))
+
+    # 影のぶんだけ、下の層を暗くする（アルファは触らない）
+    lw, lh = layer.size
+    sw, sh = soft.size
+    px, py = x + dx, y + dy
+    sx0, sy0 = max(0, -px), max(0, -py)
+    dx0, dy0 = max(0, px), max(0, py)
+    dx1, dy1 = min(lw, px + sw), min(lh, py + sh)
+    if dx1 <= dx0 or dy1 <= dy0:
+        return
+
+    box = (dx0, dy0, dx1, dy1)
+    region = layer.crop(box)
+    shadow_mask = soft.crop((sx0, sy0, sx0 + (dx1 - dx0), sy0 + (dy1 - dy0)))
+    # すでに何か描かれているところにだけ落とす（背景には落とさない）
+    shadow_mask = ImageChops.multiply(shadow_mask, region.getchannel("A"))
+    dark = Image.new("RGBA", region.size, (52, 40, 46, 255))
+    region.paste(dark, (0, 0), shadow_mask)
+    layer.paste(region, box)
+
+
 # --------------------------------------------------------------------------
 # 紙・にじみ
 # --------------------------------------------------------------------------
@@ -208,8 +288,14 @@ def tapered_band(path: Sequence[tuple[float, float]], w_start: float,
 def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
                length: float, width: float, base: RGB, tip_color: RGB,
                rng: random.Random, tip: float = 0.55, waist: float = 0.62,
-               veins: bool = True, offset: float = 0.0, curl: float = 0.0) -> None:
-    """花びら1枚。angle は12時方向から時計回りの度数。"""
+               veins: bool = True, offset: float = 0.0, curl: float = 0.0,
+               translucency: float = 1.0, shadow: float = 0.30) -> None:
+    """
+    花びら1枚。angle は12時方向から時計回りの度数。
+
+    translucency  光の透けやすさ。厚い花びら（バラの芯など）は下げる。
+    shadow        下の層に落とす接触影の濃さ。0 で落とさない。
+    """
     ox = center[0] + math.sin(math.radians(angle)) * offset
     oy = center[1] - math.cos(math.radians(angle)) * offset
 
@@ -224,11 +310,28 @@ def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
     ImageDraw.Draw(mask).polygon(shape, fill=255)
 
     lit = lit_amount(angle)
+    through = through_amount(angle) * translucency
+
     base_c = shade(jitter(base, rng, 5), -0.05 + 0.09 * lit)
     tip_c = shade(jitter(tip_color, rng, 7), 0.04 + 0.13 * lit)
+
+    if through > 0.02:
+        # 光が抜けている花びら。暗くするのではなく、色を濃く・暖かくする。
+        # 先のほうが薄いので、先端ほど強く透ける。
+        base_c = translucent(base_c, through * 0.45)
+        tip_c = translucent(tip_c, through)
+
     grad = linear_gradient(size, tip_c, base_c).rotate(-angle, Image.BILINEAR)
 
     local = _fill_local(size, mask, grad, rng.randint(0, 99999), 2.0, 0.24)
+
+    if through > 0.25 and length > 20:
+        # 縁だけが、ふっと光る。全部の花びらではなく、光の向こう側の数枚だけ。
+        edge = mask.filter(ImageFilter.GaussianBlur(max(1.2, width * 0.10)))
+        edge = ImageChops.subtract(edge, mask.point(lambda v: 255 if v > 200 else 0))
+        edge = edge.point(lambda v: int(v * (through - 0.25) * 1.5))
+        local.paste(Image.new("RGB", size, translucent(tip_c, 1.0)), (0, 0),
+                    ImageChops.multiply(edge, mask))
 
     if veins and length > 24:
         vein = Image.new("L", size, 0)
@@ -246,6 +349,8 @@ def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
                                    mask.point(lambda v: 255 if v > 110 else 0))
         local.paste(Image.new("RGB", size, shade(base, -0.34)), (0, 0), vein)
 
+    # 置く前に、下の層へ影を落とす。これが重なりの厚みになる。
+    contact_shadow(layer, mask, int(ox - r), int(oy - r), angle, shadow)
     stamp(layer, local, int(ox - r), int(oy - r))
 
 
@@ -253,9 +358,11 @@ def draw_leaf(layer: Image.Image, center: tuple[float, float], angle: float,
               length: float, width: float, color: RGB, rng: random.Random,
               tip: float = 0.42, curl: float = 0.0) -> None:
     lit = lit_amount(angle)
+    # 葉は花びらより厚い。透けにくく、影はしっかり落ちる。
     draw_petal(layer, center, angle, length, width,
                shade(color, -0.15 + 0.10 * lit), shade(color, 0.09 + 0.12 * lit),
-               rng, tip=tip, waist=0.55, veins=True, curl=curl)
+               rng, tip=tip, waist=0.55, veins=True, curl=curl,
+               translucency=0.45, shadow=0.34)
 
 
 def draw_blob(layer: Image.Image, center: tuple[float, float], rx: float, ry: float,
@@ -292,12 +399,59 @@ def draw_stem(layer: Image.Image, path: Sequence[tuple[float, float]],
     grad = linear_gradient(size, shade(color, 0.16), shade(color, -0.2), horizontal=True)
     local = _fill_local(size, mask, grad, rng.randint(0, 99999), 1.0, 0.2)
 
+    # 光の当たる筋。まっすぐ引かず、上下で細く消える。
+    # 人は花だけでなく「花がどう立っているか」を見ている。
+    # 茎が一本の棒に見えると、そこで生命感が止まる。
     hi = Image.new("L", size, 0)
-    ImageDraw.Draw(hi).line([(x - w_top * 0.24, y) for x, y in local_path],
-                            fill=64, width=max(1, int(w_top * 0.24)))
-    hi = ImageChops.multiply(hi.filter(ImageFilter.GaussianBlur(1.4)), mask)
+    hd = ImageDraw.Draw(hi)
+    n = len(local_path)
+    for i in range(n - 1):
+        t = i / max(1, n - 1)
+        # 端に近いほど薄く（真ん中がいちばん光る）
+        fade = math.sin(math.pi * min(1.0, max(0.0, t))) ** 0.7
+        if fade <= 0.02:
+            continue
+        w_here = w_top + (w_bottom - w_top) * t
+        off = -w_here * 0.26
+        hd.line([(local_path[i][0] + off, local_path[i][1]),
+                 (local_path[i + 1][0] + off, local_path[i + 1][1])],
+                fill=int(78 * fade), width=max(1, int(w_here * 0.22)))
+    hi = ImageChops.multiply(hi.filter(ImageFilter.GaussianBlur(1.6)), mask)
     local.paste(Image.new("RGB", size, shade(color, 0.45)), (0, 0), hi)
     stamp(layer, local, x0, y0)
+
+
+def draw_cut_end(layer: Image.Image, point: tuple[float, float], width: float,
+                 color: RGB, rng: random.Random) -> None:
+    """
+    切り口。
+
+    **花屋の花は、切られている。** そこだけ色が抜けて、水を吸った跡がある。
+
+    ただし花の絵には描かない。仕様では茎が画像の下端で切れる構図で、
+    店でも花瓶の水に隠れてしまうため。これはカウンターに残った
+    切り落とし（＝仕事の痕跡）を描くときに使う。
+    """
+    rx = width * 0.62
+    ry = max(1.5, width * 0.30)
+    r = int(max(rx, ry)) + 5
+    size = (2 * r, 2 * r)
+
+    mask = Image.new("L", size, 0)
+    ImageDraw.Draw(mask).ellipse([r - rx, r - ry, r + rx, r + ry], fill=255)
+
+    # 切り口は、茎より白っぽく、少しだけ黄みがかる
+    face = mix(color, (246, 240, 216), 0.62)
+    local = _fill_local(size, mask, face, rng.randint(0, 99999), 0.9, 0.18)
+
+    # 縁だけ、もとの茎の色が残る
+    rim = Image.new("L", size, 0)
+    ImageDraw.Draw(rim).ellipse([r - rx, r - ry, r + rx, r + ry],
+                                outline=120, width=max(1, int(ry * 0.5)))
+    rim = ImageChops.multiply(rim.filter(ImageFilter.GaussianBlur(0.8)), mask)
+    local.paste(Image.new("RGB", size, shade(color, -0.12)), (0, 0), rim)
+
+    stamp(layer, local, int(point[0] - r), int(point[1] - r))
 
 
 def drop_shadow(layer: Image.Image, blur: float = 13, offset: tuple[int, int] = (9, 13),

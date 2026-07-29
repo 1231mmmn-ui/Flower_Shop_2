@@ -549,12 +549,24 @@ def render_flower(recipe: Recipe, seed: int = 0, scale: float = 1.0,
     bx = (base_x if base_x is not None else size[0] / 2) * SS
     r = recipe.head_r * SS * scale
     stem_col = jitter(hex_rgb(recipe.stem), rng, 5)
-    lean = recipe.lean * rng.uniform(0.4, 1.4) * rng.choice((-1, 1)) * SS
+    lean = recipe.lean * rng.uniform(0.6, 1.6) * rng.choice((-1, 1)) * SS
 
-    # 茎（下端から花の中心へ、ゆるやかに反る）
-    path = bezier((bx, h), (bx + lean * 2.2, (h + cy) / 2), (cx, cy + r * 0.42), 46)
+    # 茎。まっすぐには立てない。
+    # 切り花はどれも少し反っていて、その反りが「どう立っているか」を作る。
+    # 下半分でひと方向へ、上半分でわずかに戻す（ゆるいS）。
+    mid_y = (h + cy) / 2
+    lower = bezier((bx, h), (bx + lean * 2.4, mid_y + (h - mid_y) * 0.35),
+                   (bx + lean * 1.6, mid_y), 24)
+    upper = bezier((bx + lean * 1.6, mid_y), (bx + lean * 0.7, (mid_y + cy) / 2),
+                   (cx, cy + r * 0.42), 26)
+    path = lower + upper[1:]
     draw_stem(layer, path, recipe.stem_w[0] * SS * scale, recipe.stem_w[1] * SS * scale,
               stem_col, rng)
+
+    # ここに切り口は描かない。
+    # 仕様では茎は画像の下端で切れる構図（IMAGE_ASSETS.md §1）なので、
+    # 切り口を置いても半分が画面外になり、店では花瓶の水に隠れてしまう。
+    # 「切られた花」を見せるなら、カウンターに残った切り落とし（仕事の痕跡）のほう。
 
     if recipe.leaves and recipe.leaf_style != "none":
         _draw_leaves(layer, recipe, path, rng, scale)

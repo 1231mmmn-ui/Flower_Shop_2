@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const p = await b.newPage({ viewport: { width: 430, height: 932 }, deviceScaleFactor: 2 });
+await p.goto('http://localhost:4182/', { waitUntil: 'networkidle' });
+await p.getByRole('button', { name: '扉を押す' }).click();
+await p.waitForTimeout(1600);
+await p.screenshot({ path: 'g1-morning.png' });
+await p.locator('.morning__shelf .stand').nth(2).click();
+await p.waitForTimeout(1600);
+await p.screenshot({ path: 'g2-detail.png' });
+await b.close();
