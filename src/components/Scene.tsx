@@ -6,7 +6,7 @@
  * 「花屋に入ったときの空気」をここで作る。UI はこの上に最小限だけ載る。
  */
 
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo } from 'react';
 
 import { shopScene, titleScene } from '../assets/paths';
 import type { SeasonId } from '../data/seasons';
@@ -50,11 +50,10 @@ export function Scene({ season, title, blurred, dimmed }: SceneProps) {
         ]
           .filter(Boolean)
           .join(' ')}
-        style={
-          {
-            '--scene-image': `url(${title ? titleScene() : shopScene(season)})`,
-          } as CSSProperties
-        }
+        // カスタムプロパティ経由で url() を渡すと、相対パスが CSS ファイルの
+        // 位置から解かれてしまう（本番ビルドで assets/assets/… になる）。
+        // background-image を直に書けば、基準は必ずドキュメントになる。
+        style={{ backgroundImage: `url(${title ? titleScene() : shopScene(season)})` }}
         aria-hidden
       />
 

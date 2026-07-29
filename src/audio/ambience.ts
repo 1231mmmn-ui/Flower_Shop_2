@@ -1,24 +1,56 @@
 /**
  * 店の音。
  *
- * ピアノがぽつり、風がゆっくり、ときどき鳥の声。
  * 音源ファイルは持たず、Web Audio でその場で鳴らしている。
  * 音量は小さく、リズムは作らない（急かさないため）。
+ *
+ * 音には二つの層がある。
+ *
+ *   'morning'  開店前。鳥と風だけ。**ピアノは鳴らさない**
+ *   'shop'     開店後。そこにピアノがぽつりと加わる
+ *
+ * 開店前に音楽を鳴らさないのは、⑮実装の順番 3章の決めごと。
+ * 札を裏返した瞬間に初めて店の音が入ってくることで、
+ * 「ゲームを始める」ではなく「今日も花屋を開けよう」になる。
  */
 
 const SCALE = [0, 2, 4, 7, 9, 12, 14, 16]; // ペンタトニック。外れた音が出ない。
 const ROOT = 261.63; // C4
 
+/** 音の層。開店前は鳥と風だけ。 */
+export type AmbienceMode = 'morning' | 'shop';
+
+/** 鳥が鳴くまでの間（ミリ秒）。⑮3章「12〜40秒に一度」。 */
+const BIRD_GAP: readonly [number, number] = [12_000, 28_000];
+/** 風がひと吹きするまでの間。⑮3章「20〜60秒に一度」。 */
+const GUST_GAP: readonly [number, number] = [20_000, 40_000];
+/** ピアノの音と音のあいだ。 */
+const NOTE_GAP: readonly [number, number] = [2_600, 6_800];
+
+const between = ([lo, hi]: readonly [number, number]): number =>
+  lo + Math.random() * (hi - lo);
+
 export class Ambience {
   private context: AudioContext | null = null;
   private master: GainNode | null = null;
   private wind: AudioBufferSourceNode | null = null;
-  private timer: number | null = null;
+  private windGain: GainNode | null = null;
+  private timers = new Set<number>();
   private running = false;
+  private mode: AmbienceMode = 'shop';
 
-  async start(): Promise<void> {
-    if (this.running) return;
+  /** いま鳴らしている層。開店前は 'morning'。 */
+  get currentMode(): AmbienceMode {
+    return this.mode;
+  }
+
+  async start(mode: AmbienceMode = 'shop'): Promise<void> {
+    if (this.running) {
+      this.setMode(mode);
+      return;
+    }
     this.running = true;
+    this.mode = mode;
 
     const Ctor =
       window.AudioContext ??
@@ -37,15 +69,27 @@ export class Ambience {
     this.master = master;
 
     this.startWind(context, master);
+    this.scheduleBird();
+    this.scheduleGust();
     this.scheduleNote();
+  }
+
+  /**
+   * 層を切り替える。
+   * 'morning' → 'shop' は、札を裏返した瞬間。ピアノがここから入る。
+   */
+  setMode(mode: AmbienceMode): void {
+    if (this.mode === mode) return;
+    this.mode = mode;
+    // ピアノの予約は scheduleNote 側が mode を見て自分で止まる／始まる。
+    if (mode === 'shop') this.scheduleNote();
   }
 
   stop(): void {
     this.running = false;
-    if (this.timer !== null) {
-      window.clearTimeout(this.timer);
-      this.timer = null;
-    }
+    for (const id of this.timers) window.clearTimeout(id);
+    this.timers.clear();
+
     const { context, master } = this;
     if (!context || !master) return;
     master.gain.cancelScheduledValues(context.currentTime);
@@ -54,9 +98,19 @@ export class Ambience {
     window.setTimeout(() => {
       this.wind?.stop();
       this.wind = null;
+      this.windGain = null;
       master.disconnect();
       this.master = null;
     }, 1800);
+  }
+
+  /** あとで自分で片づけられるように、タイマーを覚えておく。 */
+  private later(ms: number, run: () => void): void {
+    const id = window.setTimeout(() => {
+      this.timers.delete(id);
+      run();
+    }, ms);
+    this.timers.add(id);
   }
 
   /** 木々を渡る風。フィルタをかけた雑音をゆっくり揺らす。 */
@@ -93,16 +147,56 @@ export class Ambience {
     source.connect(filter).connect(gain).connect(master);
     source.start();
     this.wind = source;
+    this.windGain = gain;
+  }
+
+  /**
+   * ひと吹きの風。葉が大きく揺れる合図でもある。
+   * 常時の風とは別に、ときどき膨らませて、また戻す。
+   */
+  private scheduleGust(): void {
+    if (!this.running) return;
+    this.later(between(GUST_GAP), () => {
+      this.playGust();
+      this.scheduleGust();
+    });
+  }
+
+  private playGust(): void {
+    const { context, windGain } = this;
+    if (!context || !windGain) return;
+    const now = context.currentTime;
+    const peak = 0.1 + Math.random() * 0.05;
+    windGain.gain.cancelScheduledValues(now);
+    windGain.gain.setValueAtTime(windGain.gain.value, now);
+    windGain.gain.linearRampToValueAtTime(peak, now + 2.2);
+    windGain.gain.linearRampToValueAtTime(0.055, now + 6.5);
+  }
+
+  /** 鳥。開店前も開店後も鳴く。 */
+  private scheduleBird(): void {
+    if (!this.running) return;
+    this.later(between(BIRD_GAP), () => {
+      const { context, master } = this;
+      if (context && master) {
+        this.playBird(context, master, context.currentTime + 0.2);
+        // ときどき、二声つづけて
+        if (Math.random() < 0.4) {
+          this.playBird(context, master, context.currentTime + 0.2 + 0.42);
+        }
+      }
+      this.scheduleBird();
+    });
   }
 
   /** ぽつり、と一音だけ置く。次の音までの間もまちまち。 */
   private scheduleNote(): void {
-    if (!this.running) return;
-    const wait = 2600 + Math.random() * 4200;
-    this.timer = window.setTimeout(() => {
-      this.playNote();
+    if (!this.running || this.mode !== 'shop') return;
+    this.later(between(NOTE_GAP), () => {
+      // 予約が入ったあとに開店前へ戻ったときは、鳴らさない。
+      if (this.mode === 'shop') this.playNote();
       this.scheduleNote();
-    }, wait);
+    });
   }
 
   private playNote(): void {
@@ -133,9 +227,6 @@ export class Ambience {
       osc.start(now);
       osc.stop(now + length + 0.1);
     }
-
-    // ときどき、遠くで鳥
-    if (Math.random() < 0.16) this.playBird(context, master, now + 0.9);
   }
 
   private playBird(context: AudioContext, master: GainNode, at: number): void {
@@ -153,6 +244,35 @@ export class Ambience {
     osc.connect(gain).connect(master);
     osc.start(at);
     osc.stop(at + 0.35);
+  }
+
+  /**
+   * 扉のベル。札を裏返したときに、一度だけ。
+   * 音の層とは別に、単発で鳴らせるようにしてある。
+   */
+  ringBell(): void {
+    const { context, master } = this;
+    if (!context || !master) return;
+    const at = context.currentTime + 0.05;
+
+    for (const [ratio, level] of [
+      [1, 0.05],
+      [2.76, 0.022],
+      [5.4, 0.009],
+    ] as const) {
+      const osc = context.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 1180 * ratio;
+
+      const gain = context.createGain();
+      gain.gain.setValueAtTime(0, at);
+      gain.gain.linearRampToValueAtTime(level, at + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 1.9);
+
+      osc.connect(gain).connect(master);
+      osc.start(at);
+      osc.stop(at + 2);
+    }
   }
 }
 

@@ -1,0 +1,268 @@
+/*
+ * 開店前。
+ *
+ * この画面には、押せるものが札ひとつしかありません。
+ * 花・店内が 82%。全画面の中でいちばん花が多い画面です。
+ */
+
+.morning {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--fs-space-md) var(--fs-space-lg) var(--fs-space-lg);
+  animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+/* 上の帯。いつもより静か。日付も季節も出さない。 */
+.morning__bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--fs-space-md);
+  flex: 0 0 auto;
+}
+
+.morning__link {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  color: var(--fs-color-ink-faint);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
+  cursor: pointer;
+  transition: color var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.morning__link:hover {
+  color: var(--fs-color-ink-soft);
+}
+
+/* ④花選択とまったく同じ棚。別の画面に見せない。 */
+.morning__shelf {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2%;
+  padding: 0 calc(50% - min(26vw, 135px)) var(--fs-space-xs);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.morning__shelf::-webkit-scrollbar {
+  display: none;
+}
+
+/* 正面の花の名前だけ。値段も望みも出さない。 */
+.morning__name {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: var(--fs-space-sm) 0 var(--fs-space-lg);
+  text-align: center;
+  color: var(--fs-color-ink);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-lg);
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  animation: fade var(--fs-duration-base) var(--fs-easing-soft) both;
+}
+
+/*
+ * 札。
+ * ボタンに見せない ── 面も、影の縁も、押した感じも作らない。
+ * 木の板が、麻ひもで下がっているだけ。
+ */
+.morning__sign {
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 620px;
+}
+
+.morning__sign-cord {
+  width: 1px;
+  height: 26px;
+  background: linear-gradient(
+    to bottom,
+    rgba(124, 95, 68, 0),
+    rgba(124, 95, 68, 0.55)
+  );
+}
+
+.morning__sign-plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 148px;
+  height: 52px;
+  transform-style: preserve-3d;
+  /* 下げた札は、風でわずかに揺れている */
+  animation: sign-sway 7.4s var(--fs-easing-soft) infinite;
+}
+
+.morning__sign-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+  border-radius: 3px;
+  /* 木の板。木目は薄く、二本だけ */
+  background:
+    repeating-linear-gradient(
+      93deg,
+      rgba(124, 95, 68, 0.06) 0 1px,
+      rgba(124, 95, 68, 0) 1px 26px
+    ),
+    linear-gradient(168deg, var(--fs-color-wood), var(--fs-color-wood-dark));
+  /* 影は右下（光は左上の窓ひとつ）。カウンターの手前に下がって見えるよう、少し濃く。 */
+  box-shadow: 4px 7px 16px rgba(74, 63, 53, 0.32);
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--fs-color-cream);
+}
+
+.morning__sign-face--open {
+  transform: rotateY(180deg);
+  background:
+    repeating-linear-gradient(
+      93deg,
+      rgba(124, 95, 68, 0.06) 0 1px,
+      rgba(124, 95, 68, 0) 1px 26px
+    ),
+    linear-gradient(168deg, #d9bb92, var(--fs-color-wood-light));
+  color: var(--fs-color-wood-dark);
+}
+
+/* ゆっくり裏返る。0.9秒。急いで押せるが、急いでは進まない。 */
+.morning.is-opening .morning__sign-plate {
+  animation: sign-flip 0.9s var(--fs-easing-soft) forwards;
+}
+
+@keyframes sign-flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  70% {
+    transform: rotateY(186deg);
+  }
+  86% {
+    transform: rotateY(176deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+@keyframes sign-sway {
+  0%,
+  100% {
+    transform: rotate(-0.9deg);
+  }
+  50% {
+    transform: rotate(1.1deg);
+  }
+}
+
+/*
+ * 風がひと吹きすると、花が一段大きく揺れる。
+ * 花ごとに始まる時刻がずれるよう、遅れを一輪ずつ変えてある。
+ */
+.morning__shelf .stand__flowers {
+  /* 揺れの支点は、茎の下（花瓶の口のあたり）。花首から曲がると造花に見える。 */
+  transform-origin: 50% 96%;
+  animation: petal-sway 5.6s var(--fs-easing-soft) infinite;
+}
+
+.morning__shelf .stand:nth-child(3n) .stand__flowers {
+  animation-duration: 6.8s;
+  animation-delay: -2.1s;
+}
+
+.morning__shelf .stand:nth-child(3n + 1) .stand__flowers {
+  animation-duration: 4.4s;
+  animation-delay: -3.4s;
+}
+
+/* .stand__flowers は translateX(-50%) で中央に置いてある。
+   keyframes の transform はそれを丸ごと上書きするので、必ず書き足すこと。 */
+@keyframes petal-sway {
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(-0.7deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(0.7deg);
+  }
+}
+
+/* ひと吹き。6.5秒かけて吹き抜ける。 */
+.morning.is-breezy .morning__shelf .stand__flowers {
+  animation-name: petal-gust;
+  animation-duration: 6.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: both;
+}
+
+@keyframes petal-gust {
+  0% {
+    transform: translateX(-50%) rotate(-0.7deg);
+  }
+  16% {
+    transform: translateX(-50%) rotate(3.2deg);
+  }
+  34% {
+    transform: translateX(-50%) rotate(-1.8deg);
+  }
+  52% {
+    transform: translateX(-50%) rotate(2.1deg);
+  }
+  72% {
+    transform: translateX(-50%) rotate(-1.1deg);
+  }
+  88% {
+    transform: translateX(-50%) rotate(0.9deg);
+  }
+  100% {
+    transform: translateX(-50%) rotate(-0.7deg);
+  }
+}
+
+.morning.is-breezy .morning__sign-plate {
+  animation-duration: 3.1s;
+}
+
+/* 花を眺めているあいだは、札を引っ込める */
+.morning.is-inspecting .morning__sign,
+.morning.is-inspecting .morning__name,
+.morning.is-inspecting .morning__bar {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+/* 札を裏返したあとは、名前と帯がそっと引く */
+.morning.is-opening .morning__name,
+.morning.is-opening .morning__bar {
+  opacity: 0;
+  transition: opacity 0.62s var(--fs-easing-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morning__shelf .stand__flowers,
+  .morning__sign-plate {
+    animation: none !important;
+  }
+}

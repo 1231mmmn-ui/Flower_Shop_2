@@ -60,7 +60,7 @@ img {
 .scene {
   position: absolute;
   inset: 0;
-  background-image: var(--scene-image);
+  /* 画像そのものは Scene.tsx が直に指定する（相対パスの基準をドキュメントに保つため）。 */
   background-position: center 42%;
   background-size: cover;
   transform: scale(1.02);

@@ -5,6 +5,7 @@ import type { SeasonId } from '../data/seasons';
 /** 画面の流れ。急かす要素は入れない。 */
 export type Phase =
   | 'title'      // お店を開ける前
+  | 'opening'    // 開店前。鳥と風だけの時間（→ design/15-build-order.md 3章）
   | 'greeting'   // お客様が来店し、希望を聞く
   | 'shop'       // 花瓶から花を選ぶ
   | 'arrange'    // 束ねる・包む

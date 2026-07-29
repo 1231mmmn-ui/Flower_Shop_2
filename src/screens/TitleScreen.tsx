@@ -32,9 +32,9 @@ export function TitleScreen() {
         <button
           type="button"
           className="button title-screen__open"
-          onClick={() => dispatch({ type: 'open-shop' })}
+          onClick={() => dispatch({ type: 'enter-morning' })}
         >
-          {returning ? 'お店を開ける' : 'はじめる'}
+          扉を押す
         </button>
 
         <div className="title-screen__links">

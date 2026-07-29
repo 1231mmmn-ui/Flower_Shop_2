@@ -46,6 +46,7 @@ const initialState: GameState = {
 };
 
 export type Action =
+  | { type: 'enter-morning' }
   | { type: 'open-shop' }
   | { type: 'accept-request' }
   | { type: 'inspect'; flowerId: string | null }
@@ -70,6 +71,11 @@ export type Action =
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
+    // 扉を押すと、まず開店前の時間に入る。ここはまだゲームではない。
+    case 'enter-morning':
+      return { ...state, phase: 'opening' };
+
+    // 「CLOSED」の札を裏返した。ここから一日が始まる。
     case 'open-shop':
       return { ...state, phase: 'greeting', customerId: pickCustomer(state) };
 
@@ -186,7 +192,8 @@ function reducer(state: GameState, action: Action): GameState {
       const next = { ...state, day };
       return {
         ...next,
-        phase: 'greeting',
+        // 新しい日は、いつも開店前から始まる。
+        phase: 'opening',
         customerId: pickCustomer(next),
         picked: [],
         bouquet: emptyBouquet(),
