@@ -1,32 +1,34 @@
 /**
  * 束ねて、包む。
- * 花はドラッグでゆっくり動く。急かす表示は置かない。
+ *
+ * 画面のほとんどはブーケそのもの。
+ * 道具は、花にふれたときだけそっと現れる。
+ * 資材は名前の一覧ではなく、棚から取るように現物を並べる。
  */
 
 import { useState } from 'react';
 
 import './ArrangeScreen.css';
-import { Bouquet } from '../components/Bouquet';
-import { TopBar } from '../components/TopBar';
 import { wrapMaterial } from '../assets/paths';
+import { Bouquet } from '../components/Bouquet';
+import { QuietBar } from '../components/QuietBar';
 import { flowerById } from '../data/flowers';
-import { RIBBONS, WRAPPINGS } from '../data/wrapping';
+import { RIBBONS, WRAPPINGS, ribbonById, wrappingById } from '../data/wrapping';
 import { bouquetPrice } from '../game/evaluation';
 import { useGame } from '../game/GameContext';
-
-type Tab = 'flowers' | 'wrapping' | 'ribbon';
 
 export function ArrangeScreen() {
   const { state, dispatch } = useGame();
   const [selected, setSelected] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('flowers');
 
   const total = bouquetPrice(state.bouquet);
-  const selectedStem = state.bouquet.stems.find((stem) => stem.uid === selected);
+  const stem = state.bouquet.stems.find((item) => item.uid === selected);
+  const wrap = wrappingById(state.bouquet.wrappingId);
+  const ribbon = ribbonById(state.bouquet.ribbonId);
 
   return (
     <div className="arrange">
-      <TopBar />
+      <QuietBar />
 
       <div className="arrange__stage">
         <Bouquet
@@ -39,168 +41,107 @@ export function ArrangeScreen() {
         />
       </div>
 
-      <p className="arrange__hint whisper">
-        {selectedStem
-          ? `${flowerById(selectedStem.flowerId).name}を選んでいます。指でゆっくり動かせます。`
-          : '花にふれると、位置を変えられます。'}
-      </p>
-
-      <div className="arrange__tools">
-        <button
-          type="button"
-          className="button button--quiet button--small"
-          onClick={() => dispatch({ type: 'rearrange' })}
-        >
-          整える
-        </button>
-        <button
-          type="button"
-          className="button button--quiet button--small"
-          disabled={!selectedStem}
-          onClick={() => selectedStem && dispatch({ type: 'bring-forward', uid: selectedStem.uid })}
-        >
-          手前へ
-        </button>
-        <button
-          type="button"
-          className="button button--quiet button--small"
-          disabled={state.history.length === 0}
-          onClick={() => dispatch({ type: 'undo' })}
-        >
-          ひとつ前へ
-        </button>
-        <button
-          type="button"
-          className="button button--quiet button--small"
-          disabled={!selectedStem}
-          onClick={() => {
-            if (!selectedStem) return;
-            dispatch({ type: 'remove-stem', uid: selectedStem.uid });
-            setSelected(null);
-          }}
-        >
-          この花を戻す
-        </button>
+      {/* 道具は、花を選んでいるときだけ現れる */}
+      <div className={`arrange__tools ${stem ? 'is-open' : ''}`}>
+        {stem ? (
+          <>
+            <span className="arrange__holding">{flowerById(stem.flowerId).name}</span>
+            <button
+              type="button"
+              className="arrange__tool"
+              onClick={() => dispatch({ type: 'bring-forward', uid: stem.uid })}
+            >
+              手前へ
+            </button>
+            <button
+              type="button"
+              className="arrange__tool"
+              onClick={() => {
+                dispatch({ type: 'remove-stem', uid: stem.uid });
+                setSelected(null);
+              }}
+            >
+              戻す
+            </button>
+            <button type="button" className="arrange__tool" onClick={() => setSelected(null)}>
+              手をはなす
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="arrange__whisper">花にふれて動かせます</span>
+            <button
+              type="button"
+              className="arrange__tool"
+              onClick={() => dispatch({ type: 'rearrange' })}
+            >
+              整える
+            </button>
+            <button
+              type="button"
+              className="arrange__tool"
+              disabled={state.history.length === 0}
+              onClick={() => dispatch({ type: 'undo' })}
+            >
+              ひとつ前へ
+            </button>
+          </>
+        )}
       </div>
 
-      <section className="arrange__panel panel panel--soft">
-        <nav className="arrange__tabs">
-          {(
-            [
-              ['flowers', '花'],
-              ['wrapping', '包み紙'],
-              ['ribbon', 'リボン'],
-            ] as [Tab, string][]
-          ).map(([key, label]) => (
+      {/* 棚から資材を取る。名前は選んだものだけ。 */}
+      <div className="arrange__shelf">
+        <p className="arrange__material-name">
+          {wrap.name}
+          <span className="arrange__slash">／</span>
+          {ribbon.name}
+        </p>
+
+        <div className="arrange__rack">
+          {WRAPPINGS.map((item) => (
             <button
-              key={key}
+              key={item.id}
               type="button"
-              className={`arrange__tab ${tab === key ? 'is-active' : ''}`}
-              onClick={() => setTab(key)}
+              className={`arrange__stock ${
+                state.bouquet.wrappingId === item.id ? 'is-chosen' : ''
+              }`}
+              onClick={() => dispatch({ type: 'set-wrapping', id: item.id })}
+              title={item.name}
             >
-              {label}
+              <img src={wrapMaterial(item.id)} alt={item.name} />
             </button>
           ))}
-        </nav>
-
-        <div className="arrange__tab-body scroll">
-          {tab === 'flowers' && (
-            <div className="arrange__list">
-              {state.bouquet.stems.length === 0 && (
-                <p className="whisper">花瓶から花を取ってくると、ここに並びます。</p>
-              )}
-              {state.bouquet.stems.map((stem) => {
-                const flower = flowerById(stem.flowerId);
-                return (
-                  <button
-                    key={stem.uid}
-                    type="button"
-                    className={`arrange__stem-chip ${stem.uid === selected ? 'is-active' : ''}`}
-                    onClick={() => setSelected(stem.uid)}
-                  >
-                    <span
-                      className="arrange__swatch"
-                      style={{ background: flower.swatch }}
-                      aria-hidden
-                    />
-                    {flower.name}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {tab === 'wrapping' && (
-            <div className="arrange__list">
-              {WRAPPINGS.map((wrap) => (
-                <button
-                  key={wrap.id}
-                  type="button"
-                  className={`arrange__material ${
-                    state.bouquet.wrappingId === wrap.id ? 'is-active' : ''
-                  }`}
-                  onClick={() => dispatch({ type: 'set-wrapping', id: wrap.id })}
-                >
-                  <img
-                    className="arrange__material-art"
-                    src={wrapMaterial(wrap.id)}
-                    alt=""
-                    aria-hidden
-                  />
-                  <span className="arrange__material-body">
-                    <span className="arrange__material-name">{wrap.name}</span>
-                    <span className="whisper">{wrap.texture}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {tab === 'ribbon' && (
-            <div className="arrange__list">
-              {RIBBONS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`arrange__material ${
-                    state.bouquet.ribbonId === item.id ? 'is-active' : ''
-                  }`}
-                  onClick={() => dispatch({ type: 'set-ribbon', id: item.id })}
-                >
-                  <img
-                    className="arrange__material-art"
-                    src={wrapMaterial(item.id)}
-                    alt=""
-                    aria-hidden
-                  />
-                  <span className="arrange__material-body">
-                    <span className="arrange__material-name">{item.name}</span>
-                    <span className="whisper">{item.texture}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
+          <span className="arrange__divider" aria-hidden />
+          {RIBBONS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`arrange__stock arrange__stock--ribbon ${
+                state.bouquet.ribbonId === item.id ? 'is-chosen' : ''
+              }`}
+              onClick={() => dispatch({ type: 'set-ribbon', id: item.id })}
+              title={item.name}
+            >
+              <img src={wrapMaterial(item.id)} alt={item.name} />
+            </button>
+          ))}
         </div>
-      </section>
+      </div>
 
       <footer className="arrange__foot">
         <button
           type="button"
-          className="button button--quiet button--small"
+          className="arrange__tool"
           onClick={() => dispatch({ type: 'back-to-shop' })}
         >
           花を選ぶ
         </button>
 
-        <span className="tag">
-          この束
-          <span className="tag__value">¥{total.toLocaleString('ja-JP')}</span>
-        </span>
+        <span className="arrange__price">¥{total.toLocaleString('ja-JP')}</span>
 
         <button
           type="button"
-          className="button"
+          className="button button--small"
           disabled={state.bouquet.stems.length === 0}
           onClick={() => dispatch({ type: 'deliver' })}
         >

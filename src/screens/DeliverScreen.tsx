@@ -1,12 +1,14 @@
 /**
  * お渡しする。
- * お客様は必ず笑顔になり、助言は必ず前向きな言葉で返ってくる。
+ *
+ * いちばん見せたいのは、できあがったブーケと、受け取った人の顔。
+ * 言葉は少なく、責める言葉はひとつも置かない。
  */
 
 import './DeliverScreen.css';
+import { customer as customerImage } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
-import { CustomerFigure } from '../components/CustomerFigure';
-import { TopBar } from '../components/TopBar';
+import { QuietBar } from '../components/QuietBar';
 import { useGame } from '../game/GameContext';
 
 export function DeliverScreen() {
@@ -14,56 +16,50 @@ export function DeliverScreen() {
   if (!result) return null;
 
   return (
-    <div className="deliver scroll">
-      <TopBar />
+    <div className="deliver">
+      <QuietBar />
 
-      <div className="deliver__scene">
-        <div className="deliver__bouquet appear appear--slow">
-          <Bouquet bouquet={state.bouquet} scale={0.92} />
+      <div className="deliver__moment">
+        <img
+          className="deliver__person"
+          src={customerImage(customer.id, 'happy')}
+          alt={customer.name}
+        />
+        <div className="deliver__bouquet">
+          <Bouquet bouquet={state.bouquet} scale={0.9} />
         </div>
+
       </div>
 
-      <CustomerFigure
-        customer={customer}
-        mood="happy"
-        lines={result.words}
-        showName={false}
-      />
+      <span className="deliver__smile" aria-label={`${result.smile} / 5`}>
+        {Array.from({ length: 5 }, (_, index) => (
+          <span
+            key={index}
+            className={`deliver__mark ${index < result.smile ? 'is-on' : ''}`}
+            style={{ animationDelay: `${0.6 + index * 0.14}s` }}
+            aria-hidden
+          >
+            ✿
+          </span>
+        ))}
+      </span>
 
-      <div className="deliver__smile fade">
-        <span className="label">受け取ったときの笑顔</span>
-        <span className="deliver__flowers" aria-label={`${result.smile} / 5`}>
-          {Array.from({ length: 5 }, (_, index) => (
-            <span
-              key={index}
-              className={`deliver__mark ${index < result.smile ? 'is-on' : ''}`}
-              style={{ animationDelay: `${index * 0.12}s` }}
-              aria-hidden
-            >
-              ✿
-            </span>
-          ))}
-        </span>
-      </div>
-
-      <section className="deliver__card panel appear">
-        <p className="deliver__praise">{result.praise}</p>
-        {result.meaningNote && <p className="deliver__meaning">{result.meaningNote}</p>}
-      </section>
-
-      <section className="deliver__advice panel panel--soft appear">
-        <p className="label">こんな感じだと、もっと嬉しいかも</p>
-        <p className="body">{result.advice}</p>
-        {result.overBudget && (
-          <p className="whisper deliver__budget">
-            予算より少しだけ上がりましたが、{customer.name}は嬉しそうに受け取ってくれました。
+      <div className="deliver__words">
+        {result.words.map((line, index) => (
+          <p key={line} style={{ animationDelay: `${0.4 + index * 0.6}s` }}>
+            {line}
           </p>
-        )}
-      </section>
+        ))}
+      </div>
 
-      <p className="deliver__farewell whisper fade">{customer.farewell}</p>
+      <div className="deliver__note">
+        <p className="deliver__praise">{result.praise}</p>
+        <p className="deliver__advice">{result.advice}</p>
+        {result.meaningNote && <p className="deliver__meaning">{result.meaningNote}</p>}
+      </div>
 
       <footer className="deliver__foot">
+        <p className="deliver__farewell">{customer.farewell}</p>
         <button
           type="button"
           className="button"

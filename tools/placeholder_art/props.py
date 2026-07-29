@@ -84,7 +84,7 @@ def render_vase(seed: int = 0) -> Image.Image:
     for i in range(12):
         d.rounded_rectangle([x0 + 4, water_top + (bottom - water_top) * i / 12,
                              x1 - 4, bottom - 5],
-                            radius=18, fill=(204, 220, 210, 20))
+                            radius=18, fill=(198, 216, 204, 27))
     d.line([x0 + 8, water_top, x1 - 8, water_top], fill=(255, 255, 255, 170), width=3)
 
     # ガラス本体
@@ -294,9 +294,9 @@ def render_ribbon_spool(ribbon_id: str, seed: int = 0) -> Image.Image:
     # ほどけて垂れた端（巻きの後ろから出す）
     tail = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     td = ImageDraw.Draw(tail)
-    td.polygon([(cx + rx * 0.5, cy + ry * 0.4), (cx + rx * 0.95, cy + ry * 0.2),
-                (cx + rx * 1.5, h * 0.90), (cx + rx * 1.15, h * 0.94),
-                (cx + rx * 1.25, h * 0.82)],
+    td.polygon([(cx + rx * 0.4, cy + ry * 0.5), (cx + rx * 0.86, cy + ry * 0.34),
+                (cx + rx * 1.18, cy + ry * 1.30), (cx + rx * 0.94, cy + ry * 1.34),
+                (cx + rx * 0.98, cy + ry * 1.12)],
                fill=(*shade(base, -0.06), 255))
     img.alpha_composite(tail.filter(ImageFilter.GaussianBlur(1.2)))
 

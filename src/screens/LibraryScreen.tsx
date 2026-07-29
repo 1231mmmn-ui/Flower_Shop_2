@@ -31,7 +31,7 @@ export function LibraryScreen() {
       <header className="library__head">
         <button
           type="button"
-          className="button button--quiet button--icon"
+          className="library__back"
           onClick={() => dispatch({ type: 'close-library' })}
         >
           ← 戻る

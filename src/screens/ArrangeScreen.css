@@ -1,3 +1,5 @@
+/* 束ねる。画面のほとんどはブーケで、道具は必要なときだけ現れる。 */
+
 .arrange {
   position: relative;
   z-index: 2;
@@ -5,7 +7,6 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fs-space-sm);
 }
 
 .arrange__stage {
@@ -14,127 +15,132 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-top: var(--fs-space-lg);
+  padding-top: var(--fs-space-md);
 }
 
 .arrange__stage .bouquet {
-  width: min(100%, 340px);
+  width: min(100%, 370px);
   height: 100%;
   aspect-ratio: auto;
+  /* 結び目を低くして、花が画面いっぱいに開くようにする */
+  --knot-bottom: 11%;
 }
 
-.arrange__hint {
-  margin: 0;
-  text-align: center;
-}
-
+/* 道具の列。面は持たず、文字だけを並べる。 */
 .arrange__tools {
   display: flex;
+  align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: var(--fs-space-sm);
+  gap: var(--fs-space-md);
+  min-height: 34px;
+  padding: 0 var(--fs-space-sm);
 }
 
-.arrange__panel {
-  padding: var(--fs-space-md);
-  max-height: 30vh;
-  display: flex;
-  flex-direction: column;
-  gap: var(--fs-space-sm);
-}
-
-.arrange__tabs {
-  display: flex;
-  gap: var(--fs-space-sm);
-}
-
-.arrange__tab {
-  padding: 4px var(--fs-space-lg);
-  border-radius: var(--fs-radius-pill);
+.arrange__whisper,
+.arrange__holding {
   font-size: var(--fs-font-sm);
   letter-spacing: 0.1em;
   color: var(--fs-color-ink-faint);
-  transition: background var(--fs-duration-quick) var(--fs-easing-soft),
-    color var(--fs-duration-quick) var(--fs-easing-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }
 
-.arrange__tab.is-active {
-  background: var(--fs-color-glass);
-  color: var(--fs-color-ink);
-  box-shadow: var(--fs-shadow-soft);
+.arrange__holding {
+  color: var(--fs-color-sage-deep);
 }
 
-.arrange__tab-body {
-  min-height: 0;
-}
-
-.arrange__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--fs-space-sm);
-}
-
-.arrange__stem-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px var(--fs-space-md);
-  border-radius: var(--fs-radius-pill);
-  border: 1px solid var(--fs-color-line-soft);
-  background: var(--fs-color-glass-soft);
-  font-size: var(--fs-font-sm);
-  transition: border-color var(--fs-duration-quick) var(--fs-easing-soft),
-    transform var(--fs-duration-quick) var(--fs-easing-rise);
-}
-
-.arrange__stem-chip.is-active {
-  border-color: var(--fs-color-sage);
-  transform: translateY(-2px);
-  box-shadow: var(--fs-shadow-soft);
-}
-
-.arrange__swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--fs-radius-pill);
-  box-shadow: var(--fs-shadow-inset);
-}
-
-.arrange__material {
-  display: flex;
-  align-items: center;
-  gap: var(--fs-space-md);
-  width: 100%;
-  padding: var(--fs-space-sm) var(--fs-space-md);
-  border-radius: var(--fs-radius-md);
-  border: 1px solid transparent;
-  text-align: left;
-  transition: background var(--fs-duration-quick) var(--fs-easing-soft),
+.arrange__tool {
+  padding: 4px 2px;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.1em;
+  color: var(--fs-color-ink-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  border-bottom: 1px solid var(--fs-color-line);
+  transition: color var(--fs-duration-quick) var(--fs-easing-soft),
     border-color var(--fs-duration-quick) var(--fs-easing-soft);
 }
 
-.arrange__material.is-active {
-  background: var(--fs-color-glass);
-  border-color: var(--fs-color-sage);
+.arrange__tool:hover:not(:disabled) {
+  color: var(--fs-color-ink);
+  border-color: var(--fs-color-sage-deep);
 }
 
-/* 資材そのものの写し（紙のロール／リボンの巻き） */
-.arrange__material-art {
-  flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
-  object-fit: contain;
+.arrange__tool:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
-.arrange__material-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+/* 資材の棚。現物を横に並べる。 */
+.arrange__shelf {
+  padding: var(--fs-space-sm) 0 0;
 }
 
 .arrange__material-name {
-  font-size: var(--fs-font-md);
+  margin: 0 0 2px;
+  text-align: center;
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.08em;
+  color: var(--fs-color-ink-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+}
+
+.arrange__slash {
+  margin: 0 0.3em;
+  opacity: 0.5;
+}
+
+.arrange__rack {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--fs-space-xs);
+  padding: 0 var(--fs-space-xs) var(--fs-space-xs);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.arrange__rack::-webkit-scrollbar {
+  display: none;
+}
+
+.arrange__stock {
+  flex: 0 0 auto;
+  width: 38px;
+  padding: 0;
+  opacity: 0.55;
+  filter: saturate(0.85);
+  transform-origin: bottom center;
+  transition: opacity var(--fs-duration-quick) var(--fs-easing-soft),
+    transform var(--fs-duration-quick) var(--fs-easing-rise),
+    filter var(--fs-duration-quick) var(--fs-easing-soft);
+}
+
+.arrange__stock img {
+  width: 100%;
+  height: auto;
+}
+
+.arrange__stock:hover {
+  opacity: 0.85;
+}
+
+/* 選んだものは、棚から少し手前へ出る */
+.arrange__stock.is-chosen {
+  opacity: 1;
+  filter: saturate(1.02) drop-shadow(0 6px 10px rgba(96, 74, 54, 0.24));
+  transform: translateY(-5px) scale(1.08);
+}
+
+.arrange__stock--ribbon {
+  width: 33px;
+}
+
+.arrange__divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 26px;
+  margin: 0 var(--fs-space-xs);
+  background: var(--fs-color-line);
 }
 
 .arrange__foot {
@@ -142,5 +148,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--fs-space-sm);
-  padding-bottom: var(--fs-space-xs);
+  padding: var(--fs-space-sm) var(--fs-space-xs) var(--fs-space-xs);
+}
+
+.arrange__price {
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.06em;
+  color: var(--fs-color-ink-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }

@@ -1,0 +1,99 @@
+/* 台の上に立つ花。正面の花だけがはっきり見え、両隣はかすむ。 */
+
+.stand {
+  position: relative;
+  flex: 0 0 auto;
+  /* 台の上の「置き場所」の広さ。花はここから上へはみ出して大きく咲く。
+     画面幅で決める（％だと左右の余白ぶん小さくなってしまう）。 */
+  width: min(52vw, 270px);
+  aspect-ratio: 1 / 1.15;
+  padding: 0;
+  scroll-snap-align: center;
+  /* 奥の花は小さく、少し沈む */
+  transform: scale(calc(1 - var(--far) * 0.20)) translateY(calc(var(--far) * 3%));
+  transform-origin: bottom center;
+  opacity: calc(1 - var(--far) * 0.34);
+  filter: blur(calc(var(--far) * 2.4px)) saturate(calc(1 - var(--far) * 0.28))
+    brightness(calc(1 - var(--far) * 0.05));
+  transition: transform var(--fs-duration-base) var(--fs-easing-soft),
+    opacity var(--fs-duration-base) var(--fs-easing-soft),
+    filter var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.stand.is-focus:hover .stand__flowers,
+.stand.is-focus:focus-visible .stand__flowers {
+  transform: translate(-50%, -4px);
+}
+
+.stand:focus-visible {
+  outline: none;
+}
+
+.stand__flowers {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  /* 花の画像は正方形で、花冠はその4割ほど。大きく見せるため置き場所より広く取る。 */
+  width: 190%;
+  transform: translateX(-50%);
+  transition: transform var(--fs-duration-quick) var(--fs-easing-rise);
+}
+
+.stand__stem {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  transform-origin: 50% 92%;
+  transform: translateX(-50%) rotate(var(--angle)) scale(var(--stem-scale));
+  filter: drop-shadow(5px 10px 12px rgba(96, 74, 54, 0.20));
+}
+
+.stand__stem:first-child {
+  position: relative;
+}
+
+.stand__vase {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 47%;
+  transform: translateX(-50%);
+  z-index: 5;
+  filter: drop-shadow(5px 8px 11px rgba(96, 74, 54, 0.24));
+}
+
+/* 花の色が、木の台にほんのり落ちる */
+.stand__glow {
+  position: absolute;
+  left: 50%;
+  bottom: 1%;
+  width: 56%;
+  height: 10%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  filter: blur(15px);
+  opacity: 0.24;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 取った本数は、数字ではなく小さな点で示す */
+.stand__picked {
+  position: absolute;
+  left: 50%;
+  bottom: -4%;
+  z-index: 6;
+  display: flex;
+  gap: 4px;
+  transform: translateX(-50%);
+}
+
+.stand__pick-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--fs-radius-pill);
+  background: var(--fs-color-sage-deep);
+  box-shadow: 0 0 0 2px rgba(255, 252, 244, 0.75);
+  animation: appear var(--fs-duration-base) var(--fs-easing-rise) both;
+}

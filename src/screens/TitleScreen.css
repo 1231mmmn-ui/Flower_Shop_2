@@ -1,38 +1,66 @@
+/* タイトル。店内をそのまま見せ、文字は光の中に置く。 */
+
 .title-screen {
   position: relative;
   z-index: 2;
   flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
   text-align: center;
-  padding: var(--fs-space-xxl) 0 var(--fs-space-lg);
 }
 
+/* 窓の下、壁のいちばん静かなところに置く */
 .title-screen__center {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fs-space-md);
-  padding: var(--fs-space-xl) var(--fs-space-lg);
-  border-radius: var(--fs-radius-xl);
-  background: var(--fs-color-glass-soft);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: var(--fs-shadow-soft);
+  margin-top: 34%;
+  padding: var(--fs-space-lg) var(--fs-space-xxl);
+  /* 面ではなく、光がにじんだところに文字を置く */
+  background: radial-gradient(
+    68% 84% at 50% 48%,
+    rgba(255, 252, 244, 0.92) 0%,
+    rgba(255, 252, 244, 0.62) 52%,
+    rgba(255, 252, 244, 0) 100%
+  );
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
+}
+
+.title-screen__eyebrow {
+  margin: 0;
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--fs-color-ink-faint);
 }
 
 .title-screen__name {
+  margin: var(--fs-space-sm) 0 0;
   font-size: var(--fs-font-display);
+  font-weight: 500;
   letter-spacing: 0.22em;
   text-indent: 0.22em;
+  line-height: var(--fs-font-line-tight);
 }
 
 .title-screen__lead {
-  margin: 0;
+  margin: var(--fs-space-md) 0 0;
   font-size: var(--fs-font-md);
+  letter-spacing: 0.08em;
   color: var(--fs-color-ink-soft);
-  line-height: var(--fs-font-line-base);
+}
+
+/* 作業台に置かれたカゴ */
+.title-screen__basket {
+  position: absolute;
+  left: 50%;
+  bottom: 30%;
+  width: 46%;
+  max-width: 230px;
+  transform: translateX(-50%);
+  filter: drop-shadow(6px 12px 16px rgba(96, 74, 54, 0.24));
+  /* appear は transform を上書きして中央寄せが外れる。opacity だけで現す。 */
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
+  animation-delay: var(--fs-duration-base);
 }
 
 .title-screen__foot {
@@ -40,11 +68,24 @@
   flex-direction: column;
   align-items: center;
   gap: var(--fs-space-md);
+  margin-top: auto;
+  padding-bottom: var(--fs-space-sm);
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
   animation-delay: var(--fs-duration-slow);
 }
 
-.title-screen__season {
-  max-width: 22em;
+.title-screen__season,
+.title-screen__memo {
+  max-width: 24em;
+  margin: 0;
+  font-size: var(--fs-font-sm);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-faint);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+}
+
+.title-screen__memo {
+  font-size: var(--fs-font-xs);
 }
 
 .title-screen__open {
@@ -53,5 +94,23 @@
 
 .title-screen__links {
   display: flex;
-  gap: var(--fs-space-md);
+  gap: var(--fs-space-xl);
+}
+
+/* 面を持たない、静かな行き先 */
+.title-screen__link {
+  padding: 4px 2px;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.12em;
+  color: var(--fs-color-ink-soft);
+  border-bottom: 1px solid var(--fs-color-line);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  transition: color var(--fs-duration-quick) var(--fs-easing-soft),
+    border-color var(--fs-duration-quick) var(--fs-easing-soft);
+}
+
+.title-screen__link:hover {
+  color: var(--fs-color-ink);
+  border-color: var(--fs-color-sage-deep);
 }

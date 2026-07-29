@@ -1,3 +1,5 @@
+/* お渡し。ブーケと笑顔がいちばん大きく、言葉はその下にそっと。 */
+
 .deliver {
   position: relative;
   z-index: 2;
@@ -5,41 +7,58 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fs-space-md);
-  padding-bottom: var(--fs-space-md);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
-.deliver__scene {
+.deliver::-webkit-scrollbar {
+  display: none;
+}
+
+/* 受け取ったところ。人とブーケを重ねて、一枚の絵にする。 */
+.deliver__moment {
+  position: relative;
+  flex: 0 0 auto;
+  height: 38vh;
+  min-height: 260px;
   display: flex;
+  align-items: flex-end;
   justify-content: center;
-  padding-top: var(--fs-space-sm);
+}
+
+.deliver__person {
+  position: absolute;
+  left: 2%;
+  bottom: 0;
+  width: 62%;
+  max-width: 260px;
+  filter: drop-shadow(8px 16px 20px rgba(96, 74, 54, 0.26));
+  animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
 }
 
 .deliver__bouquet {
-  width: min(76%, 300px);
-  filter: drop-shadow(0 22px 34px rgba(96, 74, 54, 0.22));
+  position: absolute;
+  right: 0;
+  bottom: 4%;
+  width: 58%;
+  max-width: 250px;
+  filter: drop-shadow(0 18px 28px rgba(96, 74, 54, 0.24));
+  animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
+  animation-delay: var(--fs-duration-quick);
 }
 
 .deliver__smile {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: var(--fs-space-md);
-}
-
-.deliver__smile .label {
-  margin: 0;
-}
-
-.deliver__flowers {
-  display: inline-flex;
-  gap: 4px;
+  gap: 5px;
+  padding-top: var(--fs-space-sm);
 }
 
 .deliver__mark {
   font-size: var(--fs-font-lg);
-  color: var(--fs-color-line);
-  transition: color var(--fs-duration-slow) var(--fs-easing-soft);
+  color: rgba(124, 95, 68, 0.22);
+  text-shadow: 0 1px 10px rgba(255, 250, 238, 0.95);
 }
 
 .deliver__mark.is-on {
@@ -58,52 +77,75 @@
   }
 }
 
-.deliver__card {
-  animation-delay: var(--fs-duration-base);
+/* 受け取ったときの言葉。面には入れず、光をまとわせる。 */
+.deliver__words {
+  padding: var(--fs-space-md) var(--fs-space-lg) 0;
+  text-align: center;
+}
+
+.deliver__words p {
+  margin: 0 0 var(--fs-space-sm);
+  font-size: var(--fs-font-md);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink);
+  text-shadow: 0 1px 14px rgba(255, 250, 238, 0.98), 0 0 3px rgba(255, 250, 238, 0.9);
+  animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+/* 気づいたことと、次への一言。紙きれ一枚ぶん。 */
+.deliver__note {
+  align-self: center;
+  width: min(100%, 400px);
+  margin-top: var(--fs-space-md);
+  padding: var(--fs-space-lg);
+  border-radius: var(--fs-radius-md);
+  background: linear-gradient(
+    172deg,
+    rgba(253, 249, 238, 0.92) 0%,
+    rgba(246, 238, 221, 0.88) 100%
+  );
+  box-shadow: var(--fs-shadow-soft);
+  animation: appear var(--fs-duration-slow) var(--fs-easing-soft) both;
+  animation-delay: var(--fs-duration-bloom);
 }
 
 .deliver__praise {
   margin: 0;
   font-size: var(--fs-font-md);
   line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink);
 }
 
-.deliver__meaning {
+.deliver__advice {
   margin: var(--fs-space-md) 0 0;
   padding-top: var(--fs-space-md);
   border-top: 1px solid var(--fs-color-line-soft);
   font-size: var(--fs-font-sm);
-  color: var(--fs-color-ink-faint);
   line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-soft);
 }
 
-.deliver__advice {
-  animation-delay: var(--fs-duration-slow);
-  background: linear-gradient(
-    180deg,
-    var(--fs-color-glass) 0%,
-    rgba(243, 220, 224, 0.55) 100%
-  );
-}
-
-.deliver__advice .body {
-  color: var(--fs-color-ink);
-}
-
-.deliver__budget {
+.deliver__meaning {
   margin: var(--fs-space-sm) 0 0;
-}
-
-.deliver__farewell {
-  text-align: center;
-  margin: 0;
+  font-size: var(--fs-font-xs);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-faint);
 }
 
 .deliver__foot {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-sm);
   margin-top: auto;
-  padding-top: var(--fs-space-sm);
+  padding: var(--fs-space-md) 0 var(--fs-space-xs);
+}
+
+.deliver__farewell {
+  margin: 0;
+  font-size: var(--fs-font-sm);
+  color: var(--fs-color-ink-faint);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }
 
 .deliver__foot .button {

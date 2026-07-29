@@ -1,64 +1,145 @@
-.greeting {
+/* 来店。見えているのはお客様と、その人の言葉。面はメモ一枚だけ。 */
+
+.greet {
   position: relative;
   z-index: 2;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fs-space-md);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-.greeting__entrance {
+.greet__entrance {
   align-self: center;
-  margin: 0;
-  padding: var(--fs-space-sm) var(--fs-space-lg);
-  border-radius: var(--fs-radius-pill);
-  background: var(--fs-color-glass-soft);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  width: min(100%, 360px);
+  margin: var(--fs-space-md) 0 0;
+  padding: 3px var(--fs-space-lg);
   text-align: center;
+  background: radial-gradient(
+    60% 130% at 50% 50%,
+    rgba(255, 251, 240, 0.92) 0%,
+    rgba(255, 251, 240, 0) 80%
+  );
+  font-size: var(--fs-font-sm);
   line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-faint);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
 }
 
-.greeting__request {
-  animation-delay: var(--fs-duration-base);
+/* お客様は作業台の向こうに立っている */
+.greet__figure {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.greeting__rows {
-  display: grid;
-  gap: var(--fs-space-md);
-  margin: var(--fs-space-sm) 0 0;
+.greet__person {
+  width: 70%;
+  max-width: 300px;
+  height: auto;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(8px 16px 20px rgba(96, 74, 54, 0.26));
+  animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
 }
 
-.greeting__row {
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 言葉は吹き出しに入れない。光をまとわせて、そのまま置く。 */
+.greet__words {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: var(--fs-space-md) var(--fs-space-xl);
+  background: radial-gradient(
+    72% 96% at 50% 40%,
+    rgba(255, 252, 244, 0.94) 0%,
+    rgba(255, 252, 244, 0.74) 44%,
+    rgba(255, 252, 244, 0.28) 72%,
+    rgba(255, 252, 244, 0) 100%
+  );
+}
+
+.greet__words p {
+  margin: 0 0 var(--fs-space-sm);
+  font-size: var(--fs-font-md);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink);
+  animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+.greet__words p:last-child {
+  margin-bottom: 0;
+}
+
+/* 書き留めた紙きれ。罫線も見出しもない。 */
+.greet__note {
+  align-self: center;
+  width: min(100%, 380px);
+  margin-top: var(--fs-space-sm);
+  padding: var(--fs-space-md) var(--fs-space-lg);
+  text-align: center;
+  border-radius: var(--fs-radius-sm);
+  background: linear-gradient(
+    172deg,
+    rgba(253, 249, 238, 0.9) 0%,
+    rgba(246, 238, 221, 0.86) 100%
+  );
+  box-shadow: var(--fs-shadow-soft);
+  transform: rotate(-0.6deg);
+  animation: appear var(--fs-duration-slow) var(--fs-easing-soft) both;
+  animation-delay: var(--fs-duration-bloom);
+}
+
+.greet__note-line {
   margin: 0;
-}
-
-.greeting__row dd {
-  margin: 0;
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.08em;
   color: var(--fs-color-ink);
 }
 
-.greeting__life {
-  margin: var(--fs-space-lg) 0 0;
-  padding-top: var(--fs-space-md);
-  border-top: 1px solid var(--fs-color-line-soft);
+.greet__note-line--sub {
+  margin-top: 3px;
   font-size: var(--fs-font-sm);
-  color: var(--fs-color-ink-faint);
-  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-soft);
 }
 
-.greeting__foot {
+.greet__note-aside {
+  margin: 4px 0 0;
+  font-size: var(--fs-font-xs);
+  color: var(--fs-color-ink-faint);
+}
+
+.greet__foot {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--fs-space-sm);
-  padding-bottom: var(--fs-space-sm);
-  margin-top: auto;
+  padding: var(--fs-space-md) 0 var(--fs-space-xs);
 }
 
-.greeting__foot .button {
+.greet__season {
+  margin: 0;
+  font-size: var(--fs-font-xs);
+  letter-spacing: 0.14em;
+  color: var(--fs-color-ink-faint);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+}
+
+.greet__foot .button {
   min-width: 200px;
 }

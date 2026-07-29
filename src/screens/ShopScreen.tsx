@@ -1,114 +1,104 @@
 /**
- * 店頭。花はガラスの花瓶に生けられていて、
- * 手前の花は少し大きく、奥の花は少し小さく見える。
+ * 店頭。
+ *
+ * 一覧ではなく、作業台に立ち並ぶ花を横に眺めていく画面。
+ * 見えているのは花と店内だけで、名前と値段は「いま正面にある花」にだけ、
+ * 小さな木札としてそっと出る。
  */
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import './ShopScreen.css';
-import { flower as flowerImage } from '../assets/paths';
 import { FlowerDetail } from '../components/FlowerDetail';
-import { FlowerVase } from '../components/FlowerVase';
-import { TopBar } from '../components/TopBar';
-import { FLOWERS, flowerById } from '../data/flowers';
+import { FlowerStand } from '../components/FlowerStand';
+import { QuietBar } from '../components/QuietBar';
+import { FLOWERS, flowerById, formatPrice } from '../data/flowers';
 import { useGame } from '../game/GameContext';
-
-/** 奥の列から手前の列へ。1列3台。 */
-const PER_ROW = 3;
 
 export function ShopScreen() {
   const { state, dispatch, customer, season, pickedTotal } = useGame();
+  const counterRef = useRef<HTMLDivElement>(null);
+  const [center, setCenter] = useState(0);
 
-  const rows = useMemo(() => {
-    const chunks = [];
-    for (let i = 0; i < FLOWERS.length; i += PER_ROW) {
-      chunks.push(FLOWERS.slice(i, i + PER_ROW));
-    }
-    return chunks;
+  /** いま画面の中央にある花を見つける。 */
+  const findCenter = useCallback(() => {
+    const counter = counterRef.current;
+    if (!counter) return;
+    const middle = counter.scrollLeft + counter.clientWidth / 2;
+    let nearest = 0;
+    let best = Infinity;
+    counter.querySelectorAll<HTMLElement>('.stand').forEach((stand, index) => {
+      const distance = Math.abs(stand.offsetLeft + stand.offsetWidth / 2 - middle);
+      if (distance < best) {
+        best = distance;
+        nearest = index;
+      }
+    });
+    setCenter(nearest);
   }, []);
+
+  useEffect(() => {
+    findCenter();
+    const counter = counterRef.current;
+    if (!counter) return;
+    counter.addEventListener('scroll', findCenter, { passive: true });
+    return () => counter.removeEventListener('scroll', findCenter);
+  }, [findCenter]);
 
   const inspecting = state.inspectingFlowerId
     ? flowerById(state.inspectingFlowerId)
     : null;
-
   const countOf = (flowerId: string) =>
     state.picked.filter((stem) => stem.flowerId === flowerId).length;
 
+  const front = FLOWERS[Math.min(center, FLOWERS.length - 1)];
+  const overBudget = pickedTotal > customer.budget;
+
   return (
-    <div className={`shop-screen ${inspecting ? 'is-inspecting' : ''}`}>
-      <TopBar />
+    <div className={`shop-view ${inspecting ? 'is-inspecting' : ''}`}>
+      <QuietBar />
 
-      <div className="shop-screen__wish fade">
-        <p className="whisper">
-          {customer.name}のご希望　—　{customer.wish.toneLabel}
-        </p>
-        <span className={`tag ${pickedTotal > customer.budget ? 'tag--gentle' : ''}`}>
-          予算 ¥{customer.budget.toLocaleString('ja-JP')}
-          <span className="tag__value">いま ¥{pickedTotal.toLocaleString('ja-JP')}</span>
+      {/* お客様の望みは、一行のつぶやきとして残しておく */}
+      <p className="shop-view__murmur">{customer.wish.toneLabel}</p>
+
+      <div className="shop-view__counter" ref={counterRef}>
+        {FLOWERS.map((flower, index) => (
+          <FlowerStand
+            key={flower.id}
+            flower={flower}
+            focused={index === center}
+            distance={Math.abs(index - center)}
+            picked={countOf(flower.id)}
+            onSelect={() => dispatch({ type: 'inspect', flowerId: flower.id })}
+          />
+        ))}
+      </div>
+
+      {/* 正面の花にだけ、小さな木札 */}
+      <div className="shop-view__label" key={front.id}>
+        <span className="shop-view__name">{front.name}</span>
+        <span className="shop-view__price">{formatPrice(front.price)}／本</span>
+        {front.seasons.length < 4 && front.seasons.includes(season.id) && (
+          <span className="shop-view__season">いまが旬</span>
+        )}
+      </div>
+
+      <footer className="shop-view__hands">
+        <span className={`shop-view__purse ${overBudget ? 'is-over' : ''}`}>
+          ¥{pickedTotal.toLocaleString('ja-JP')}
+          <span className="shop-view__of">／ ¥{customer.budget.toLocaleString('ja-JP')}</span>
         </span>
-      </div>
-
-      <div className="shop-screen__shelves scroll">
-        {rows.map((row, rowIndex) => {
-          // いちばん下の列が手前
-          const depth = rows.length === 1 ? 1 : rowIndex / (rows.length - 1);
-          return (
-            <div
-              className="shop-screen__row"
-              key={rowIndex}
-              style={{ zIndex: rowIndex + 1 }}
-            >
-              {row.map((flower) => (
-                <FlowerVase
-                  key={flower.id}
-                  flower={flower}
-                  depth={depth}
-                  inSeason={
-                    flower.seasons.length < 4 && flower.seasons.includes(season.id)
-                  }
-                  picked={countOf(flower.id)}
-                  onSelect={() => dispatch({ type: 'inspect', flowerId: flower.id })}
-                />
-              ))}
-            </div>
-          );
-        })}
-      </div>
-
-      <footer className="shop-screen__basket panel panel--soft">
-        <div className="shop-screen__picked scroll">
-          {state.picked.length === 0 ? (
-            <p className="whisper shop-screen__empty">
-              気になった花をタップして、ゆっくり選んでください。
-            </p>
-          ) : (
-            state.picked.map((stem) => {
-              const flower = flowerById(stem.flowerId);
-              return (
-                <button
-                  key={stem.uid}
-                  type="button"
-                  className="shop-screen__chip"
-                  onClick={() => dispatch({ type: 'unpick', uid: stem.uid })}
-                  title={`${flower.name}を花瓶に戻す`}
-                >
-                  <span className="shop-screen__chip-art">
-                    <img src={flowerImage(flower.id)} alt={flower.name} />
-                  </span>
-                  <span className="shop-screen__chip-name">{flower.name}</span>
-                </button>
-              );
-            })
-          )}
-        </div>
 
         <button
           type="button"
-          className="button"
+          className="button button--small"
           disabled={state.picked.length === 0}
           onClick={() => dispatch({ type: 'go-arrange' })}
         >
           束ねる
+          {state.picked.length > 0 && (
+            <span className="shop-view__count">{state.picked.length}</span>
+          )}
         </button>
       </footer>
 

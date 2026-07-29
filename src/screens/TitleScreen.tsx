@@ -1,6 +1,12 @@
-/** お店を開ける前の、静かな一枚。 */
+/**
+ * お店を開ける前の、静かな一枚。
+ *
+ * 見えているのは店内と、作業台に置かれたカゴだけ。
+ * 文字は光の中に置き、ボタンはひとつに絞る。
+ */
 
 import './TitleScreen.css';
+import { basketFull } from '../assets/paths';
 import { useGame } from '../game/GameContext';
 
 export function TitleScreen() {
@@ -9,18 +15,19 @@ export function TitleScreen() {
 
   return (
     <div className="title-screen">
-      <div className="title-screen__center appear appear--slow">
-        <p className="subtitle">Flower Shop</p>
-        <h1 className="title title-screen__name">花咲く時間</h1>
+      <div className="title-screen__center">
+        <p className="title-screen__eyebrow">Flower Shop</p>
+        <h1 className="title-screen__name">花咲く時間</h1>
         <p className="title-screen__lead">
-          お客様の想いに寄り添って、
-          <br />
-          世界に一つだけのブーケを束ねるお店です。
+          誰かを想いながら、花を選ぶ時間を。
         </p>
       </div>
 
-      <div className="title-screen__foot appear">
-        <p className="whisper title-screen__season">{season.greeting}</p>
+      {/* 作業台には、朝いちばんに切ってきた花のカゴ */}
+      <img className="title-screen__basket" src={basketFull()} alt="" aria-hidden />
+
+      <div className="title-screen__foot">
+        <p className="title-screen__season">{season.greeting}</p>
 
         <button
           type="button"
@@ -33,23 +40,23 @@ export function TitleScreen() {
         <div className="title-screen__links">
           <button
             type="button"
-            className="button button--quiet button--small"
+            className="title-screen__link"
             onClick={() => dispatch({ type: 'open-library' })}
           >
             花の図鑑
           </button>
           <button
             type="button"
-            className="button button--quiet button--small"
+            className="title-screen__link"
             onClick={() => dispatch({ type: 'toggle-sound' })}
             aria-pressed={state.soundOn}
           >
-            {state.soundOn ? '店の音：入' : '店の音：切'}
+            店の音：{state.soundOn ? '入' : '切'}
           </button>
         </div>
 
         {returning && (
-          <p className="whisper">
+          <p className="title-screen__memo">
             {state.day}日目のお店です。これまでに{Object.keys(state.library).length}
             種類の花と出会いました。
           </p>

@@ -33,7 +33,6 @@ export function App() {
         title={state.phase === 'title'}
         blurred={blurred}
         dimmed={inspecting}
-        counterVisible={state.phase !== 'library'}
       />
 
       <div className="stage">

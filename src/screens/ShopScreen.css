@@ -1,129 +1,126 @@
-.shop-screen {
+/* 店頭。画面のほとんどは店内と花で、UI は下の隅にだけ置く。 */
+
+.shop-view {
   position: relative;
   z-index: 2;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fs-space-sm);
-}
-
-.shop-screen__wish > .whisper {
-  padding: 3px var(--fs-space-lg);
-  border-radius: var(--fs-radius-pill);
-  background: var(--fs-color-glass-soft);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.shop-screen__wish {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: var(--fs-space-sm);
-  letter-spacing: 0.08em;
-}
-
-.shop-screen__shelves {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--fs-space-xxl);
-  padding: var(--fs-space-md) var(--fs-space-xs) var(--fs-space-xl);
-}
-
-/* 奥の列ほど、少しだけ内側に寄る（自然な遠近感） */
-.shop-screen__row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-items: end;
-  gap: var(--fs-space-md);
-  padding: 0 var(--fs-space-sm);
-}
-
-/* 花を眺めているあいだ、店頭はそっと後ろへ下がる */
-.shop-screen__shelves {
   transition: filter var(--fs-duration-base) var(--fs-easing-soft);
 }
 
-.shop-screen.is-inspecting .shop-screen__shelves,
-.shop-screen.is-inspecting .shop-screen__basket,
-.shop-screen.is-inspecting .shop-screen__wish,
-.shop-screen.is-inspecting .topbar {
-  filter: blur(7px) brightness(0.86);
+/* 花を眺めているあいだ、店頭はそっと後ろへ下がる */
+.shop-view.is-inspecting > *:not(.detail) {
+  filter: blur(7px) brightness(0.88);
   pointer-events: none;
 }
 
-.shop-screen__basket {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: var(--fs-space-md);
-  padding: var(--fs-space-md);
+.shop-view__murmur {
+  align-self: center;
+  margin: var(--fs-space-sm) 0 0;
+  padding: 4px var(--fs-space-xl);
+  text-align: center;
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.14em;
+  color: var(--fs-color-ink-soft);
+  /* 面ではなく、光をまとわせて読ませる */
+  background: radial-gradient(
+    60% 120% at 50% 50%,
+    rgba(255, 251, 240, 0.9) 0%,
+    rgba(255, 251, 240, 0) 78%
+  );
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
 }
 
-.shop-screen__basket > .button {
-  flex: 0 0 auto;
-}
-
-.shop-screen__picked {
+/* 作業台。横に流して花を眺めていく。 */
+.shop-view__counter {
   flex: 1 1 auto;
-  min-width: 0;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  gap: var(--fs-space-sm);
+  align-items: flex-end;
+  gap: 2%;
+  /* 端の花も中央に来られるように、左右を花半分ぶん空ける */
+  padding: 0 calc(50% - min(26vw, 135px)) var(--fs-space-xs);
   overflow-x: auto;
   overflow-y: hidden;
-  min-height: 62px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-.shop-screen__empty {
-  margin: 0;
-  padding-left: var(--fs-space-sm);
+.shop-view__counter::-webkit-scrollbar {
+  display: none;
 }
 
-.shop-screen__chip {
-  flex: 0 0 auto;
+/* 正面の花の、小さな木札 */
+.shop-view__label {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 58px;
-  padding: 2px;
-  border-radius: var(--fs-radius-md);
-  background: var(--fs-color-glass);
-  border: 1px solid var(--fs-color-line-soft);
-  transition: transform var(--fs-duration-quick) var(--fs-easing-rise),
-    box-shadow var(--fs-duration-quick) var(--fs-easing-soft);
-  animation: appear var(--fs-duration-base) var(--fs-easing-rise) both;
+  gap: 1px;
+  padding: var(--fs-space-xs) 0 var(--fs-space-sm);
+  animation: fade var(--fs-duration-base) var(--fs-easing-soft) both;
 }
 
-.shop-screen__chip:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--fs-shadow-card);
+.shop-view__name {
+  font-size: var(--fs-font-lg);
+  letter-spacing: 0.16em;
+  color: var(--fs-color-ink);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }
 
-.shop-screen__chip-art {
-  display: block;
-  width: 44px;
-  height: 40px;
-  overflow: hidden;
+.shop-view__price {
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.08em;
+  color: var(--fs-color-ink-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }
 
-.shop-screen__chip-art img {
-  width: 170%;
-  margin-left: -35%;
-  margin-top: -18%;
+.shop-view__season {
+  margin-top: 2px;
+  font-size: var(--fs-font-xs);
+  letter-spacing: 0.14em;
+  color: var(--fs-color-sage-deep);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }
 
-.shop-screen__chip-name {
-  font-family: var(--fs-font-family-ui);
-  font-size: 9px;
-  letter-spacing: 0.02em;
-  color: var(--fs-color-ink-faint);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+/* 手もと。財布の中身と、束ねるひとこと。 */
+.shop-view__hands {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fs-space-md);
+  padding: 0 var(--fs-space-xs) var(--fs-space-xs);
+}
+
+.shop-view__purse {
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.06em;
+  color: var(--fs-color-ink-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  transition: color var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+/* 予算を超えても叱らない。色がほんの少し変わるだけ。 */
+.shop-view__purse.is-over {
+  color: var(--fs-color-petal);
+}
+
+.shop-view__of {
+  margin-left: 4px;
+  font-size: var(--fs-font-sm);
+  opacity: 0.68;
+}
+
+.shop-view__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 2px;
+  border-radius: var(--fs-radius-pill);
+  background: rgba(255, 253, 245, 0.28);
+  font-size: var(--fs-font-xs);
 }
