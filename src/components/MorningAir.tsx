@@ -16,8 +16,15 @@ interface MorningAirProps {
   morning: Morning;
 }
 
-/** 舞うものの数。多いと、雪や紙吹雪に見えてしまう。 */
-const DRIFT_COUNT = 9;
+/**
+ * 舞うものの数。
+ *
+ * 9枚だと「演出」に見えました。**3枚**にすると、
+ * ふと目に入るだけの、ただの景色になります。
+ * 数を増やしたくなったら、それは心を動かしたいのではなく、
+ * 動かしたいだけになっているときです。
+ */
+const DRIFT_COUNT = 3;
 
 export function MorningAir({ morning }: MorningAirProps) {
   // 場所と速さは、毎回同じでいい。動きだけがゆっくり流れる。
@@ -27,10 +34,11 @@ export function MorningAir({ morning }: MorningAirProps) {
         const seed = ((index * 7717 + 3119) % 9973) / 9973;
         const other = ((index * 3541 + 811) % 6949) / 6949;
         return {
-          left: `${(seed * 88 + 6).toFixed(1)}%`,
-          size: `${(7 + other * 6).toFixed(1)}px`,
-          duration: `${(13 + seed * 12).toFixed(1)}s`,
-          delay: `${(-seed * 22).toFixed(1)}s`,
+          left: `${(seed * 70 + 14).toFixed(1)}%`,
+          size: `${(7 + other * 5).toFixed(1)}px`,
+          // ゆっくり落として、間を長く取る。続けて降ると雪に見える。
+          duration: `${(24 + seed * 14).toFixed(1)}s`,
+          delay: `${(-seed * 34).toFixed(1)}s`,
           spin: `${(other * 2 - 1).toFixed(2)}`,
         };
       }),

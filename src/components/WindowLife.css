@@ -1,0 +1,180 @@
+/*
+ * 窓の外の、季節。
+ *
+ * 数を増やさないこと。目で追える数にすると、景色ではなく演出になります。
+ * 「一枚だけ」で足ります。
+ */
+
+/* 窓の位置を測るためだけの目印。何も描かない。 */
+.window-anchor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.window-life {
+  position: absolute;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ---- 春・秋：一枚だけ落ちる -------------------------------------------- */
+
+/*
+ * 一枚だけ。しかも、いつも落ちているわけではない。
+ * 22秒に一度、窓を横切って、また長い間がある。
+ * 見ていない人には、一度も見えないかもしれない ── それでいい。
+ */
+.window-life__fall {
+  position: absolute;
+  left: 22%;
+  top: -12%;
+  width: 9px;
+  height: 9px;
+  border-radius: 62% 10% 62% 10%;
+  opacity: 0;
+  animation: window-fall 22s linear infinite;
+}
+
+.window-life__fall--spring {
+  background: linear-gradient(
+    150deg,
+    rgba(250, 226, 232, 0.95),
+    rgba(238, 194, 206, 0.85)
+  );
+}
+
+.window-life__fall--autumn {
+  width: 11px;
+  height: 11px;
+  border-radius: 72% 8% 72% 8%;
+  background: linear-gradient(
+    150deg,
+    rgba(214, 152, 88, 0.92),
+    rgba(172, 100, 60, 0.85)
+  );
+  animation-duration: 26s;
+}
+
+/*
+ * 落ちるのは、周期のうち3割ほど。
+ * 残りの7割は、窓の外に何もない。だから、見えたときに嬉しい。
+ */
+@keyframes window-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  4% {
+    opacity: 0.9;
+  }
+  16% {
+    transform: translate3d(26px, 46%, 0) rotate(180deg);
+  }
+  28% {
+    transform: translate3d(6px, 92%, 0) rotate(330deg);
+    opacity: 0.85;
+  }
+  34% {
+    transform: translate3d(14px, 124%, 0) rotate(420deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(14px, 124%, 0) rotate(420deg);
+    opacity: 0;
+  }
+}
+
+/* ---- 夏：木々が風に揺れる ---------------------------------------------- */
+
+/*
+ * 葉の一枚一枚は描かない。緑の塊が、まとめてゆっくり傾くだけ。
+ * 実際、遠くの木立はそう見える。
+ */
+.window-life__branch {
+  position: absolute;
+  border-radius: 50% 50% 44% 44%;
+  filter: blur(9px);
+  transform-origin: 50% 100%;
+}
+
+.window-life__branch--near {
+  left: -8%;
+  bottom: -18%;
+  width: 62%;
+  height: 58%;
+  background: radial-gradient(
+    62% 58% at 42% 62%,
+    rgba(122, 154, 96, 0.5),
+    rgba(122, 154, 96, 0) 74%
+  );
+  animation: branch-sway 13s ease-in-out infinite;
+}
+
+.window-life__branch--far {
+  right: -12%;
+  bottom: -24%;
+  width: 54%;
+  height: 46%;
+  background: radial-gradient(
+    58% 56% at 58% 64%,
+    rgba(150, 174, 122, 0.42),
+    rgba(150, 174, 122, 0) 74%
+  );
+  /* 近い木と、周期をずらす。そろうと一枚の板に見える。 */
+  animation: branch-sway 19s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+@keyframes branch-sway {
+  0%,
+  100% {
+    transform: rotate(-1.4deg) translateX(-2px);
+  }
+  50% {
+    transform: rotate(1.6deg) translateX(3px);
+  }
+}
+
+/* ---- 冬：動くものはない ------------------------------------------------ */
+
+/*
+ * 冬だけ、落ちるものも揺れるものも置かない。
+ * ガラスがうっすら曇って、また澄む。それだけ。
+ *
+ * 「静かな朝の空気が伝わる」── 動かさないことで伝える。
+ */
+.window-life__frost {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    186deg,
+    rgba(236, 244, 250, 0.34) 0%,
+    rgba(236, 244, 250, 0.06) 46%,
+    rgba(236, 244, 250, 0.26) 100%
+  );
+  animation: frost-breathe 34s ease-in-out infinite;
+}
+
+@keyframes frost-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .window-life__fall,
+  .window-life__branch,
+  .window-life__frost {
+    animation: none;
+  }
+  .window-life__fall {
+    display: none;
+  }
+}

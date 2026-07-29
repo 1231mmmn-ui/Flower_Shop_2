@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { ambience } from './audio/ambience';
 import { MorningAir } from './components/MorningAir';
 import { Scene } from './components/Scene';
+import { WindowLife } from './components/WindowLife';
 import { morningForDay } from './data/mornings';
 import { useGame } from './game/GameContext';
 import { ArrangeScreen } from './screens/ArrangeScreen';
@@ -53,6 +54,9 @@ export function App() {
         dimmed={inspecting}
         morning={morning}
       />
+
+      {/* 窓の外の季節。店内をぼかしているあいだは、窓の中も止める。 */}
+      <WindowLife season={season.id} morning={morning} paused={blurred} />
 
       {/* 舞うもの、横切るもの、白い息。花を見ているあいだは出さない。 */}
       {!inspecting && state.phase !== 'library' && <MorningAir morning={morning} />}
