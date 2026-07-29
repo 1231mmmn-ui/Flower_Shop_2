@@ -80,14 +80,17 @@ img {
   background: var(--fs-color-veil);
 }
 
-/* 窓から差し込む光。ゆっくり息をする。 */
+/* 窓から差し込む光。ゆっくり息をする。
+   --light（強さ）と --warmth（色み）は、その日の朝で少しだけ変わる。 */
 .daylight {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  --light: 1;
+  --warmth: 0.04;
   background: radial-gradient(
       86% 62% at 46% 12%,
-      rgba(255, 246, 224, 0.42) 0%,
+      rgba(255, 246, 224, calc(0.42 * var(--light))) 0%,
       rgba(255, 246, 224, 0) 62%
     ),
     linear-gradient(
@@ -109,6 +112,18 @@ img {
   }
 }
 
+/* 澄んだ朝は青く、強い朝はあたたかく。ごくうっすらとだけ。 */
+.daylight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 236, 200, calc(max(var(--warmth), 0) * 2.6)),
+    rgba(214, 232, 246, calc(max(-1 * var(--warmth), 0) * 2.2))
+  );
+}
+
 /* 窓から入った光の帯。うっすらとだけ。 */
 .sunbeam {
   position: absolute;
@@ -117,12 +132,14 @@ img {
   width: 62%;
   height: 130%;
   pointer-events: none;
+  --light: 1;
+  --warmth: 0.04;
   transform: rotate(14deg);
   background: linear-gradient(
     100deg,
     rgba(255, 248, 230, 0) 0%,
-    rgba(255, 248, 230, 0.20) 42%,
-    rgba(255, 248, 230, 0.05) 62%,
+    rgba(255, 248, 230, calc(0.20 * var(--light))) 42%,
+    rgba(255, 248, 230, calc(0.05 * var(--light))) 62%,
     rgba(255, 248, 230, 0) 100%
   );
   filter: blur(18px);

@@ -6,9 +6,10 @@
  * 「花屋に入ったときの空気」をここで作る。UI はこの上に最小限だけ載る。
  */
 
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 
 import { shopScene, titleScene } from '../assets/paths';
+import type { Morning } from '../data/mornings';
 import type { SeasonId } from '../data/seasons';
 
 interface SceneProps {
@@ -19,15 +20,25 @@ interface SceneProps {
   blurred?: boolean;
   /** 花をタップしたときは、少しだけ暗くする */
   dimmed?: boolean;
+  /** 今日の朝の空気。指定がなければ、ふつうの朝。 */
+  morning?: Morning;
 }
 
-const MOTE_COUNT = 14;
+const DEFAULT_MORNING: Pick<Morning, 'light' | 'warmth' | 'contrast' | 'motes'> = {
+  light: 1,
+  warmth: 0.04,
+  contrast: 1,
+  motes: 14,
+};
 
-export function Scene({ season, title, blurred, dimmed }: SceneProps) {
+export function Scene({ season, title, blurred, dimmed, morning }: SceneProps) {
+  const air = morning ?? DEFAULT_MORNING;
+
   // 埃の粒は毎回同じ場所でいい。動きだけがゆっくり流れる。
+  // 数だけが、その日の空気で変わる（曇った朝は見えにくい）。
   const motes = useMemo(
     () =>
-      Array.from({ length: MOTE_COUNT }, (_, index) => {
+      Array.from({ length: air.motes }, (_, index) => {
         const seed = ((index * 9301 + 49297) % 233280) / 233280;
         return {
           left: `${(seed * 92 + 4).toFixed(1)}%`,
@@ -37,7 +48,7 @@ export function Scene({ season, title, blurred, dimmed }: SceneProps) {
           delay: `${(-seed * 26).toFixed(0)}s`,
         };
       }),
-    [],
+    [air.motes],
   );
 
   return (
@@ -53,12 +64,27 @@ export function Scene({ season, title, blurred, dimmed }: SceneProps) {
         // カスタムプロパティ経由で url() を渡すと、相対パスが CSS ファイルの
         // 位置から解かれてしまう（本番ビルドで assets/assets/… になる）。
         // background-image を直に書けば、基準は必ずドキュメントになる。
-        style={{ backgroundImage: `url(${title ? titleScene() : shopScene(season)})` }}
+        style={{
+          backgroundImage: `url(${title ? titleScene() : shopScene(season)})`,
+          // 朝日が強い日は影がくっきり、曇った日はやわらかい。
+          filter: `contrast(${air.contrast.toFixed(3)}) saturate(${(
+            1 + air.warmth * 0.6
+          ).toFixed(3)})`,
+        }}
         aria-hidden
       />
 
-      <div className="sunbeam" aria-hidden />
-      <div className="daylight" aria-hidden />
+      {/* 光の強さと色みは、その日の朝で少しだけ変わる。 */}
+      <div
+        className="sunbeam"
+        style={{ '--light': air.light, '--warmth': air.warmth } as CSSProperties}
+        aria-hidden
+      />
+      <div
+        className="daylight"
+        style={{ '--light': air.light, '--warmth': air.warmth } as CSSProperties}
+        aria-hidden
+      />
 
       <div className="motes" aria-hidden>
         {motes.map((mote, index) => (

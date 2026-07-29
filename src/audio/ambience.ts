@@ -20,6 +20,9 @@ const ROOT = 261.63; // C4
 /** 音の層。開店前は鳥と風だけ。 */
 export type AmbienceMode = 'morning' | 'shop';
 
+/** その季節だけ鳴るもの（→ src/data/mornings.ts）。 */
+export type SeasonSound = 'cicada' | 'chime' | 'none';
+
 /** 鳥が鳴くまでの間（ミリ秒）。⑮3章「12〜40秒に一度」。 */
 const BIRD_GAP: readonly [number, number] = [12_000, 28_000];
 /** 風がひと吹きするまでの間。⑮3章「20〜60秒に一度」。 */
@@ -35,9 +38,12 @@ export class Ambience {
   private master: GainNode | null = null;
   private wind: AudioBufferSourceNode | null = null;
   private windGain: GainNode | null = null;
+  private cicada: AudioBufferSourceNode | null = null;
+  private cicadaGain: GainNode | null = null;
   private timers = new Set<number>();
   private running = false;
   private mode: AmbienceMode = 'shop';
+  private seasonSound: SeasonSound = 'none';
 
   /** いま鳴らしている層。開店前は 'morning'。 */
   get currentMode(): AmbienceMode {
@@ -85,6 +91,93 @@ export class Ambience {
     if (mode === 'shop') this.scheduleNote();
   }
 
+  /**
+   * その季節だけ鳴るもの。夏の蝉、曇った夏の朝の風鈴。
+   * 毎日ほんの少しだけ違う朝にするための層（→ design/15-build-order.md 3章）。
+   */
+  setSeasonSound(sound: SeasonSound): void {
+    if (this.seasonSound === sound) return;
+    this.seasonSound = sound;
+    if (sound === 'cicada') this.startCicada();
+    else this.stopCicada();
+  }
+
+  /** 蝉。ひと夏ぶんの、遠い地鳴りのような層。 */
+  private startCicada(): void {
+    const { context, master } = this;
+    if (!context || !master || this.cicada) return;
+
+    // 帯域を絞った雑音を細かく震わせると、遠くの蝉時雨に近くなる。
+    const seconds = 4;
+    const buffer = context.createBuffer(1, context.sampleRate * seconds, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const band = context.createBiquadFilter();
+    band.type = 'bandpass';
+    band.frequency.value = 4200;
+    band.Q.value = 5.5;
+
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0, context.currentTime);
+    gain.gain.linearRampToValueAtTime(0.012, context.currentTime + 5);
+
+    // 蝉の、細かい震え
+    const tremolo = context.createOscillator();
+    tremolo.frequency.value = 22;
+    const depth = context.createGain();
+    depth.gain.value = 0.006;
+    tremolo.connect(depth).connect(gain.gain);
+    tremolo.start();
+
+    source.connect(band).connect(gain).connect(master);
+    source.start();
+    this.cicada = source;
+    this.cicadaGain = gain;
+  }
+
+  private stopCicada(): void {
+    const { context, cicada, cicadaGain } = this;
+    if (!context || !cicada || !cicadaGain) return;
+    cicadaGain.gain.cancelScheduledValues(context.currentTime);
+    cicadaGain.gain.setValueAtTime(cicadaGain.gain.value, context.currentTime);
+    cicadaGain.gain.linearRampToValueAtTime(0, context.currentTime + 2);
+    window.setTimeout(() => cicada.stop(), 2200);
+    this.cicada = null;
+    this.cicadaGain = null;
+  }
+
+  /** 風鈴。風がひと吹きしたときだけ、ちりん、と一度。 */
+  private playChime(): void {
+    const { context, master } = this;
+    if (!context || !master) return;
+    const at = context.currentTime + 0.1 + Math.random() * 0.4;
+
+    // ガラスの風鈴は、倍音が整数比から少しずれている。
+    for (const [ratio, level] of [
+      [1, 0.028],
+      [2.41, 0.012],
+      [4.83, 0.005],
+    ] as const) {
+      const osc = context.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 2340 * ratio;
+
+      const gain = context.createGain();
+      gain.gain.setValueAtTime(0, at);
+      gain.gain.linearRampToValueAtTime(level, at + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 2.6);
+
+      osc.connect(gain).connect(master);
+      osc.start(at);
+      osc.stop(at + 2.7);
+    }
+  }
+
   stop(): void {
     this.running = false;
     for (const id of this.timers) window.clearTimeout(id);
@@ -99,6 +192,10 @@ export class Ambience {
       this.wind?.stop();
       this.wind = null;
       this.windGain = null;
+      this.cicada?.stop();
+      this.cicada = null;
+      this.cicadaGain = null;
+      this.seasonSound = 'none';
       master.disconnect();
       this.master = null;
     }, 1800);
@@ -158,6 +255,8 @@ export class Ambience {
     if (!this.running) return;
     this.later(between(GUST_GAP), () => {
       this.playGust();
+      // 風鈴は、風が吹いたときにだけ鳴る。ひとりでには鳴らない。
+      if (this.seasonSound === 'chime') this.playChime();
       this.scheduleGust();
     });
   }
