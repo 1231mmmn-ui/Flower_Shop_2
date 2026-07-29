@@ -4,6 +4,8 @@
  * 情報を読む画面ではなく、花を眺める時間を楽しむ画面。
  */
 
+import { useState } from 'react';
+
 import './FlowerDetail.css';
 import { flower as flowerImage } from '../assets/paths';
 import { flowerById, formatPrice, type Flower } from '../data/flowers';
@@ -26,8 +28,17 @@ export function FlowerDetail({
   onPick,
   onClose,
 }: FlowerDetailProps) {
+  // 紙を下げて、花だけを見られるようにする。
+  // 「一輪の花を、しばらく見つめてしまう」（→ design/16-stillness.md 2章）は
+  // 五つの立ち止まる時間のひとつで、紙が出たままだと視線がそちらへ移ってしまう。
+  const [paperDown, setPaperDown] = useState(false);
+
   return (
-    <div className="detail fade" role="dialog" aria-label={flower.name}>
+    <div
+      className={`detail fade ${paperDown ? 'is-quiet' : ''}`}
+      role="dialog"
+      aria-label={flower.name}
+    >
       <button
         type="button"
         className="detail__backdrop"
@@ -35,7 +46,13 @@ export function FlowerDetail({
         aria-label="花瓶に戻す"
       />
 
-      <div className="detail__stage">
+      {/* 花にふれると紙が下がる。もう一度ふれると戻る。 */}
+      <button
+        type="button"
+        className="detail__stage"
+        onClick={() => setPaperDown((was) => !was)}
+        aria-label={paperDown ? '説明を見る' : '花だけを見る'}
+      >
         <span className="detail__light" aria-hidden />
         <img
           className="detail__flower"
@@ -43,7 +60,7 @@ export function FlowerDetail({
           alt={flower.name}
           draggable={false}
         />
-      </div>
+      </button>
 
       <div className="detail__card panel panel--deep scroll">
         <header className="detail__head">

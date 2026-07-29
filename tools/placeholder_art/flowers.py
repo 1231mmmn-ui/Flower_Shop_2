@@ -254,7 +254,11 @@ def head_dome(layer, c, r, palette: list[RGB], rng, florets: int = 34,
 
 def head_spray(layer, c, r, color: RGB, rng, count: int = 120, dot: float = 0.055,
                spread: tuple[float, float] = (1.0, 1.0), stem_color: RGB | None = None) -> None:
-    """かすみ草。細い枝先に小さな白い花がふわりと散る。"""
+    """かすみ草。細い枝先に小さな白い花がふわりと散る。
+
+    棚では、穂もの（デルフィニウム）と「小花の集まり」として似て見えてしまう。
+    見分けの手がかりは外周だけなので、**横に広く、縦に低い雲**に寄せてある。
+    """
     if stem_color:
         for _ in range(16):
             a = rng.uniform(-1.2, 1.2)
@@ -267,8 +271,9 @@ def head_spray(layer, c, r, color: RGB, rng, count: int = 120, dot: float = 0.05
     for _ in range(count):
         a = rng.uniform(0, 2 * math.pi)
         rad = math.sqrt(rng.uniform(0, 1))
-        x = c[0] + math.cos(a) * rad * r * spread[0]
-        y = c[1] + math.sin(a) * rad * r * spread[1] * 0.9
+        # 横に広く、縦に低く。穂ものと逆の輪郭にして、棚でも取り違えないようにする。
+        x = c[0] + math.cos(a) * rad * r * spread[0] * 1.18
+        y = c[1] + math.sin(a) * rad * r * spread[1] * 0.66
         d = r * dot * rng.uniform(0.7, 1.3)
         col = shade(color, 0.10 - 0.20 * rad)
         for k in range(5):
@@ -278,11 +283,17 @@ def head_spray(layer, c, r, color: RGB, rng, count: int = 120, dot: float = 0.05
 
 def head_spike(layer, c, r, palette: list[RGB], rng, height: float, count: int = 42,
                floret: float = 0.16, petals: int = 5) -> None:
-    """デルフィニウム・スターチス。穂状に上へ伸びる花。"""
+    """デルフィニウム・スターチス。穂状に上へ伸びる花。
+
+    棚の大きさ（画面幅の26%ほど）では、細部は一切見えない。
+    そこで見分けられるかは、**外周のかたち**だけで決まる。
+    かすみ草と混同されないよう、幅を絞って「細く高い柱」に寄せてある。
+    """
     for i in range(count):
         t = i / max(1, count - 1)
         y = c[1] + height * 0.5 - height * t
-        spread = r * (1.0 - 0.72 * t) * rng.uniform(-1.0, 1.0)
+        # 左右への散らばりを抑える（前は r いっぱいまで広がって、雲に見えていた）
+        spread = r * 0.62 * (1.0 - 0.55 * t) * rng.uniform(-1.0, 1.0)
         x = c[0] + spread
         fr = r * floret * (1.15 - 0.5 * t) * rng.uniform(0.8, 1.2)
         col = shade(rng.choice(palette), 0.06 - 0.18 * abs(spread) / max(1.0, r))
@@ -364,13 +375,13 @@ RECIPES: dict[str, Recipe] = {
     "delphinium": Recipe(
         id="delphinium", head="spike", palette=["#6E90D4", "#8AAAE4", "#5C7FC6"],
         accent="#DCE6F7", center="#F2F0E2", stem="#88A06A", leaf="#75904F",
-        head_r=140, stem_w=(13, 18), leaves=2, leaf_len=140, bud=False, lean=7,
-        opts=dict(height=470, count=50, floret=0.18)),
+        head_r=120, stem_w=(13, 18), leaves=2, leaf_len=140, bud=False, lean=7,
+        opts=dict(height=560, count=58, floret=0.20)),
     "gypsophila": Recipe(
         id="gypsophila", head="spray", palette=["#FFFDF7", "#F6F1E6"], accent="#FFFFFF",
-        center="#F0EAD8", stem="#9FB183", leaf="#93A878", head_r=238,
+        center="#F0EAD8", stem="#9FB183", leaf="#93A878", head_r=252,
         stem_w=(9, 13), leaves=1, leaf_len=100, bud=False, lean=6,
-        opts=dict(count=150, dot=0.052)),
+        opts=dict(count=170, dot=0.050)),
     "rose": Recipe(
         id="rose", head="rose", palette=["#EE93AB", "#E67C99"], accent="#FADCE3",
         center="#D96A8C", stem="#82986A", leaf="#5E7C4A", head_r=188,

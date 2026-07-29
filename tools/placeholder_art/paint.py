@@ -310,7 +310,13 @@ def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
     ImageDraw.Draw(mask).polygon(shape, fill=255)
 
     lit = lit_amount(angle)
-    through = through_amount(angle) * translucency
+    # 透けかたは、そろえない。
+    # 実際の花は、外側の数枚だけ強く透けたり、一枚だけ妙に光を拾ったりする。
+    # 全部が同じだけ透けると、光ではなく「加工」に見える。
+    uneven = rng.uniform(0.55, 1.30)
+    if rng.random() < 0.12:
+        uneven *= 1.6          # ときどき、一枚だけ強く光を拾う
+    through = through_amount(angle) * translucency * uneven
 
     base_c = shade(jitter(base, rng, 5), -0.05 + 0.09 * lit)
     tip_c = shade(jitter(tip_color, rng, 7), 0.04 + 0.13 * lit)

@@ -164,3 +164,65 @@
   font-size: var(--fs-font-xs);
   opacity: 0.85;
 }
+
+
+/* --------------------------------------------------------------------------
+   花だけを見る
+   -------------------------------------------------------------------------- */
+
+/*
+ * 花にふれると、紙が下がって花だけになる。もう一度ふれると戻る。
+ *
+ * 「一輪の花を、しばらく見つめてしまう」は五つの立ち止まる時間のひとつで、
+ * 紙が出たままだと、視線がどうしても文字のほうへ移ってしまう。
+ * 情報を消すのではなく、**読むのをやめられる**ようにする。
+ */
+/*
+ * 花そのものが、押せる場所になった。
+ * 背景（花瓶に戻す）が上に乗っていると、花にふれたつもりで閉じてしまうので、
+ * ここだけは背景より前に出す。
+ */
+.detail__stage {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  /* 上の .detail__stage で padding-top を入れているので、ここでは消さない */
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/*
+ * `.detail__card` は登場時に animation: appear が掛かっている。
+ * animation の transform は同名プロパティの指定を丸ごと上書きするので、
+ * ここで animation を切ってから transform を渡すこと。
+ * （このプロジェクトで三度めの取り違え。忘れないよう書き残す）
+ */
+.detail.is-quiet .detail__card {
+  animation: none;
+  transform: translateY(112%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform var(--fs-duration-slow) var(--fs-easing-soft),
+    opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.detail__card {
+  transition: transform var(--fs-duration-slow) var(--fs-easing-rise),
+    opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+/* 紙が下がったぶん、花は少しだけ下りてきて、大きく見える */
+.detail.is-quiet .detail__stage {
+  transform: translateY(6%) scale(1.08);
+  transition: transform var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+.detail__stage {
+  transition: transform var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+/*
+ * 背景の暗さは、ゆるめない。
+ * 一度ゆるめてみたが、棚に立っている同じ花が透けて見えて、
+ * 一輪が二輪に見えてしまった。ここは暗いままでよい。
+ */
