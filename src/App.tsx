@@ -6,10 +6,12 @@ import { ambience } from './audio/ambience';
 import { MorningAir } from './components/MorningAir';
 import { Scene } from './components/Scene';
 import { WindowLife } from './components/WindowLife';
-import { morningForDay } from './data/mornings';
+import { eveningOf, morningForDay } from './data/mornings';
 import { useGame } from './game/GameContext';
+import { AfterScreen } from './screens/AfterScreen';
 import { ArrangeScreen } from './screens/ArrangeScreen';
 import { DeliverScreen } from './screens/DeliverScreen';
+import { EndingScreen } from './screens/EndingScreen';
 import { GreetingScreen } from './screens/GreetingScreen';
 import { LibraryScreen } from './screens/LibraryScreen';
 import { OpeningScreen } from './screens/OpeningScreen';
@@ -20,10 +22,14 @@ export function App() {
   const { state, season } = useGame();
 
   // 今日の朝。毎日ほんの少しだけ違う（→ src/data/mornings.ts）。
-  const morning = useMemo(
-    () => morningForDay(state.day, season.id),
-    [state.day, season.id],
-  );
+  //
+  // 余韻の画面だけは、同じ日の**夕方**に倒す。
+  // 新しい層を足すのではなく、もとからある光の仕組みを傾けるだけ
+  // （そうしないと、朝と夕方が違う店に見える）。
+  const morning = useMemo(() => {
+    const today = morningForDay(state.day, season.id);
+    return state.phase === 'after' ? eveningOf(today) : today;
+  }, [state.day, season.id, state.phase]);
 
   // 店の音。プレイヤーが望んだときだけ流れる。
   // 開店前は鳥と風だけで、ピアノは札を裏返してから入る。
@@ -68,6 +74,8 @@ export function App() {
         {state.phase === 'shop' && <ShopScreen />}
         {state.phase === 'arrange' && <ArrangeScreen />}
         {state.phase === 'deliver' && <DeliverScreen />}
+        {state.phase === 'after' && <AfterScreen />}
+        {state.phase === 'ending' && <EndingScreen />}
         {state.phase === 'library' && <LibraryScreen />}
       </div>
     </div>

@@ -46,7 +46,16 @@ jobs:
       # どのURLの下に置かれても画像を見失いません。
       - run: npm run build
 
+      # enablement: true で、Pages の設定そのものをここから有効にする。
+      # これが無いと「Get Pages site failed」で落ちる（実際に2回落ちた）。
+      #
+      # ただし **非公開リポジトリの Pages は有料プランだけ**です。
+      # 無料プランのままなら、ここも失敗します。そのときは
+      # リポジトリを公開にするか、`npm run dev` の Network: の URL を
+      # 同じ Wi-Fi の電話で開いてください。
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:

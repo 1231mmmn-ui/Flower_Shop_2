@@ -15,7 +15,7 @@ import {
 
 import { CUSTOMERS, customerById, type Customer } from '../data/customers';
 import { flowerById } from '../data/flowers';
-import { seasonForDay, type Season } from '../data/seasons';
+import { SEASONS, seasonForDay, type Season } from '../data/seasons';
 import { RIBBONS, WRAPPINGS } from '../data/wrapping';
 import { arrange, bringForward, makeStem } from './arrange';
 import { evaluate, bouquetPrice, type Evaluation } from './evaluation';
@@ -64,7 +64,8 @@ export type Action =
   | { type: 'set-wrapping'; id: string }
   | { type: 'set-ribbon'; id: string }
   | { type: 'deliver' }
-  | { type: 'next-customer' }
+  | { type: 'close-shop' }
+  | { type: 'next-day' }
   | { type: 'open-library' }
   | { type: 'close-library' }
   | { type: 'toggle-favorite'; flowerId: string }
@@ -191,13 +192,18 @@ function reducer(state: GameState, action: Action): GameState {
       };
     }
 
-    case 'next-customer': {
+    // お客さまが帰った。まだ日は変えない ── 静かになった店が残る。
+    case 'close-shop':
+      return { ...state, phase: 'after' };
+
+    case 'next-day': {
       const day = state.day + 1;
       const next = { ...state, day };
       return {
         ...next,
-        // 新しい日は、いつも開店前から始まる。
-        phase: 'opening',
+        // 季節がひと巡りした日は、店を開ける前に一度だけ問いが出る。
+        // それ以外の朝は、いつもどおり開店前から始まる。
+        phase: isTurnOfTheYear(state.day) ? 'ending' : 'opening',
         customerId: pickCustomer(next),
         picked: [],
         bouquet: emptyBouquet(),
@@ -259,6 +265,20 @@ function recordDelivery(state: GameState): GameState['library'] {
     library[stem.flowerId] = { ...entry, delivered: entry.delivered + 1 };
   }
   return library;
+}
+
+/**
+ * 季節がひと巡りした日か。
+ *
+ * 1季節は5日（→ `seasonForDay`）なので、20日で春夏秋冬が一周します。
+ * その日を終えたところで、一度だけ「好きな花は、できましたか？」を出します。
+ *
+ * **そこで終わりにはしません。** きれいに終わると、そこで満足してしまいます
+ * （→ design/00-emotion.md【余韻】「終わりきらないこと」）。
+ * 問いのあとは、また春の朝が来ます。
+ */
+function isTurnOfTheYear(day: number): boolean {
+  return day % (SEASONS.length * 5) === 0;
 }
 
 /** 同じ人が続けて来ないように、そっと選ぶ。 */

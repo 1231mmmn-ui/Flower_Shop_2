@@ -27,17 +27,18 @@ export function DeliverScreen() {
         束と笑顔だけになる時間。
         自動版は3秒後にひとりでに、手動版はふれたときに、まわりが消える。
       */}
+      {/*
+        束にふれると、まわりが下がる／戻る。
+
+        **どちらの案でも、必ず戻せること。**
+        自動版で戻せなかったころは、3秒後に下の帯が触れなくなり、
+        お渡しの画面から出られなくなっていた。
+      */}
       <button
         type="button"
         className="deliver__moment"
-        onClick={mode === 'manual' ? linger.toggle : undefined}
-        aria-label={
-          mode === 'manual'
-            ? linger.hidden
-              ? '言葉を見る'
-              : '束だけを眺める'
-            : undefined
-        }
+        onClick={linger.toggle}
+        aria-label={linger.hidden ? '言葉を見る' : '束だけを眺める'}
       >
         <img
           className="deliver__person"
@@ -77,16 +78,20 @@ export function DeliverScreen() {
       </div>
 
       <footer className="deliver__foot">
-        <p className="deliver__farewell">{customer.farewell}</p>
+        {/*
+          帰りぎわの一言は、ここから余韻の画面へ移した。
+          お客さまがまだ目の前にいるうちに読ませると、
+          「帰りぎわ」ではなく「受け取ったときの言葉」になってしまう。
+        */}
         <button
           type="button"
           className="button"
           onClick={() => {
             linger.finish();
-            dispatch({ type: 'next-customer' });
+            dispatch({ type: 'close-shop' });
           }}
         >
-          次のお客さまへ
+          お見送りする
         </button>
       </footer>
     </div>

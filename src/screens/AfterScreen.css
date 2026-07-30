@@ -1,0 +1,215 @@
+/*
+ * 余韻。
+ *
+ * 朝（⓪-b 開店前）と対になる画面です。
+ *   朝   札を裏返して、一日が始まる
+ *   夜   札を裏返して、一日が閉じる
+ * **同じ手つき**で閉じます。数字でも、まとめ画面でもなく。
+ *
+ * だから見た目も朝の札と同じものを使います。違うのは向きだけ。
+ *
+ * `sign-flip` と `sign-sway` は OpeningScreen.css で定義しているものを
+ * そのまま使います（同じ札なので、二つ持たない）。
+ */
+
+/*
+ * 置きどころは、絵に合わせて決めています。
+ *
+ *   〜46%   窓と棚（絵にもう描かれている。ここには何も置かない）
+ *   46〜58% 壁。ここに帰りぎわの一言
+ *   58%〜   カウンターの木。ここに花びらと札
+ *
+ * はじめは上から縦に並べていたので、**一言が窓に重なりました。**
+ * 窓の上に文字が乗ると、字幕になります。
+ */
+.after {
+  position: relative;
+  height: 100%;
+}
+
+/*
+ * 帰りぎわの一言。
+ * ここだけ先に出て、あとの静けさへ引き渡す。
+ */
+.after__farewell {
+  position: absolute;
+  top: 48%;
+  left: var(--fs-space-lg);
+  right: var(--fs-space-lg);
+  margin: 0;
+  text-align: center;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-soft);
+  animation: after-word 1.4s var(--fs-easing-soft) both;
+}
+
+@keyframes after-word {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * カウンター。面は描きません ── 店内の絵にもう写っています。
+ * ここは花びらを置くための、位置の器だけ。
+ */
+.after__counter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 58%;
+  bottom: 18%;
+}
+
+/*
+ * 残った花びら一枚。
+ *
+ * 「置いた」ように見せないこと。**片づけ忘れ**に見せたい。
+ * だから中央には置かず、傾きも日ごとに変えています（TSX側）。
+ * 大きさは、朝に舞う花びらと同じ 9px。ここだけ大きくすると
+ * 「見てください」になります。
+ *
+ * 遅れて、ゆっくり浮かび上がる。落ちてくる動きは付けません ──
+ * 落下を見せた瞬間に、それは演出になります。
+ * プレイヤーが気づいたときには、もう**そこにあった**ことにしたい。
+ */
+.after__petal {
+  position: absolute;
+  bottom: 12%;
+  width: 9px;
+  height: 13px;
+  border-radius: 60% 60% 60% 60% / 78% 78% 30% 30%;
+  background: linear-gradient(
+    150deg,
+    rgba(246, 219, 226, 0.92),
+    rgba(232, 186, 199, 0.78)
+  );
+  /* 木の面に触れている影。ごくわずか。 */
+  box-shadow: 1px 2px 3px rgba(74, 63, 53, 0.20);
+  opacity: 0;
+  animation: after-petal 2.6s var(--fs-easing-soft) 1.1s both;
+}
+
+@keyframes after-petal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- 札 ------------------------------------------------------------------ */
+
+/*
+ * 朝の札とまったく同じ作り（→ OpeningScreen.css）。
+ * 一日の始めと終わりで別のものに見えてはいけないので、
+ * 寸法・木目・影の向きは写しています。
+ */
+/* 中央寄せに transform は使わない（→ EndingScreen.css の注記）。 */
+.after__sign {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--fs-space-xxl);
+  width: fit-content;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 620px;
+  /* 静かになるまでの1.5秒は、まだふれられない */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+.after.is-settled .after__sign {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.after__sign:disabled {
+  cursor: default;
+}
+
+.after__sign-cord {
+  width: 1px;
+  height: 26px;
+  background: linear-gradient(
+    to bottom,
+    rgba(124, 95, 68, 0),
+    rgba(124, 95, 68, 0.55)
+  );
+}
+
+.after__sign-plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 148px;
+  height: 52px;
+  transform-style: preserve-3d;
+  animation: sign-sway 7.4s var(--fs-easing-soft) infinite;
+}
+
+.after__sign-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(
+      93deg,
+      rgba(124, 95, 68, 0.06) 0 1px,
+      rgba(124, 95, 68, 0) 1px 26px
+    ),
+    linear-gradient(168deg, #d9bb92, var(--fs-color-wood-light));
+  box-shadow: 4px 7px 16px rgba(74, 63, 53, 0.32);
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--fs-color-wood-dark);
+}
+
+/* 裏は「CLOSED」。夜は、こちらへ返る。 */
+.after__sign-face--closed {
+  transform: rotateY(180deg);
+  background:
+    repeating-linear-gradient(
+      93deg,
+      rgba(124, 95, 68, 0.06) 0 1px,
+      rgba(124, 95, 68, 0) 1px 26px
+    ),
+    linear-gradient(168deg, var(--fs-color-wood), var(--fs-color-wood-dark));
+  color: var(--fs-color-cream);
+}
+
+/*
+ * 0.9秒かけて返る。朝と同じ長さ。
+ *
+ * ここは「プレイヤーに応えること」なので、**必ず**返ります
+ * （→ ⑯静けさ 3章）。遅れて返ることはあっても、返らないことはない。
+ */
+.after.is-closing .after__sign-plate {
+  animation: sign-flip 0.9s var(--fs-easing-soft) forwards;
+}
+
+/* 札を返したら、店の灯が落ちるように、画面ごと静かになる。 */
+.after.is-closing .after__farewell,
+.after.is-closing .after__petal {
+  transition: opacity 0.9s var(--fs-easing-soft);
+  opacity: 0;
+}

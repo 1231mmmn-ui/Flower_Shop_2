@@ -98,3 +98,31 @@ export function morningForDay(day: number, season: SeasonId): Morning {
     breath: season === 'winter' && weather === 'crisp',
   };
 }
+
+/**
+ * 同じ日の、夕方。
+ *
+ * 余韻の画面のために、朝の空気をそのまま夕方へ倒します。
+ * 新しい層を重ねるのではなく、**もとからある光の仕組みを傾ける**だけ。
+ * 別のフィルタを足すと、朝と夕方が違う店に見えてしまいます。
+ *
+ *   光      弱める（西日は差し込む角度が低く、量は減る）
+ *   色み    暖かくする（夕方はいちばん暖色に寄る）
+ *   影      やわらげる（正午の硬さがなくなる）
+ *   埃      減らす（空気が落ち着いて、舞うものが少ない）
+ *
+ * 舞うもの・横切るもの・白い息は、朝だけのものなので消します。
+ */
+export function eveningOf(morning: Morning): Morning {
+  return {
+    ...morning,
+    light: morning.light * 0.62,
+    warmth: morning.warmth + 0.20,
+    contrast: 0.94,
+    motes: Math.round(morning.motes * 0.45),
+    drifting: 'none',
+    passing: 'none',
+    sound: 'none',
+    breath: false,
+  };
+}

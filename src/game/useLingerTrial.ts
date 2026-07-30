@@ -92,6 +92,14 @@ export function useLingerTrial(mode: LingerMode, day: number) {
   const [hidden, setHidden] = useState(false);
   const enteredAt = useRef(Date.now());
   const hiddenAt = useRef<number | null>(null);
+  /**
+   * 束だけだった時間の合計。
+   *
+   * はじめは「最後に隠れた時刻」から引くだけにしていたが、それでは
+   * 一度でも戻すと0になってしまう。下げて戻して、また下げる人もいる。
+   * **足していく**のが正しい。
+   */
+  const aloneMs = useRef(0);
   const touched = useRef(false);
   const saved = useRef(false);
 
@@ -105,12 +113,29 @@ export function useLingerTrial(mode: LingerMode, day: number) {
     return () => window.clearTimeout(id);
   }, [mode]);
 
-  /** 手動版で、プレイヤーがUIを下げた（または戻した）。 */
+  /**
+   * UIを下げる／戻す。
+   *
+   * **自動版でも必ず戻せること。** ここは一度、遊べなくなる穴だった。
+   * 自動版では3秒後にUIが消え、そのとき下の帯は pointer-events: none に
+   * なるのに、束にふれても何も起きなかった。つまり
+   * **お渡しの画面から出られない。** それが4日のうち2日ぶん起きていた。
+   *
+   * ⓪感情設計書の【余韻】には、はじめから
+   * 「UIが1.1秒かけて全部消え、ブーケと笑顔だけが残る。**ふれると戻る**」
+   * と書いてある。実装がその最後の一句を落としていた。
+   *
+   * 「プレイヤーに応えることは、必ず応える」（→ ⑯静けさ 3章）。
+   */
   const toggle = useCallback(() => {
     touched.current = true;
     setHidden((was) => {
-      if (!was) hiddenAt.current = Date.now();
-      else hiddenAt.current = null;
+      if (!was) {
+        hiddenAt.current = Date.now();
+      } else if (hiddenAt.current) {
+        aloneMs.current += Date.now() - hiddenAt.current;
+        hiddenAt.current = null;
+      }
       return !was;
     });
   }, []);
@@ -120,10 +145,13 @@ export function useLingerTrial(mode: LingerMode, day: number) {
     if (saved.current) return;
     saved.current = true;
     const now = Date.now();
+    const alone =
+      aloneMs.current + (hiddenAt.current ? now - hiddenAt.current : 0);
     const record: LingerRecord = {
       mode,
-      aloneSec: hiddenAt.current ? (now - hiddenAt.current) / 1000 : 0,
+      aloneSec: alone / 1000,
       totalSec: (now - enteredAt.current) / 1000,
+      // 自動版は放っておいても束だけになるので、「ふれた」は問わない。
       touched: mode === 'auto' ? true : touched.current,
       firstOfBlock: isFirstOfBlock(day),
       day,

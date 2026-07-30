@@ -10,7 +10,9 @@ export type Phase =
   | 'shop'       // 花瓶から花を選ぶ
   | 'arrange'    // 束ねる・包む
   | 'deliver'    // お渡しして、言葉を受け取る
-  | 'library';   // 図鑑
+  | 'after'      // 余韻。帰ったあとの静かな店（→ design/00-emotion.md【余韻】）
+  | 'ending'     // 季節がひと巡りした日。「好きな花は、できましたか？」
+  | 'library';   // 店のアルバム
 
 /** ブーケに挿さっている1本。 */
 export interface BouquetStem {
