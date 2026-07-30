@@ -36,10 +36,21 @@ const STORAGE_KEY = 'flower-shop-hanasaku:linger-trial';
 
 export interface LingerRecord {
   mode: LingerMode;
-  /** 主指標：花だけになってから、次の操作までの秒 */
+  /** 主指標：束だけになってから、次の操作までの秒 */
   aloneSec: number;
   /** 副指標：画面に入ってから、出るまでの秒 */
   totalSec: number;
+  /**
+   * 手動版で、束にふれたか。
+   *
+   * これが無いと、主指標が0のとき「眺めたくなかった」のか
+   * 「ふれられると知らなかった」のか区別できない。
+   * 前者は設計の答えだが、後者はただの分かりにくさで、別の話。
+   */
+  touched: boolean;
+  /** その案に切り替わって最初の日か（慣れと物珍しさが乗るので、集計から外す） */
+  firstOfBlock: boolean;
+  day: number;
   at: string;
 }
 
@@ -53,18 +64,35 @@ export function readLingerRecords(): LingerRecord[] {
   }
 }
 
+/** ひとつの案を続けて遊ぶ日数。 */
+const BLOCK_DAYS = 4;
+
 /**
- * 日ごとに案を入れ替える。
- * 同じ人が両方を遊べるようにするため、片方に寄せない。
+ * 案の割り当て。
+ *
+ * 一日ごとに入れ替えるのをやめた。理由が二つある。
+ *
+ *   1. 「昨日と違う」こと自体が、体験に混ざってしまう
+ *   2. **手動版の初日は、ふれられると知らないまま終わる**
+ *      → 束だけの状態に一度も入らず、主指標が0になる
+ *      → それは設計の答えではなく、ただの分かりにくさ
+ *
+ * だから4日ずつまとめて切り替え、各ブロックの初日は集計から外す。
  */
 export function lingerModeForDay(day: number): LingerMode {
-  return day % 2 === 0 ? 'auto' : 'manual';
+  return Math.floor((day - 1) / BLOCK_DAYS) % 2 === 0 ? 'auto' : 'manual';
 }
 
-export function useLingerTrial(mode: LingerMode) {
+/** その案に切り替わって最初の日か。 */
+export function isFirstOfBlock(day: number): boolean {
+  return (day - 1) % BLOCK_DAYS === 0;
+}
+
+export function useLingerTrial(mode: LingerMode, day: number) {
   const [hidden, setHidden] = useState(false);
   const enteredAt = useRef(Date.now());
   const hiddenAt = useRef<number | null>(null);
+  const touched = useRef(false);
   const saved = useRef(false);
 
   // 自動版だけ、3秒後にひとりでに消える。
@@ -79,6 +107,7 @@ export function useLingerTrial(mode: LingerMode) {
 
   /** 手動版で、プレイヤーがUIを下げた（または戻した）。 */
   const toggle = useCallback(() => {
+    touched.current = true;
     setHidden((was) => {
       if (!was) hiddenAt.current = Date.now();
       else hiddenAt.current = null;
@@ -95,6 +124,9 @@ export function useLingerTrial(mode: LingerMode) {
       mode,
       aloneSec: hiddenAt.current ? (now - hiddenAt.current) / 1000 : 0,
       totalSec: (now - enteredAt.current) / 1000,
+      touched: mode === 'auto' ? true : touched.current,
+      firstOfBlock: isFirstOfBlock(day),
+      day,
       at: new Date().toISOString(),
     };
     try {
@@ -104,7 +136,7 @@ export function useLingerTrial(mode: LingerMode) {
     } catch {
       /* 記録できなくても、遊びは止めない */
     }
-  }, [mode]);
+  }, [mode, day]);
 
   return { hidden, toggle, finish };
 }

@@ -16,7 +16,7 @@ export function DeliverScreen() {
   const { state, dispatch, customer, result } = useGame();
   // 眺める間。いまは二案を日ごとに入れ替えて比べている（→ useLingerTrial）。
   const mode = lingerModeForDay(state.day);
-  const linger = useLingerTrial(mode);
+  const linger = useLingerTrial(mode, state.day);
   if (!result) return null;
 
   return (
