@@ -186,14 +186,62 @@
   animation: petal-sway 5.6s var(--fs-easing-soft) infinite;
 }
 
-.morning__shelf .stand:nth-child(3n) .stand__flowers {
-  animation-duration: 6.8s;
+/*
+ * 周期は5通りに散らす。3通りだと、隣どうしが同じ拍で揺れて「列」に見えた。
+ * どれも素数寄りの長さにして、そろって同じ位置に来る瞬間を作らない。
+ */
+.morning__shelf .stand:nth-child(5n) .stand__flowers {
+  animation-duration: 6.7s;
   animation-delay: -2.1s;
 }
-
-.morning__shelf .stand:nth-child(3n + 1) .stand__flowers {
-  animation-duration: 4.4s;
+.morning__shelf .stand:nth-child(5n + 1) .stand__flowers {
+  animation-duration: 4.3s;
   animation-delay: -3.4s;
+}
+.morning__shelf .stand:nth-child(5n + 2) .stand__flowers {
+  animation-duration: 7.9s;
+  animation-delay: -1.2s;
+}
+.morning__shelf .stand:nth-child(5n + 3) .stand__flowers {
+  animation-duration: 9.1s;
+  animation-delay: -5.5s;
+}
+
+/*
+ * もう一段、ずっと遅い揺れを重ねる。
+ *
+ * 実測すると、常時の揺れは花の先で 8.4px（画面幅の約2%）動いていた。
+ * 大きさとしてはちょうどよく、弱めると見えなくなってしまう。
+ * 問題は大きさではなく**周期**で、5.6秒の一本調子だと30秒眺めるあいだに
+ * 5回以上くり返され、「ループ」として見えてしまう。
+ *
+ * そこで、花そのものに 17〜23秒のごく遅い揺れを足した。
+ * 二つの周期が割り切れないので、見えている動きは長いあいだ同じ形に戻らない。
+ * ── 弱めるのではなく、くり返さないようにする。
+ */
+.morning__shelf .stand {
+  transform-origin: 50% 100%;
+  animation: stand-drift 19s var(--fs-easing-soft) infinite;
+}
+
+.morning__shelf .stand:nth-child(3n) {
+  animation-duration: 23s;
+  animation-delay: -7s;
+}
+
+.morning__shelf .stand:nth-child(3n + 1) {
+  animation-duration: 17s;
+  animation-delay: -11s;
+}
+
+@keyframes stand-drift {
+  0%,
+  100% {
+    transform: rotate(-0.34deg);
+  }
+  50% {
+    transform: rotate(0.34deg);
+  }
 }
 
 /* .stand__flowers は translateX(-50%) で中央に置いてある。
@@ -261,6 +309,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .morning__shelf .stand,
   .morning__shelf .stand__flowers,
   .morning__sign-plate {
     animation: none !important;

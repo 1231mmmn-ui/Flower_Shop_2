@@ -235,7 +235,69 @@ def render_interior(seed: int = 0, title: bool = False) -> Image.Image:
     d.arc([wx - 34, tools_y - 96, wx + 22, tools_y - 46], start=200, end=340,
           fill=hex_rgb("#98A19D"), width=6)
 
+    _work_traces(img, table_y, rng)
+
     return img.filter(ImageFilter.GaussianBlur(3.4))
+
+
+def _work_traces(img: Image.Image, table_y: int, rng: random.Random) -> None:
+    """
+    仕事の痕跡。
+
+    「誰かが今朝ここで、丁寧に仕事をしていた」と伝わるためのもの。
+
+    置くのは **やり終えた仕事の跡だけ**。
+      ○  切り落とした茎、水を替えたあとの濡れた跡、落ちた葉
+      ×  まだ切っていない花束、空の花瓶、積まれた注文票
+
+    後者を置くと「これからやることがある」になり、
+    開店前を「何もしなくていい時間」にした意味が消えてしまう。
+
+    **見えすぎないこと。** 一度、輪郭のはっきりした跡を置いてみたが、
+    それは痕跡ではなく「置かれたもの」に見えた。
+    気づかせようとした時点で、景色ではなく演出になる。
+    だから、どれも薄く、道具の並ぶ帯の中に置いて、花の立つ手前は空けておく。
+    """
+    w, h = img.size
+    d = ImageDraw.Draw(img, "RGBA")
+    # 道具（はさみ・麻ひも）と同じ帯。花が立つ手前は空けたまま。
+    band = (table_y + 34, table_y + 124)
+
+    # ---- 水を替えたあとの、乾きかけた跡。輪郭は描かない。
+    for cx, cy, rx, ry in ((w * 0.368, band[0] + 46, 116, 26),
+                           (w * 0.628, band[0] + 74, 82, 19)):
+        wet = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        ImageDraw.Draw(wet).ellipse([cx - rx, cy - ry, cx + rx, cy + ry],
+                                    fill=(74, 56, 40, 20))
+        img.alpha_composite(wet.filter(ImageFilter.GaussianBlur(22)))
+
+    # ---- 切り落とした茎の切れ端。3本だけ。天板の色に近づけて沈める。
+    stem_c = mix(hex_rgb("#7E9463"), hex_rgb(WOOD_LIGHT), 0.34)
+    for _ in range(3):
+        x = rng.uniform(w * 0.355, w * 0.645)
+        y = rng.uniform(*band)
+        length = rng.uniform(26, 54)
+        ang = math.radians(rng.uniform(-26, 26) + rng.choice((0, 180)))
+        x2 = x + math.cos(ang) * length
+        y2 = y + math.sin(ang) * length * 0.26
+        d.line([x + 3, y + 4, x2 + 3, y2 + 4], fill=(74, 63, 53, 26), width=6)
+        d.line([x, y, x2, y2], fill=(*stem_c, 150), width=5)
+
+    # ---- 水滴。3つだけ。光は左上、影は右下。
+    for _ in range(3):
+        x = rng.uniform(w * 0.36, w * 0.64)
+        y = rng.uniform(*band)
+        r = rng.uniform(3.0, 4.6)
+        d.ellipse([x - r, y - r * 0.7, x + r, y + r * 0.7], fill=(150, 164, 166, 34))
+        d.ellipse([x - r * 0.45, y - r * 0.45, x - r * 0.05, y - r * 0.08],
+                  fill=(255, 253, 245, 62))
+
+    # ---- 落ちた葉。一枚だけ。ほとんど木目に沈む。
+    lx = rng.uniform(w * 0.40, w * 0.60)
+    ly = rng.uniform(band[0] + 30, band[1])
+    leaf_c = mix(hex_rgb("#6F8C58"), hex_rgb(WOOD_LIGHT), 0.30)
+    d.ellipse([lx - 22, ly - 6, lx + 22, ly + 6], fill=(74, 63, 53, 22))
+    d.ellipse([lx - 23, ly - 8, lx + 21, ly + 4], fill=(*leaf_c, 138))
 
 
 def render_shop(season: str, seed: int = 0, title: bool = False) -> Image.Image:
