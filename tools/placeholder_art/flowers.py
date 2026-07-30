@@ -320,10 +320,16 @@ def head_eucalyptus(layer, c, r, color: RGB, rng, height: float) -> None:
             for side in (-1, 1):
                 ang = lean + side * rng.uniform(74, 106)
                 leaf = shade(jitter(color, rng, 7), 0.14 if side < 0 else -0.06)
+                # ユーカリは、葉そのものが主役の一本。
+                # ここは draw_petal を直に呼んでいるので、葉の直しが
+                # 届いていなかった（緑の輝度が 21種のうちここだけ ±0.0 だった）。
+                # 枝の左右で片側が一枚も光を通していなかったのも同じ理由。
                 draw_petal(layer, path[i], ang, lr * 2.0, lr * 1.65,
                            shade(leaf, -0.10), shade(leaf, 0.12), rng,
                            tip=0.36, waist=1.55, veins=True,
-                           curl=rng.uniform(-0.2, 0.2))
+                           curl=rng.uniform(-0.2, 0.2),
+                           translucency=0.70, through_floor=0.34,
+                           through_lift=0.90, vein_leaf=True)
 
 
 # --------------------------------------------------------------------------
@@ -517,14 +523,30 @@ def _draw_head(layer, recipe: Recipe, c, r: float, rng: random.Random,
 
 
 def _draw_leaves(layer, recipe: Recipe, path, rng: random.Random, scale: float) -> None:
-    """茎に沿って葉をつける。葉のかたちは花ごとに変える。"""
+    """
+    茎に沿って葉をつける。葉のかたちは花ごとに変える。
+
+    **左右対称にしないこと。**
+
+    もとは `side = -1 if i % 2 == 0 else 1` と、高さもほぼ等間隔でした。
+    葉が2枚の花（21種のうち7種）では、ほぼ同じ高さに左右1枚ずつ ──
+    つまり**きれいな一対**になり、押し花のように見えていました。
+    実際の切り花で葉がそう並ぶことは、ほとんどありません。
+
+    崩すのは3つだけです。高さ・角度・長さ。かたちは変えません。
+    """
     leaf_col = hex_rgb(recipe.leaf)
+    # 一枚めがどちら側から出るかは、花ごとに変わる。
+    side = -1 if rng.random() < 0.5 else 1
     for i in range(recipe.leaves):
-        t = 0.30 + 0.24 * i + rng.uniform(-0.05, 0.05)
-        idx = min(len(path) - 2, int(len(path) * t))
+        # 高さは等間隔にしない。詰まるところと空くところを作る。
+        t = 0.28 + 0.21 * i + rng.uniform(-0.09, 0.11)
+        idx = min(len(path) - 2, int(len(path) * min(0.94, t)))
         px, py = path[idx]
-        side = -1 if i % 2 == 0 else 1
-        length = recipe.leaf_len * SS * scale * rng.uniform(0.82, 1.12)
+        # 互生。ただし三枚に一枚くらいは、続けて同じ側から出る。
+        if i > 0:
+            side = side if rng.random() < 0.30 else -side
+        length = recipe.leaf_len * SS * scale * rng.uniform(0.74, 1.22)
 
         if recipe.leaf_style == "blade":
             # チューリップ・スイセンの、茎に沿って立ち上がる細長い葉
@@ -541,9 +563,19 @@ def _draw_leaves(layer, recipe: Recipe, path, rng: random.Random, scale: float) 
                           ang, length * rng.uniform(0.24, 0.42), length * 0.028,
                           jitter(leaf_col, rng, 8), rng, tip=1.4)
         else:
-            draw_leaf(layer, (px, py), side * rng.uniform(52, 78) + 180,
-                      length, length * 0.34 * rng.uniform(0.85, 1.2),
-                      jitter(leaf_col, rng, 7), rng, curl=rng.uniform(-0.4, 0.4))
+            # 角度の幅を広げる。52〜78°では、どの葉もほぼ同じ開きだった。
+            # ただし 80°を超えると水平になる。切り花の葉が真横へまっすぐ
+            # 伸びることは、ほとんどない。
+            #
+            # かたちも変える。これまでは付け根が真四角に切れた鈍いだるまで、
+            # 茎のところに**縦の直線**が出ていた（葉柄がないので）。
+            # 付け根を細く、いちばん広いところを中ほどに、先を尖らせる。
+            # 帯状の葉（チューリップ）と糸状の葉（コスモス）は、
+            # 付け根が広いのが正しいので、`waist` は既定のままにしてある。
+            draw_leaf(layer, (px, py), side * rng.uniform(34, 80) + 180,
+                      length, length * 0.34 * rng.uniform(0.78, 1.28),
+                      jitter(leaf_col, rng, 7), rng,
+                      tip=0.95, waist=0.88, curl=rng.uniform(-0.5, 0.5))
 
 
 def render_flower(recipe: Recipe, seed: int = 0, scale: float = 1.0,

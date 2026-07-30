@@ -71,13 +71,26 @@ def through_amount(angle: float) -> float:
     return max(0.0, -lit_amount(angle)) ** 1.35
 
 
-def translucent(color: RGB, amount: float) -> RGB:
+def translucent(color: RGB, amount: float, lift: float = 0.0) -> RGB:
     """
     光が透けた花びらの色。
 
     明るくするだけでは白っぽくなって、かえって薄く見える。
     **彩度を上げながら、暖色へ寄せる。** 花びらは薄い膜で、
     通った光がその色に染まって出てくるため。
+
+    lift  明るさも持ち上げる量（葉のため。花びらは 0）。
+
+    **ここは、花びらでうまくいった式が葉に通じなかった場所です。**
+
+    花びらはもともと明るいので（ヒマワリの黄は輝度205）、
+    足りなかったのは彩度でした。上の式だけで十分でした。
+    葉は暗いので（ヒマワリの葉は輝度116）、彩度を上げても
+    **輝度は最大で +21 しか動きません。** 濃い緑のままです。
+    逆光の葉は、実際には黄緑に光ります。足りないのは彩度ではなく明るさでした。
+
+    暗い色ほど大きく持ち上げます（`dark`）。明るい色に同じ倍率をかけると、
+    上限に張りついて白く飛ぶだけなので。
     """
     if amount <= 0:
         return color
@@ -90,9 +103,15 @@ def translucent(color: RGB, amount: float) -> RGB:
     b = mean + (b - mean) * k
     # 通ってきた光ぶん、わずかに暖色へ
     warm = 26 * amount
-    return (max(0, min(255, int(r + warm))),
-            max(0, min(255, int(g + warm * 0.72))),
-            max(0, min(255, int(b + warm * 0.28))))
+    r, g, b = r + warm, g + warm * 0.72, b + warm * 0.28
+    if lift > 0:
+        # 色あいは変えずに、明るさだけ上げる（各成分に同じ倍率）
+        dark = 1.0 - mean / 255.0
+        gain = 1.0 + lift * amount * dark
+        r, g, b = r * gain, g * gain, b * gain
+    return (max(0, min(255, int(r))),
+            max(0, min(255, int(g))),
+            max(0, min(255, int(b))))
 
 
 def contact_shadow(layer: Image.Image, mask: Image.Image, x: int, y: int,
@@ -289,12 +308,18 @@ def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
                length: float, width: float, base: RGB, tip_color: RGB,
                rng: random.Random, tip: float = 0.55, waist: float = 0.62,
                veins: bool = True, offset: float = 0.0, curl: float = 0.0,
-               translucency: float = 1.0, shadow: float = 0.30) -> None:
+               translucency: float = 1.0, shadow: float = 0.30,
+               through_floor: float = 0.0, through_lift: float = 0.0,
+               vein_leaf: bool = False) -> None:
     """
     花びら1枚。angle は12時方向から時計回りの度数。
 
-    translucency  光の透けやすさ。厚い花びら（バラの芯など）は下げる。
-    shadow        下の層に落とす接触影の濃さ。0 で落とさない。
+    translucency   光の透けやすさ。厚い花びら（バラの芯など）は下げる。
+    shadow         下の層に落とす接触影の濃さ。0 で落とさない。
+    through_floor  向きに関係なく必ず通る光の量（→ `draw_leaf`）。
+                   花びらは 0（向きだけで決まる）。
+    through_lift   透けたときに明るさも上げる量。暗い葉に要る（→ `translucent`）。
+    vein_leaf      葉の葉脈を描く。互生で、透けた量に応じてだけ濃くなる。
     """
     ox = center[0] + math.sin(math.radians(angle)) * offset
     oy = center[1] - math.cos(math.radians(angle)) * offset
@@ -316,7 +341,10 @@ def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
     uneven = rng.uniform(0.55, 1.30)
     if rng.random() < 0.12:
         uneven *= 1.6          # ときどき、一枚だけ強く光を拾う
-    through = through_amount(angle) * translucency * uneven
+    # through_floor は「向きに関係なく通る光」。
+    # 花びらは 0 なので、これまでどおり向きだけで決まる。
+    aim = through_amount(angle)
+    through = (through_floor + (1.0 - through_floor) * aim) * translucency * uneven
 
     base_c = shade(jitter(base, rng, 5), -0.05 + 0.09 * lit)
     tip_c = shade(jitter(tip_color, rng, 7), 0.04 + 0.13 * lit)
@@ -324,33 +352,83 @@ def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
     if through > 0.02:
         # 光が抜けている花びら。暗くするのではなく、色を濃く・暖かくする。
         # 先のほうが薄いので、先端ほど強く透ける。
-        base_c = translucent(base_c, through * 0.45)
-        tip_c = translucent(tip_c, through)
+        base_c = translucent(base_c, through * 0.45, through_lift)
+        tip_c = translucent(tip_c, through, through_lift)
 
     grad = linear_gradient(size, tip_c, base_c).rotate(-angle, Image.BILINEAR)
 
     local = _fill_local(size, mask, grad, rng.randint(0, 99999), 2.0, 0.24)
+
+    if vein_leaf and length > 24:
+        # 葉は、主脈で二つに折れている。
+        #
+        # ここまで直しても、葉はまだ**平たいへら**に見えていました。
+        # 透けかたも並びも直したのに、blade の中が一色だったからです。
+        # 実際の葉は主脈で折れていて、**片側だけが窓を向きます。**
+        # 折れがないと、どんなに色を合わせても板に見えます。
+        #
+        # どちら側が暗くなるかは、葉の向きで変わります。
+        # 光の向きを葉の内側の座標へ移して決めます（左右の葉で逆になる）。
+        lx = (math.sin(math.radians(LIGHT_ANGLE)) * math.cos(math.radians(angle))
+              - math.cos(math.radians(LIGHT_ANGLE)) * math.sin(math.radians(angle)))
+        if abs(lx) > 0.05:
+            # 光が当たっている側を白、影の側を黒にした横向きのなだらかな面
+            ramp = linear_gradient(size, (255, 255, 255), (0, 0, 0),
+                                   horizontal=True).convert("L")
+            if lx > 0:
+                ramp = ramp.transpose(Image.FLIP_LEFT_RIGHT)
+            ramp = ramp.rotate(-angle, Image.BILINEAR)
+            # 光に正面から向いている葉には、ほとんど折れが出ない
+            depth = 0.20 * min(1.0, abs(lx))
+            ramp = ImageChops.multiply(
+                ramp.point(lambda v: int(v * depth)), local.getchannel("A"))
+            local.paste(Image.new("RGB", size, shade(base, -0.42)), (0, 0), ramp)
 
     if through > 0.25 and length > 20:
         # 縁だけが、ふっと光る。全部の花びらではなく、光の向こう側の数枚だけ。
         edge = mask.filter(ImageFilter.GaussianBlur(max(1.2, width * 0.10)))
         edge = ImageChops.subtract(edge, mask.point(lambda v: 255 if v > 200 else 0))
         edge = edge.point(lambda v: int(v * (through - 0.25) * 1.5))
-        local.paste(Image.new("RGB", size, translucent(tip_c, 1.0)), (0, 0),
-                    ImageChops.multiply(edge, mask))
+        local.paste(Image.new("RGB", size, translucent(tip_c, 1.0, through_lift)),
+                    (0, 0), ImageChops.multiply(edge, mask))
 
     if veins and length > 24:
         vein = Image.new("L", size, 0)
         vd = ImageDraw.Draw(vein)
-        mid = rotate_points([(0, -length * 0.06), (0, -length * 0.88)], angle, (r, r))
-        vd.line(mid, fill=34, width=max(1, int(width * 0.05)))
-        for side in (-1, 1):
-            for k in (0.36, 0.60, 0.80):
-                seg = rotate_points(
-                    [(0, -length * (k - 0.18)),
-                     (side * width * 0.30 * (1 - k * 0.35), -length * (k + 0.08))],
-                    angle, (r, r))
-                vd.line(seg, fill=22, width=1)
+        if vein_leaf:
+            # 葉の葉脈。
+            #
+            # **透けた量に比例させる。** 逆光の葉は葉脈が見えますが、
+            # 光を受けている面の葉では、ほとんど見えません。
+            # 濃さを固定にすると、葉が一枚ずつ主張しはじめて、
+            # 花より葉が目立ちます。葉は見せる対象ではなく、
+            # 花を美しく見せるための存在なので、ここは**弱くてよい**。
+            k_vein = min(1.0, through * 1.25)
+            if k_vein > 0.05:
+                mid = rotate_points([(0, -length * 0.04), (0, -length * 0.94)],
+                                    angle, (r, r))
+                vd.line(mid, fill=int(40 * k_vein), width=max(1, int(width * 0.045)))
+                # 対生ではなく互生。左右で高さをずらす。
+                side = 1 if rng.random() < 0.5 else -1
+                t = rng.uniform(0.16, 0.26)
+                while t < 0.88:
+                    seg = rotate_points(
+                        [(0, -length * t),
+                         (side * width * 0.42 * (1 - t * 0.55), -length * (t + 0.17))],
+                        angle, (r, r))
+                    vd.line(seg, fill=int(24 * k_vein), width=1)
+                    side = -side
+                    t += rng.uniform(0.10, 0.16)
+        else:
+            mid = rotate_points([(0, -length * 0.06), (0, -length * 0.88)], angle, (r, r))
+            vd.line(mid, fill=34, width=max(1, int(width * 0.05)))
+            for side in (-1, 1):
+                for k in (0.36, 0.60, 0.80):
+                    seg = rotate_points(
+                        [(0, -length * (k - 0.18)),
+                         (side * width * 0.30 * (1 - k * 0.35), -length * (k + 0.08))],
+                        angle, (r, r))
+                    vd.line(seg, fill=22, width=1)
         vein = ImageChops.multiply(vein.filter(ImageFilter.GaussianBlur(0.8)),
                                    mask.point(lambda v: 255 if v > 110 else 0))
         local.paste(Image.new("RGB", size, shade(base, -0.34)), (0, 0), vein)
@@ -362,13 +440,30 @@ def draw_petal(layer: Image.Image, center: tuple[float, float], angle: float,
 
 def draw_leaf(layer: Image.Image, center: tuple[float, float], angle: float,
               length: float, width: float, color: RGB, rng: random.Random,
-              tip: float = 0.42, curl: float = 0.0) -> None:
+              tip: float = 0.42, curl: float = 0.0, waist: float = 0.55) -> None:
+    """
+    葉1枚。
+
+    **向きだけで透けかたを決めてはいけません。**
+
+    花びらは頭のまわりに扇状に並ぶので、「どちらを向いているか」が
+    そのまま「光の向こう側かどうか」になります。葉はそうではありません。
+    葉は一枚の平らな板で、透けるかどうかを決めるのは**板そのものの傾き**です。
+    シルエットからは分からないので、向きから計算すると、
+    茎の右へ出た葉は `through = 0.000` ── **一枚も光を通しませんでした。**
+    左の葉だけが光り、右の葉はただの緑の面になっていました。
+
+    そこで、向きに関係なく通る分（`through_floor`）を持たせます。
+    左右の差は残します（光はやはり片側から来るので）。
+    """
     lit = lit_amount(angle)
-    # 葉は花びらより厚い。透けにくく、影はしっかり落ちる。
     draw_petal(layer, center, angle, length, width,
                shade(color, -0.15 + 0.10 * lit), shade(color, 0.09 + 0.12 * lit),
-               rng, tip=tip, waist=0.55, veins=True, curl=curl,
-               translucency=0.45, shadow=0.34)
+               rng, tip=tip, waist=waist, veins=True, curl=curl,
+               # 葉は花びらより厚いが、面が広いぶんよく透ける。
+               # 逆光で葉脈が見えるのは、この透けがあってこそ。
+               translucency=0.70, through_floor=0.34, through_lift=0.90,
+               vein_leaf=True, shadow=0.34)
 
 
 def draw_blob(layer: Image.Image, center: tuple[float, float], rx: float, ry: float,
