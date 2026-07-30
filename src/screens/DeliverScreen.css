@@ -151,3 +151,56 @@
 .deliver__foot .button {
   min-width: 220px;
 }
+
+
+/* --------------------------------------------------------------------------
+   眺める間
+   -------------------------------------------------------------------------- */
+
+/*
+ * 束と笑顔だけが残る時間。
+ * まわりの言葉・しるし・ボタンが引いて、真ん中だけになる。
+ *
+ * いまは二案を日ごとに入れ替えて比べている（→ src/game/useLingerTrial.ts）。
+ * 決まったら、比べるための仕組みだけ外す。
+ */
+.deliver__moment {
+  border: 0;
+  background: none;
+  padding: 0;
+  width: 100%;
+  cursor: pointer;
+}
+
+.deliver.is-lingering .deliver__smile,
+.deliver.is-lingering .deliver__words,
+.deliver.is-lingering .deliver__note,
+.deliver.is-lingering .deliver__foot,
+.deliver.is-lingering .quiet-bar {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.1s var(--fs-easing-soft);
+}
+
+.deliver__smile,
+.deliver__words,
+.deliver__note,
+.deliver__foot {
+  transition: opacity 0.62s var(--fs-easing-soft);
+}
+
+/* まわりが引いたぶん、束と笑顔が少しだけ前に出る */
+.deliver.is-lingering .deliver__moment {
+  transform: scale(1.06);
+  transition: transform 1.1s var(--fs-easing-soft);
+}
+
+.deliver__moment {
+  transition: transform 0.62s var(--fs-easing-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deliver.is-lingering .deliver__moment {
+    transform: none;
+  }
+}

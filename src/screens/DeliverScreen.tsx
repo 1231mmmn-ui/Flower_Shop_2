@@ -10,16 +10,35 @@ import { customer as customerImage } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
 import { QuietBar } from '../components/QuietBar';
 import { useGame } from '../game/GameContext';
+import { lingerModeForDay, useLingerTrial } from '../game/useLingerTrial';
 
 export function DeliverScreen() {
   const { state, dispatch, customer, result } = useGame();
+  // 眺める間。いまは二案を日ごとに入れ替えて比べている（→ useLingerTrial）。
+  const mode = lingerModeForDay(state.day);
+  const linger = useLingerTrial(mode);
   if (!result) return null;
 
   return (
-    <div className="deliver">
+    <div className={`deliver ${linger.hidden ? 'is-lingering' : ''}`}>
       <QuietBar />
 
-      <div className="deliver__moment">
+      {/*
+        束と笑顔だけになる時間。
+        自動版は3秒後にひとりでに、手動版はふれたときに、まわりが消える。
+      */}
+      <button
+        type="button"
+        className="deliver__moment"
+        onClick={mode === 'manual' ? linger.toggle : undefined}
+        aria-label={
+          mode === 'manual'
+            ? linger.hidden
+              ? '言葉を見る'
+              : '束だけを眺める'
+            : undefined
+        }
+      >
         <img
           className="deliver__person"
           src={customerImage(customer.id, 'happy')}
@@ -28,8 +47,7 @@ export function DeliverScreen() {
         <div className="deliver__bouquet">
           <Bouquet bouquet={state.bouquet} scale={0.9} />
         </div>
-
-      </div>
+      </button>
 
       <span className="deliver__smile" aria-label={`${result.smile} / 5`}>
         {Array.from({ length: 5 }, (_, index) => (
@@ -63,7 +81,10 @@ export function DeliverScreen() {
         <button
           type="button"
           className="button"
-          onClick={() => dispatch({ type: 'next-customer' })}
+          onClick={() => {
+            linger.finish();
+            dispatch({ type: 'next-customer' });
+          }}
         >
           次のお客さまへ
         </button>
