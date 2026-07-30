@@ -36,6 +36,9 @@ export function FlowerDetail({
   const { state, dispatch } = useGame();
   const loved = state.favorites.includes(flower.id);
 
+  // はじめて手に取った日。まだ会っていない花には、何も出さない。
+  const met = state.library[flower.id];
+
   return (
     <div
       className={`detail fade ${paperDown ? 'is-quiet' : ''}`}
@@ -101,7 +104,14 @@ export function FlowerDetail({
           ))}
         </p>
 
-        <p className="detail__note">{flower.note}</p>
+        {/*
+          出会った日。
+          花言葉のすぐ下、知識より前に置く。
+          ここは辞典ではなくアルバムなので、**その花について知っていること**より、
+          **その花と自分のあいだに起きたこと**のほうが先に来る。
+          本数は書かない ── 数えはじめた瞬間、思い出は収集に変わる。
+        */}
+        {met && <p className="detail__met">{met.metOnDay}日目に出会いました</p>}
 
         <dl className="detail__rows">
           <div className="detail__row">
@@ -123,6 +133,12 @@ export function FlowerDetail({
             </dd>
           </div>
         </dl>
+
+        {/*
+          ひとこと。いちばん最後。
+          読み終えたあとに、花のほうへ視線が戻るように置く。
+        */}
+        <p className="detail__note">{flower.note}</p>
 
         <div className="detail__actions">
           <button

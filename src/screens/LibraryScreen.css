@@ -1,137 +1,380 @@
-.library {
+/*
+ * 店のアルバム。
+ *
+ * 辞典ではなく、アルバム。
+ *   辞典     引くもの。正確で、網羅的で、冷たい
+ *   アルバム 見返すもの。ぬけがあって、順不同で、あたたかい
+ *
+ * だから、検索窓も並べ替えも作らない。絵を大きく、文字を少なく。
+ */
+
+/*
+ * アルバムそのものが、この画面の「紙」です。
+ *
+ * 最初は店内の上に文字を直接置いていましたが、それでは
+ * アルバムに見えず、店内に文字が浮いているだけでした。
+ * 木の引き出しがせり上がってくる、という設計（→ ①遷移 #17）どおり、
+ * 一枚の面として起こします。1画面に置いてよい紙は1枚まで ── これがその1枚。
+ */
+.album {
   position: relative;
   z-index: 2;
-  flex: 1 1 auto;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  height: 100%;
   gap: var(--fs-space-md);
+  padding: var(--fs-space-lg) var(--fs-space-lg) var(--fs-space-md);
+  border-radius: var(--fs-radius-lg) var(--fs-radius-lg) 0 0;
+  background: linear-gradient(
+    168deg,
+    rgba(252, 248, 239, 0.97),
+    rgba(245, 238, 224, 0.97)
+  );
+  box-shadow: 0 -6px 26px rgba(74, 63, 53, 0.16);
+  backdrop-filter: blur(8px) saturate(1.04);
+  -webkit-backdrop-filter: blur(8px) saturate(1.04);
+  animation: album-open var(--fs-duration-slow) var(--fs-easing-rise) both;
 }
 
-.library__head {
-  display: flex;
+/* 引き出しは、下からせり上がってくる。 */
+@keyframes album-open {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.album__head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--fs-space-md);
+  flex: 0 0 auto;
 }
 
-.library__back {
-  padding: 4px 2px;
+.album__back {
+  justify-self: start;
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  color: var(--fs-color-ink-faint);
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-sm);
-  letter-spacing: 0.12em;
-  color: var(--fs-color-ink-soft);
-  border-bottom: 1px solid var(--fs-color-line);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
-  transition: color var(--fs-duration-quick) var(--fs-easing-soft);
+  cursor: pointer;
 }
 
-.library__back:hover {
+.album__title {
+  margin: 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-lg);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
   color: var(--fs-color-ink);
 }
 
-.library__title {
-  margin: 0;
-  font-size: var(--fs-font-xl);
-  letter-spacing: 0.16em;
-  font-weight: 500;
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+.album__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
-.library__head .whisper,
-.library__memory {
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+/* ---- ♡ 好きな花 ---------------------------------------------------------- */
+
+/*
+ * 開いて、いちばん最初に出るもの。
+ * 五十音順の一覧ではなく、その人が好きになった花。
+ * ♡が0個のときは、この段ごと出ない（TSX側で出し分け）。
+ */
+.album__loved {
+  margin-bottom: var(--fs-space-xl);
 }
 
-.library__sorts {
+.album__section {
+  margin: 0 0 var(--fs-space-md);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--fs-color-ink);
+}
+
+.album__row {
   display: flex;
-  gap: var(--fs-space-sm);
+  gap: var(--fs-space-md);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: var(--fs-space-xs);
+}
+
+.album__row::-webkit-scrollbar {
+  display: none;
+}
+
+.album__loved-card {
+  flex: 0 0 auto;
+  width: 96px;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-xs);
+}
+
+.album__loved-card img {
+  width: 100%;
+  height: 116px;
+  object-fit: contain;
+  object-position: center top;
+}
+
+.album__loved-card span {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  color: var(--fs-color-ink-soft);
+}
+
+/* ---- 季節の棚（並べ替えではなく、構造） --------------------------------- */
+
+.album__shelves {
+  display: flex;
+  gap: var(--fs-space-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: var(--fs-space-lg);
+}
+
+.album__shelves::-webkit-scrollbar {
+  display: none;
+}
+
+/* 面を持たせない。選ばれているものだけ、下に細い線。 */
+.album__shelf {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  padding: 2px 0 6px;
+  color: var(--fs-color-ink-faint);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: var(--fs-font-letter);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.album__shelf.is-active {
+  color: var(--fs-color-ink);
+  border-bottom-color: var(--fs-color-line);
+}
+
+/* ---- 花のカード ---------------------------------------------------------- */
+
+/*
+ * 絵が主役。カードの面積のほとんどが絵で、文字は名前だけ。
+ * 面（パネル）も枠も作らない ── 図鑑の升目に見えてしまうので。
+ */
+.album__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--fs-space-lg) var(--fs-space-md);
+}
+
+.album__card {
+  position: relative;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-xs);
+}
+
+.album__thumb {
+  width: 100%;
+  height: 118px;
+  display: flex;
+  align-items: flex-start;
   justify-content: center;
 }
 
-.library__sort {
-  padding: 4px var(--fs-space-lg);
-  border-radius: var(--fs-radius-pill);
-  font-size: var(--fs-font-sm);
+.album__thumb img {
+  height: 100%;
+  object-fit: contain;
+  object-position: center top;
+}
+
+.album__name {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  color: var(--fs-color-ink-soft);
+}
+
+.album__heart {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  font-size: 12px;
+  color: var(--fs-color-petal);
+}
+
+/*
+ * まだ会っていない花は、影だけ。
+ * 名前も出さない。赤い印も「NEW」も付けない。
+ * 欠けているようには見せない ── 無いものは、ただ無い。
+ */
+.album__card.is-unmet {
+  cursor: default;
+}
+
+/*
+ * 影の濃さ。
+ * 0.10 では紙に沈んで、そこに何かがあることすら分からなかった。
+ * 「無いものは、ただ無い」と「升目が壊れて見える」は別なので、
+ * かたちだけは読める濃さにする。
+ */
+.album__card.is-unmet img {
+  filter: brightness(0.35) saturate(0) opacity(0.16) blur(1.2px);
+}
+
+/* ---- 一輪を開いているあいだ ---------------------------------------------- */
+
+/*
+ * アルバムから花を開くと、暗幕だけでは足りなかった。
+ * 紙が明るいぶん幕が灰色に濁り、しかも同じガーベラが
+ * 台紙にも残っていて、**一輪が二輪に見えた**（棚で一度やった失敗と同じ）。
+ *
+ * 消すのではなく、ピントを外す。この店の奥行きの文法どおり。
+ * `filter` は子孫の position の基準を作ってしまうので、
+ * `.album` 自体ではなく、頭・本文・足もとにだけ掛ける
+ * （`.detail` は `.album` の子なので、一緒にぼけてしまう）。
+ */
+.album__head,
+.album__body,
+.album__foot {
+  transition: filter var(--fs-duration-slow) var(--fs-easing-soft),
+    opacity var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+.album.is-looking .album__head,
+.album.is-looking .album__body,
+.album.is-looking .album__foot {
+  filter: blur(7px);
+  opacity: 0.55;
+}
+
+/* ---- 人のページ ---------------------------------------------------------- */
+
+.album__people {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fs-space-lg);
+}
+
+/*
+ * 1件はこれだけ。日付・名前・用向き・花・一言。
+ * 点数も、評価も、星も、ひとつも置かない。
+ *
+ * 面も影も持たせない。**アルバムの台紙がもう紙**なので、
+ * その上に紙を敷くと二重になり、貼った写真ではなく
+ * 並んだカードに見える（1画面に置いてよい紙は1枚まで）。
+ * 区切りは、間と、いちばん細い線だけ。
+ */
+.album__leaf {
+  padding: 0 0 var(--fs-space-xl);
+  border-bottom: 1px solid var(--fs-color-line);
+}
+
+.album__leaf:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.album__day {
+  margin: 0 0 var(--fs-space-xs);
   color: var(--fs-color-ink-faint);
-  background: var(--fs-color-glass-soft);
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
 }
 
-.library__sort.is-active {
-  background: var(--fs-color-glass);
+.album__who {
+  margin: 0 0 var(--fs-space-md);
   color: var(--fs-color-ink);
-  box-shadow: var(--fs-shadow-soft);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
 }
 
-.library__grid {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--fs-space-md);
-  padding: var(--fs-space-xs) var(--fs-space-xs) var(--fs-space-lg);
+.album__flower {
+  width: 64px;
+  height: 76px;
+  object-fit: contain;
+  object-position: center top;
+  margin: 0 auto var(--fs-space-md);
 }
 
-.library__card {
-  border: 0;
-  background: linear-gradient(
-    172deg,
-    rgba(253, 249, 238, 0.9) 0%,
-    rgba(246, 238, 221, 0.84) 100%
-  );
+.album__word {
+  margin: 0;
+  color: var(--fs-color-ink-soft);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  line-height: var(--fs-font-line-base);
+}
+
+.album__quiet {
+  text-align: center;
+  padding: var(--fs-space-xxl) 0;
+}
+
+/* ---- 足もと -------------------------------------------------------------- */
+
+.album__foot {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: var(--fs-space-md);
-  text-align: center;
-  transition: transform var(--fs-duration-quick) var(--fs-easing-rise),
-    box-shadow var(--fs-duration-quick) var(--fs-easing-soft);
+  gap: var(--fs-space-xs);
+  padding-top: var(--fs-space-sm);
 }
 
-.library__card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--fs-shadow-card);
+.album__pages {
+  display: flex;
+  gap: var(--fs-space-xl);
 }
 
-/* 花の画像は正方形で茎が長い。図鑑では花の頭のあたりだけを見せる。 */
-.library__thumb {
-  display: block;
-  width: 92px;
-  height: 84px;
-  overflow: hidden;
-}
-
-.library__thumb img {
-  width: 150%;
-  margin-left: -25%;
-  margin-top: -12%;
-}
-
-.library__card.is-unmet .library__thumb img {
-  opacity: 0.28;
-  filter: grayscale(0.7);
-}
-
-.library__name {
-  font-size: var(--fs-font-md);
-  letter-spacing: 0.08em;
-}
-
-.library__meaning {
-  font-size: var(--fs-font-xs);
+.album__page {
+  border: 0;
+  background: none;
+  padding: 2px 0 5px;
   color: var(--fs-color-ink-faint);
-  line-height: var(--fs-font-line-tight);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: var(--fs-font-letter);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
 }
 
-.library__count {
-  margin-top: 2px;
+.album__page.is-active {
+  color: var(--fs-color-ink);
+  border-bottom-color: var(--fs-color-line);
+}
+
+/*
+ * 到達率。いちばん下に、いちばん小さく。
+ * 「あと◯種！」とは書かない。押しても何も起きない。
+ */
+.album__tally {
+  color: var(--fs-color-ink-faint);
   font-family: var(--fs-font-family-ui);
-  font-size: 10px;
-  color: var(--fs-color-sage-deep);
-}
-
-.library__memory {
-  text-align: center;
-  margin: 0 0 var(--fs-space-sm);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
+  opacity: 0.7;
 }

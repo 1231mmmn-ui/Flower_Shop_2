@@ -50,6 +50,15 @@ export interface DeliveredMemory {
   bouquet: Bouquet;
   smile: number;
   season: SeasonId;
+  /**
+   * そのとき**実際に**返ってきた言葉。
+   *
+   * アルバムであとから引き直してはいけない。引き直すと、
+   * 同じ人が二度来たときに一字一句おなじ台詞が並び、
+   * 「あの日の言葉」ではなく「その人の設定」になってしまう。
+   * （古い記録には無いので、読むときは省略可として扱う）
+   */
+  words?: string[];
 }
 
 export interface GameState {

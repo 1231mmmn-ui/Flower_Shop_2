@@ -2,7 +2,7 @@
  * いちばん静かな案内。
  *
  * UI は主役ではないので、面（パネル）を持たない。
- * 季節と日は文字だけ、図鑑と音は輪郭だけのしるしにする。
+ * 季節と日は文字だけ、アルバムと音は輪郭だけのしるしにする。
  */
 
 import './QuietBar.css';
@@ -24,9 +24,9 @@ export function QuietBar() {
           type="button"
           className="quiet__mark"
           onClick={() => dispatch({ type: 'open-library' })}
-          title="花の図鑑"
+          title="店のアルバム"
         >
-          図鑑
+          アルバム
         </button>
         <button
           type="button"

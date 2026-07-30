@@ -183,6 +183,8 @@ function reducer(state: GameState, action: Action): GameState {
             bouquet: state.bouquet,
             smile: result.smile,
             season: season.id,
+            // そのとき返ってきた言葉を、そのまま残す。
+            words: result.words,
           },
         ].slice(-30),
         lastResultId: `${state.day}-${state.customerId}`,

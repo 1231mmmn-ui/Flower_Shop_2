@@ -112,11 +112,28 @@
   letter-spacing: 0.08em;
 }
 
+/*
+ * ひとこと。知識のあと、いちばん最後。
+ * 上に少し間を空けて、知識の続きに見えないようにする。
+ */
 .detail__note {
-  margin: var(--fs-space-md) 0 0;
+  margin: var(--fs-space-lg) 0 0;
   font-size: var(--fs-font-md);
   color: var(--fs-color-ink-soft);
   line-height: var(--fs-font-line-base);
+}
+
+/*
+ * 出会った日。
+ * 花言葉と知識のあいだ。文字は小さく、飾らない。
+ * 「◯種集めました」ではなく「◯日目に出会いました」── 主語が違う。
+ */
+.detail__met {
+  margin: var(--fs-space-md) 0 0;
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
+  color: var(--fs-color-ink-faint);
 }
 
 .detail__rows {

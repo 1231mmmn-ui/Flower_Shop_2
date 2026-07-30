@@ -43,7 +43,7 @@ export function TitleScreen() {
             className="title-screen__link"
             onClick={() => dispatch({ type: 'open-library' })}
           >
-            花の図鑑
+            店のアルバム
           </button>
           <button
             type="button"
