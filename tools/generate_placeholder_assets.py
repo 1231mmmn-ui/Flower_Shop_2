@@ -15,6 +15,8 @@ import sys
 import time
 from pathlib import Path
 
+from PIL import Image
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.placeholder_art import flowers as F
@@ -36,10 +38,31 @@ def save(img, *parts: str, quality: int = 88) -> None:
 
 
 def build_flowers() -> None:
-    """§1 花（1024x1024・透過）"""
+    """
+    §1 花（1024x1024・透過）と、その縮小版（512x512）
+
+    縮小版は**別の絵ではありません。** 同じ絵を、置き場所に合った大きさで
+    書き出しただけのものです。
+
+    なぜ要るか（実測）
+      棚・アルバムは 1024px の絵を読み込んで、224pt / 118pt で描いていました。
+      端末の実ピクセルに直すと 448px / 236px なので、**半分も使っていません。**
+      それでも扉を押した直後に 6.96MB を読み込むので、開店前の30秒 ──
+      「この花屋にいたい」と思ってほしい時間 ── が待ち時間から始まります。
+
+      1024px  6.8MB   一輪の画面に要る（894px 必要）
+       512px  2.2MB   棚とアルバムはこれで足りる
+
+    **減色や圧縮では解きません。** 256色に落とせば46%になりますが、
+    色が平均3.51ずれます。花の絵を落として軽くするのは、
+    このゲームでいちばんやってはいけないことです。
+    大きさを置き場所に合わせるだけなら、見た目は一切変わりません。
+    """
     print("花")
     for i, (fid, recipe) in enumerate(F.RECIPES.items()):
-        save(F.render_flower(recipe, seed=i * 101 + 7), "flowers", f"{fid}.png")
+        full = F.render_flower(recipe, seed=i * 101 + 7)
+        save(full, "flowers", f"{fid}.png")
+        save(full.resize((512, 512), Image.LANCZOS), "flowers/small", f"{fid}.png")
 
 
 def build_scenes() -> None:

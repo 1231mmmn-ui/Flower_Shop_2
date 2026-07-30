@@ -18,7 +18,8 @@
 import { useMemo, useState } from 'react';
 
 import './LibraryScreen.css';
-import { flower as flowerImage } from '../assets/paths';
+// アルバムの花は 118pt（端末で236px）。512で十分に余る。
+import { flowerSmall as flowerImage } from '../assets/paths';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { customerById } from '../data/customers';
 import { FLOWERS, flowerById, type Flower } from '../data/flowers';

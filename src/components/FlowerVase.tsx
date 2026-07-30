@@ -9,7 +9,8 @@
 import type { CSSProperties } from 'react';
 
 import './FlowerVase.css';
-import { flower as flowerImage, vase } from '../assets/paths';
+// 花瓶の花も棚と同じ大きさ。512で足りる。
+import { flowerSmall as flowerImage, vase } from '../assets/paths';
 import { formatPrice, type Flower } from '../data/flowers';
 
 interface FlowerVaseProps {

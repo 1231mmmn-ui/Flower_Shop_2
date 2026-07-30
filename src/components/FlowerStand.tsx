@@ -8,7 +8,8 @@
 import type { CSSProperties } from 'react';
 
 import './FlowerStand.css';
-import { flower as flowerImage, vase } from '../assets/paths';
+// 棚の花は 224pt（端末で448px）。1024ではなく512で足りる（→ paths.flowerSmall）。
+import { flowerSmall as flowerImage, vase } from '../assets/paths';
 import type { Flower } from '../data/flowers';
 
 interface FlowerStandProps {

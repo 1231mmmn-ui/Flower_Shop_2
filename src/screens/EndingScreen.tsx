@@ -21,7 +21,8 @@
 import { useEffect, useState } from 'react';
 
 import './EndingScreen.css';
-import { flower as flowerImage } from '../assets/paths';
+// エンディングに並ぶ花は 74pt。512で足りる。
+import { flowerSmall as flowerImage } from '../assets/paths';
 import { FLOWERS } from '../data/flowers';
 import { useGame } from '../game/GameContext';
 

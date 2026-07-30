@@ -14,6 +14,21 @@ export type CustomerMood = 'normal' | 'happy';
 /** 茎付きの1本の花（1024x1024・透過・下端近くまで茎）— §1 */
 export const flower = (id: string) => `${BASE}/flowers/${id}.png`;
 
+/**
+ * 同じ花の、小さいほう（512x512）— §1
+ *
+ * **別の絵ではありません。** 同じ絵の、置き場所に合った大きさです。
+ *
+ * どちらを使うか
+ *   一輪の画面・ブーケ   `flower()`       894px 要るので 1024 が要る
+ *   棚・アルバム         `flowerSmall()`  448px / 236px なので 512 で足りる
+ *
+ * 棚とアルバムで 1024 を読んでいたころは、扉を押した直後に 6.96MB を
+ * 読み込んでいました。開店前の30秒が、待ち時間から始まってしまいます。
+ * 見た目は変わりません（端末の実ピクセルより大きいまま）。
+ */
+export const flowerSmall = (id: string) => `${BASE}/flowers/small/${id}.png`;
+
 /** 店内背景（1600x1200・季節ごと）— §3 */
 export const shopScene = (season: SeasonId) => `${BASE}/scenes/shop-${season}.jpg`;
 
