@@ -35,6 +35,19 @@ npm run build      # dist/ に書き出し
 npm run typecheck
 ```
 
+### スマートフォンで触る
+
+このお店は **430×932** の縦画面で作っています。
+**パソコンよりも、スマートフォンで持ったときが本番**です。
+
+同じ Wi-Fi にいれば、`npm run dev` のまま電話から開けます
+（`server.host` を有効にしてあります）。
+起動時に出る `Network:` の URL を、電話のブラウザに入れてください。
+
+置いたまま遊べるようにするなら、`.github/workflows/pages.yml` があります。
+**最初の一度だけ** Settings → Pages → Source を「GitHub Actions」にすれば、
+以降は push するたびに更新されます。
+
 画像素材を作り直すとき：
 
 ```bash
