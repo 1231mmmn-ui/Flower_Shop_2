@@ -113,6 +113,20 @@ export function FlowerDetail({
         */}
         {met && <p className="detail__met">{met.metOnDay}日目に出会いました</p>}
 
+        {/*
+          ひとこと。**知識より前。**
+          「出会った日」と「ひとこと」は、どちらも花との距離の話なので、
+          ここでひと続きにする。読み終わって最後に残るのが
+          「相性：ヒマワリ／かすみ草」ではなく
+          「首が少し傾くのは、この花の癖です」であってほしい。
+
+          この順にすると、知識（旬・用途・相性）はスクロールの下へ回る。
+          それでよい ── **知識は、読みたい人が取りに行くもの。**
+          紙は画面の52%までのまま厚くしない。厚くすると、
+          一輪ではなくカードへ視線が移る。
+        */}
+        <p className="detail__note">{flower.note}</p>
+
         <dl className="detail__rows">
           <div className="detail__row">
             <dt className="label">旬</dt>
@@ -133,12 +147,6 @@ export function FlowerDetail({
             </dd>
           </div>
         </dl>
-
-        {/*
-          ひとこと。いちばん最後。
-          読み終えたあとに、花のほうへ視線が戻るように置く。
-        */}
-        <p className="detail__note">{flower.note}</p>
 
         <div className="detail__actions">
           <button

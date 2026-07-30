@@ -113,11 +113,15 @@
 }
 
 /*
- * ひとこと。知識のあと、いちばん最後。
- * 上に少し間を空けて、知識の続きに見えないようにする。
+ * ひとこと。「出会った日」のすぐ下、知識より前。
+ *
+ * このふたつは、どちらも**花との距離**の話なので、
+ * あいだを詰めてひと続きに読ませる（sm）。
+ * 代わりに、この下の知識との境目は広く開ける（`.detail__rows` の xl）。
+ * 間の広さだけで「ここから先は辞典です」と分かるようにする ── 見出しは足さない。
  */
 .detail__note {
-  margin: var(--fs-space-lg) 0 0;
+  margin: var(--fs-space-sm) 0 0;
   font-size: var(--fs-font-md);
   color: var(--fs-color-ink-soft);
   line-height: var(--fs-font-line-base);
@@ -136,8 +140,9 @@
   color: var(--fs-color-ink-faint);
 }
 
+/* 知識。ひとことから、はっきり離す（→ `.detail__note`）。 */
 .detail__rows {
-  margin: var(--fs-space-lg) 0 0;
+  margin: var(--fs-space-xl) 0 0;
   display: grid;
   gap: var(--fs-space-md);
 }
