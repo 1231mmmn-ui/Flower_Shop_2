@@ -70,17 +70,20 @@
 /*
  * 窓の向こうを、ときどき横切るだけ。
  * 立ち止まらないし、追いかけられない。見えた人だけが見る。
+ *
+ * 前の版は 46秒ちょうどのループだった。一度きりの出来事に一定の間隔を
+ * 与えると、「さっきも同じ間だった」と分かってしまう。
+ * いまは 26〜70秒のばらつきで、高さも毎回ちがう（→ useOccasional）。
  */
 .air__dragonfly {
   position: absolute;
-  top: 26%;
   left: -8%;
   width: 15px;
   height: 2px;
   border-radius: 2px;
   background: linear-gradient(90deg, rgba(178, 74, 58, 0.9), rgba(196, 108, 76, 0.55));
   opacity: 0;
-  animation: dragonfly 46s ease-in-out infinite;
+  animation: dragonfly 5.2s ease-in-out 1 both;
 }
 
 .air__wing {
@@ -103,21 +106,20 @@
   transform: rotate(14deg);
 }
 
+/* すっと横切って、ふっと消える。 */
 @keyframes dragonfly {
-  0%,
-  62% {
+  0% {
     transform: translate3d(0, 0, 0);
     opacity: 0;
   }
-  66% {
+  12% {
     opacity: 0.75;
   }
-  /* すっと横切って、ふっと消える */
-  78% {
+  56% {
     transform: translate3d(58vw, -3vh, 0);
     opacity: 0.7;
   }
-  86% {
+  84% {
     transform: translate3d(96vw, 2vh, 0);
     opacity: 0;
   }
@@ -147,24 +149,20 @@
   );
   filter: blur(7px);
   opacity: 0;
-  animation: breath-out 21s ease-in-out infinite;
+  /* 息も一度きりの出来事。間隔は 15〜34秒でばらつかせる（→ useOccasional）。 */
+  animation: breath-out 3.6s ease-in-out 1 both;
 }
 
 @keyframes breath-out {
-  0%,
-  74% {
+  0% {
     transform: translate(-50%, 0) scale(0.6);
     opacity: 0;
   }
-  79% {
+  22% {
     opacity: 0.62;
   }
-  92% {
-    transform: translate(-46%, -34px) scale(1.5);
-    opacity: 0;
-  }
   100% {
-    transform: translate(-50%, 0) scale(0.6);
+    transform: translate(-46%, -34px) scale(1.5);
     opacity: 0;
   }
 }

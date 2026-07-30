@@ -23,19 +23,21 @@
 /* ---- 春・秋：一枚だけ落ちる -------------------------------------------- */
 
 /*
- * 一枚だけ。しかも、いつも落ちているわけではない。
- * 22秒に一度、窓を横切って、また長い間がある。
- * 見ていない人には、一度も見えないかもしれない ── それでいい。
+ * 一枚だけ。しかも、**いつ散るかは決まっていない。**
+ *
+ * 前の版は 22秒ちょうどのループだった。続いている動きなら周期があってよいが、
+ * 「一枚が散る」は一度きりの出来事で、間隔が一定だと
+ * 「さっきも同じ間で散った」と分かってしまう。
+ * いまは 14〜38秒のばらつきで、落ちる横位置も毎回ちがう（→ useOccasional）。
  */
 .window-life__fall {
   position: absolute;
-  left: 22%;
   top: -12%;
   width: 9px;
   height: 9px;
   border-radius: 62% 10% 62% 10%;
   opacity: 0;
-  animation: window-fall 22s linear infinite;
+  animation: window-fall 7s linear 1 both;
 }
 
 .window-life__fall--spring {
@@ -55,31 +57,25 @@
     rgba(214, 152, 88, 0.92),
     rgba(172, 100, 60, 0.85)
   );
-  animation-duration: 26s;
+  /* 落ち葉は花びらより重い。少しゆっくり落ちる。 */
+  animation-duration: 8.4s;
 }
 
-/*
- * 落ちるのは、周期のうち3割ほど。
- * 残りの7割は、窓の外に何もない。だから、見えたときに嬉しい。
- */
+/* 一枚が、窓を横切って落ちきるまで。 */
 @keyframes window-fall {
   0% {
     transform: translate3d(0, 0, 0) rotate(0deg);
     opacity: 0;
   }
-  4% {
+  10% {
     opacity: 0.9;
   }
-  16% {
+  46% {
     transform: translate3d(26px, 46%, 0) rotate(180deg);
   }
-  28% {
+  80% {
     transform: translate3d(6px, 92%, 0) rotate(330deg);
     opacity: 0.85;
-  }
-  34% {
-    transform: translate3d(14px, 124%, 0) rotate(420deg);
-    opacity: 0;
   }
   100% {
     transform: translate3d(14px, 124%, 0) rotate(420deg);

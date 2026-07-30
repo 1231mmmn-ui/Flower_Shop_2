@@ -11,6 +11,19 @@ import { useMemo, type CSSProperties } from 'react';
 
 import './MorningAir.css';
 import type { Morning } from '../data/mornings';
+import { useOccasional } from '../game/useOccasional';
+
+/**
+ * 一度きりの出来事は、間を一定にしない。
+ *
+ * 続いている動き（舞う花びら・光の呼吸）は周期があってよい。目印がないので、
+ * くり返しに気づけないから。けれど「とんぼが横切る」「息が白くなる」は
+ * 一度きりの出来事で、間隔が一定だと「さっきも同じ間だった」と分かってしまう。
+ */
+const DRAGONFLY_GAP: readonly [number, number] = [26_000, 70_000];
+const DRAGONFLY_MS = 5_200;
+const BREATH_GAP: readonly [number, number] = [15_000, 34_000];
+const BREATH_MS = 3_600;
 
 interface MorningAirProps {
   morning: Morning;
@@ -27,6 +40,10 @@ interface MorningAirProps {
 const DRIFT_COUNT = 3;
 
 export function MorningAir({ morning }: MorningAirProps) {
+  const dragonfly = useOccasional(
+    DRAGONFLY_GAP, DRAGONFLY_MS, morning.passing === 'dragonfly');
+  const breath = useOccasional(BREATH_GAP, BREATH_MS, morning.breath);
+
   // 場所と速さは、毎回同じでいい。動きだけがゆっくり流れる。
   const drifts = useMemo(
     () =>
@@ -68,16 +85,20 @@ export function MorningAir({ morning }: MorningAirProps) {
         </div>
       )}
 
-      {/* 赤とんぼ。秋の晴れた朝、ときどき窓の向こうを横切る。 */}
-      {morning.passing === 'dragonfly' && (
-        <span className="air__dragonfly">
+      {/* 赤とんぼ。秋の晴れた朝、ときどき窓の向こうを横切る。いつ来るかは決まっていない。 */}
+      {dragonfly.active && (
+        <span
+          key={dragonfly.count}
+          className="air__dragonfly"
+          style={{ top: `${20 + ((dragonfly.count * 23) % 22)}%` }}
+        >
           <span className="air__wing air__wing--fore" />
           <span className="air__wing air__wing--aft" />
         </span>
       )}
 
       {/* 冬の澄んだ朝。息が、ふっと白くなる。 */}
-      {morning.breath && <span className="air__breath" />}
+      {breath.active && <span key={breath.count} className="air__breath" />}
     </div>
   );
 }

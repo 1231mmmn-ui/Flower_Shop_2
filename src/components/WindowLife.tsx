@@ -17,7 +17,13 @@ import { useRef, type CSSProperties } from 'react';
 import './WindowLife.css';
 import type { Morning } from '../data/mornings';
 import type { SeasonId } from '../data/seasons';
+import { useOccasional } from '../game/useOccasional';
 import { useWindowRect } from './useSceneBox';
+
+/** 一枚だけ散るまでの間。**一定にしない** ── 一度きりのことは、間を読ませない。 */
+const FALL_GAP: readonly [number, number] = [14_000, 38_000];
+/** 一枚が窓を横切りきるまで。 */
+const FALL_MS = 7_000;
 
 interface WindowLifeProps {
   season: SeasonId;
@@ -29,6 +35,15 @@ interface WindowLifeProps {
 export function WindowLife({ season, morning, paused }: WindowLifeProps) {
   const anchorRef = useRef<HTMLDivElement>(null);
   const rect = useWindowRect(anchorRef);
+
+  // 散るのは一枚だけ。ただし「22秒ごとにきっかり一枚」ではいけない。
+  // 続いている動き（木々の揺れ）は一定周期でよいが、
+  // 一度だけ起きることは、間を読ませてはいけない（→ useOccasional）。
+  const falling = useOccasional(
+    FALL_GAP,
+    FALL_MS,
+    !paused && (season === 'spring' || season === 'autumn'),
+  );
 
   return (
     <>
@@ -57,9 +72,13 @@ export function WindowLife({ season, morning, paused }: WindowLifeProps) {
             </>
           )}
 
-          {/* 春は花びら、秋は落ち葉。**一枚だけ。** */}
-          {(season === 'spring' || season === 'autumn') && (
-            <span className={`window-life__fall window-life__fall--${season}`} />
+          {/* 春は花びら、秋は落ち葉。**一枚だけ。しかも、いつ散るかは決まっていない。** */}
+          {falling.active && (
+            <span
+              key={falling.count}
+              className={`window-life__fall window-life__fall--${season}`}
+              style={{ left: `${12 + ((falling.count * 37) % 60)}%` }}
+            />
           )}
 
           {/* 冬。動くものはない。ガラスがうっすら曇って、また澄む。 */}
