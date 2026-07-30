@@ -64,6 +64,17 @@ export interface GameState {
   /** 束ねる前の、取り消し用の履歴 */
   history: Bouquet[];
   library: Record<string, LibraryEntry>;
+  /**
+   * ♡お気に入り。押した順に並ぶ。
+   *
+   * 並べ替えも、フォルダも、上限も作らない。
+   * **何個入れても、何も起きない。** ご褒美を付けた瞬間に
+   * 「好き」が「集める」に変わるため（→ design/14-flowers.md 3-2章）。
+   *
+   * ここは、このゲームの最後の問い「好きな花は、できましたか？」に
+   * プレイヤー自身が答える場所。こちらからは一度も「選んでください」と言わない。
+   */
+  favorites: string[];
   memories: DeliveredMemory[];
   /** 図鑑を開く直前にいた画面 */
   libraryReturn: Phase;

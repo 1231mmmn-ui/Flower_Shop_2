@@ -9,6 +9,7 @@ import { useState } from 'react';
 import './FlowerDetail.css';
 import { flower as flowerImage } from '../assets/paths';
 import { flowerById, formatPrice, type Flower } from '../data/flowers';
+import { useGame } from '../game/GameContext';
 
 interface FlowerDetailProps {
   flower: Flower;
@@ -32,6 +33,8 @@ export function FlowerDetail({
   // 「一輪の花を、しばらく見つめてしまう」（→ design/16-stillness.md 2章）は
   // 五つの立ち止まる時間のひとつで、紙が出たままだと視線がそちらへ移ってしまう。
   const [paperDown, setPaperDown] = useState(false);
+  const { state, dispatch } = useGame();
+  const loved = state.favorites.includes(flower.id);
 
   return (
     <div
@@ -45,6 +48,22 @@ export function FlowerDetail({
         onClick={onClose}
         aria-label="花瓶に戻す"
       />
+
+      {/*
+        ♡。押すだけ。
+        音も鳴らさない、数も増えない、何ももらえない。
+        ご褒美を付けた瞬間、「好き」が「集める」に変わるので。
+        こちらからは一度も「好きな花を選んでください」と言わない。
+      */}
+      <button
+        type="button"
+        className={`detail__heart ${loved ? 'is-on' : ''}`}
+        onClick={() => dispatch({ type: 'toggle-favorite', flowerId: flower.id })}
+        aria-pressed={loved}
+        aria-label={loved ? 'お気に入りから外す' : 'お気に入りに入れる'}
+      >
+        {loved ? '♥' : '♡'}
+      </button>
 
       {/* 花にふれると紙が下がる。もう一度ふれると戻る。 */}
       <button

@@ -226,3 +226,44 @@
  * 一度ゆるめてみたが、棚に立っている同じ花が透けて見えて、
  * 一輪が二輪に見えてしまった。ここは暗いままでよい。
  */
+
+
+/* --------------------------------------------------------------------------
+   ♡ お気に入り
+   -------------------------------------------------------------------------- */
+
+/*
+ * 押すだけ。押しても、何も起きない。
+ *
+ * 光らせない、跳ねさせない、数を出さない、音を鳴らさない。
+ * 「好き」にご褒美を付けた瞬間、それは「集める」に変わる。
+ * ここは、最後の問い「好きな花は、できましたか？」に
+ * プレイヤー自身が答える場所なので、答えを買収してはいけない。
+ */
+.detail__heart {
+  position: absolute;
+  top: var(--fs-space-lg);
+  right: var(--fs-space-lg);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--fs-color-ink-faint);
+  text-shadow: 1px 2px 4px rgba(74, 63, 53, 0.28);
+  transition: color var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.detail__heart.is-on {
+  color: var(--fs-color-petal);
+}
+
+/* 花だけを見ているあいだも、♡は残す（そこで押したくなることがあるので） */
+.detail.is-quiet .detail__heart {
+  opacity: 0.72;
+  transition: opacity var(--fs-duration-slow) var(--fs-easing-soft);
+}

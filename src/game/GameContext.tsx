@@ -38,6 +38,7 @@ const initialState: GameState = {
   bouquet: emptyBouquet(),
   history: [],
   library: {},
+  favorites: [],
   memories: [],
   libraryReturn: 'title',
   inspectingFlowerId: null,
@@ -66,6 +67,7 @@ export type Action =
   | { type: 'next-customer' }
   | { type: 'open-library' }
   | { type: 'close-library' }
+  | { type: 'toggle-favorite'; flowerId: string }
   | { type: 'toggle-sound' }
   | { type: 'restore'; saved: Partial<GameState> };
 
@@ -208,6 +210,15 @@ function reducer(state: GameState, action: Action): GameState {
     case 'close-library':
       return { ...state, phase: state.libraryReturn };
 
+    // ♡。押すだけ。音も鳴らさず、数も増えず、何ももらえない。
+    case 'toggle-favorite':
+      return {
+        ...state,
+        favorites: state.favorites.includes(action.flowerId)
+          ? state.favorites.filter((id) => id !== action.flowerId)
+          : [...state.favorites, action.flowerId],
+      };
+
     case 'toggle-sound':
       return { ...state, soundOn: !state.soundOn };
 
@@ -296,6 +307,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           day: state.day,
           earnings: state.earnings,
           library: state.library,
+          favorites: state.favorites,
           memories: state.memories,
           soundOn: state.soundOn,
         }),
