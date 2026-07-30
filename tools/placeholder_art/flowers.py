@@ -305,18 +305,28 @@ def head_spike(layer, c, r, palette: list[RGB], rng, height: float, count: int =
         draw_blob(layer, (x, y), fr * 0.16, fr * 0.16, shade(col, 0.45), rng, softness=0.9)
 
 
-def head_eucalyptus(layer, c, r, color: RGB, rng, height: float) -> None:
-    """ユーカリ。丸い葉が枝に沿って対になって連なる。"""
+def head_eucalyptus(layer, c, r, color: RGB, rng, height: float,
+                    leaf_tip: float = 0.36, leaf_waist: float = 1.55,
+                    leaf_size: float = 1.0, spacing: int = 4,
+                    branches: int = 3) -> None:
+    """
+    枝もの。葉が枝に沿って対になって連なる。
+
+    ユーカリ（丸い葉）と、ルスカスのような尖った葉の枝を、
+    同じ形で描き分けます。**葉のかたちと間隔だけ**が違うので、
+    新しい描き方を足すのではなく、ここに引数を出しました。
+    """
     base = (c[0], c[1] + height * 0.50)
-    for branch in range(3):
-        lean = (branch - 1) * 26 + rng.uniform(-8, 8)
-        length = height * (0.96 if branch == 1 else rng.uniform(0.68, 0.82))
+    for branch in range(branches):
+        lean = (branch - (branches - 1) / 2) * 26 + rng.uniform(-8, 8)
+        mid = branches // 2
+        length = height * (0.96 if branch == mid else rng.uniform(0.68, 0.82))
         tip = rotate_points([(0, -length)], lean, base)[0]
         path = bezier(base, (base[0] + lean * 2.0, base[1] - length * 0.55), tip, 34)
         draw_stem(layer, path, r * 0.035, r * 0.062, shade(color, -0.26), rng)
-        for i in range(3, len(path) - 2, 4):
+        for i in range(3, len(path) - 2, spacing):
             t = i / len(path)
-            lr = r * (0.22 - 0.09 * t) * rng.uniform(0.86, 1.12)
+            lr = r * (0.22 - 0.09 * t) * rng.uniform(0.86, 1.12) * leaf_size
             for side in (-1, 1):
                 ang = lean + side * rng.uniform(74, 106)
                 leaf = shade(jitter(color, rng, 7), 0.14 if side < 0 else -0.06)
@@ -326,7 +336,7 @@ def head_eucalyptus(layer, c, r, color: RGB, rng, height: float) -> None:
                 # 枝の左右で片側が一枚も光を通していなかったのも同じ理由。
                 draw_petal(layer, path[i], ang, lr * 2.0, lr * 1.65,
                            shade(leaf, -0.10), shade(leaf, 0.12), rng,
-                           tip=0.36, waist=1.55, veins=True,
+                           tip=leaf_tip, waist=leaf_waist, veins=True,
                            curl=rng.uniform(-0.2, 0.2),
                            translucency=0.70, through_floor=0.34,
                            through_lift=0.90, vein_leaf=True)
@@ -464,6 +474,76 @@ RECIPES: dict[str, Recipe] = {
         center="#E8A63C", stem="#7E9A5E", leaf="#6E8C52", head_r=150,
         stem_w=(13, 18), leaves=2, leaf_len=250, leaf_style="blade",
         side_blooms=1, bud=False, lean=8),
+
+    # ---- 薄い棚を埋める8種 ------------------------------------------------
+    #
+    # アルバムを季節の棚に分けたとき、実測でこうなっていました。
+    #
+    #   通年 8 ／ 冬 5 ／ 夏 3 ／ 春 2 ／ 秋 2 ／ みどり 1
+    #
+    # 春・秋・みどりが、ほとんど空です。数あわせで足すのではなく、
+    # **いちばん薄いところから**足します。
+    # どれも既にある頭のかたちで描けるものだけを選びました
+    # （新しいかたちを足すのは、第一弾50種の最後でよい）。
+
+    # 春
+    "freesia": Recipe(
+        id="freesia", head="bells", palette=["#F2D66A", "#EAC64F"], accent="#FBEFC0",
+        center="#FDF8E4", stem="#7E9A5E", leaf="#6E8C52", head_r=150,
+        stem_w=(11, 15), leaves=2, leaf_len=230, leaf_style="blade",
+        bud=True, lean=13, opts=dict(count=5)),
+    "marguerite": Recipe(
+        id="marguerite", head="daisy", palette=["#FCF8EC", "#F2ECDA"], accent="#FFFDF6",
+        center="#E9C24E", stem="#7E9463", leaf="#6B8A52", head_r=156,
+        stem_w=(10, 14), leaves=3, leaf_len=140, leaf_style="feather",
+        side_blooms=2, lean=14,
+        opts=dict(petals=18, rings=1, center_ratio=0.30, waist=1.30, tip=0.52)),
+    "muscari": Recipe(
+        id="muscari", head="spike", palette=["#5560A8", "#454F94"], accent="#8E96CC",
+        center="#3B4480", stem="#7E9A5E", leaf="#6E8C52", head_r=104,
+        stem_w=(9, 13), leaves=2, leaf_len=210, leaf_style="blade",
+        bud=False, lean=6,
+        opts=dict(height=300, count=30, floret=0.30, petals=5)),
+
+    # 夏
+    "zinnia": Recipe(
+        id="zinnia", head="ruffle", palette=["#E4643E", "#D45532"], accent="#F2A382",
+        center="#E9C24E", stem="#7C9455", leaf="#5F7F41", head_r=176,
+        stem_w=(14, 19), leaves=2, leaf_len=150, bud=False, lean=9,
+        opts=dict(petals=44, rings=4, tip=0.95, waist=1.05, sway=5)),
+
+    # 秋
+    "celosia": Recipe(
+        id="celosia", head="spike", palette=["#C2453C", "#A93630"], accent="#E0806E",
+        center="#8E2A26", stem="#7C9455", leaf="#67854B", head_r=140,
+        stem_w=(15, 20), leaves=2, leaf_len=160,
+        bud=False, lean=7,
+        opts=dict(height=360, count=64, floret=0.22, petals=6)),
+    "pompon": Recipe(
+        id="pompon", head="dome", palette=["#EBC96B", "#E0B94F", "#F3DC97"],
+        accent="#F8EBC2", center="#D9AE3C", stem="#7E9463", leaf="#63834A",
+        head_r=150, stem_w=(14, 19), leaves=2, leaf_len=150, bud=False, lean=8,
+        opts=dict(florets=40, center="#D9AE3C")),
+
+    # みどり
+    "ruscus": Recipe(
+        id="ruscus", head="eucalyptus", palette=["#4E7346", "#5B8151"],
+        accent="#6E9463", center="#436A3E", stem="#4E7346", leaf="#4E7346",
+        head_r=176, stem_w=(10, 14), leaves=0, leaf_len=0, leaf_style="none",
+        bud=False, lean=8,
+        # 同じ枝ものでも、ユーカリは丸く、ルスカスは尖って細い。
+        #
+        # 最初は間隔3・枝3で描いたら、葉が重なりきって**濃い緑の塊**になり、
+        # 一枚ずつのかたちが読めなかった。枝ものは、葉と葉のあいだの
+        # 隙間が見えて初めて枝に見える。間隔を7まで空け、そのぶん
+        # 一枚を長くした。
+        opts=dict(height=620, leaf_tip=1.35, leaf_waist=0.80,
+                  leaf_size=1.25, spacing=7, branches=2)),
+    "solidago": Recipe(
+        id="solidago", head="spray", palette=["#D8C654", "#C9B646"], accent="#F0E6B4",
+        center="#C9B44A", stem="#7E9463", leaf="#6B8A52", head_r=236,
+        stem_w=(10, 14), leaves=2, leaf_len=150, bud=False, lean=9,
+        opts=dict(count=150, dot=0.048)),
 }
 
 
@@ -519,7 +599,12 @@ def _draw_head(layer, recipe: Recipe, c, r: float, rng: random.Random,
                    count=o.get("count", 42), floret=o.get("floret", 0.16),
                    petals=o.get("petals", 5))
     elif recipe.head == "eucalyptus":
-        head_eucalyptus(layer, c, r, main, rng, height=o.get("height", 560) * scale)
+        head_eucalyptus(layer, c, r, main, rng, height=o.get("height", 560) * scale,
+                        leaf_tip=o.get("leaf_tip", 0.36),
+                        leaf_waist=o.get("leaf_waist", 1.55),
+                        leaf_size=o.get("leaf_size", 1.0),
+                        spacing=o.get("spacing", 4),
+                        branches=o.get("branches", 3))
 
 
 def _draw_leaves(layer, recipe: Recipe, path, rng: random.Random, scale: float) -> None:

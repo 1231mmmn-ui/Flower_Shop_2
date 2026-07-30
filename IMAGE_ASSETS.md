@@ -58,6 +58,32 @@
 > 優先度「高〜最高」の9枚（sunflower, lisianthus, lily, carnation, rose, gerbera, tulip, ranunculus, dahlia）は
 > 参考イラストの店頭に写っている花＋人気の高い花です。まずここから着手すると効果が大きいです。
 
+#### 追加ぶん（薄い棚を埋める8種）
+
+**上の表は消していません。** ここは、そのあとに足したぶんです。
+共通ルール（1024×1024・背景透過PNG・構図・命名）は、このぶんにもそのまま適用します。
+
+足した理由は数あわせではありません。アルバムを季節の棚に分けたとき、
+実測でこうなっていたためです。
+
+```
+通年 8 ／ 冬 5 ／ 夏 3 ／ 春 2 ／ 秋 2 ／ みどり 1
+```
+
+**春・秋・みどりがほとんど空**で、その季節にアルバムを開くと
+ほとんどが影のままでした。いちばん薄いところから足しています。
+
+| id | 和名 | 棚 | 生成プロンプト（英語推奨・末尾に共通スタイル文を追加） |
+|---|---|---|---|
+| `freesia` | フリージア | 春 | A single yellow freesia stem, trumpet flowers opening along one side of the arching stalk, isolated on transparent background |
+| `marguerite` | マーガレット | 春 | A single white marguerite daisy, yellow center, finely divided leaves, isolated on transparent background |
+| `muscari` | ムスカリ | 春 | A single muscari stem, dense deep blue-violet grape-like bells, two strap leaves, isolated on transparent background |
+| `zinnia` | ジニア | 夏 | A single orange zinnia, many layered flat petals, sturdy stem, isolated on transparent background |
+| `celosia` | ケイトウ | 秋 | A single crimson celosia plume, dense velvety texture, isolated on transparent background |
+| `pompon` | ピンポンマム | 秋 | A single yellow pompon chrysanthemum, perfectly spherical head of tight petals, isolated on transparent background |
+| `ruscus` | ルスカス | みどり | A single ruscus stem, pointed dark green leaf-like flattened stems spaced along the branch, isolated on transparent background |
+| `solidago` | ソリダゴ | みどり | A single solidago stem, fine sprays of small yellow flowers, airy filler, isolated on transparent background |
+
 ---
 
 ## 2. 完成ブーケ用の花（任意・上級）
