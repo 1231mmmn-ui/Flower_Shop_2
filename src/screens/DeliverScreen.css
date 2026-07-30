@@ -189,10 +189,32 @@
   transition: opacity 0.62s var(--fs-easing-soft);
 }
 
-/* まわりが引いたぶん、束と笑顔が少しだけ前に出る */
+/* まわりが引いたぶん、束が少しだけ前に出る */
 .deliver.is-lingering .deliver__moment {
   transform: scale(1.06);
   transition: transform 1.1s var(--fs-easing-soft);
+}
+
+/*
+ * お客さまは、消さない。**ピントだけを外す。**
+ *
+ * 顔は、画面上でいちばん強く視線を奪う。残したままだと、
+ * 束を眺める時間にならず「人を見る時間」になってしまう。
+ * かといって消すと、渡した直後なのに急に冷たくなる。
+ *
+ * だから、この店がずっと使ってきた言葉づかい（奥はぼける）で答える。
+ * その人はそこにいる。ただ、いま見ているのは束のほう。
+ */
+.deliver.is-lingering .deliver__person {
+  filter: blur(6px) saturate(0.86);
+  opacity: 0.72;
+  transition: filter 1.1s var(--fs-easing-soft),
+    opacity 1.1s var(--fs-easing-soft);
+}
+
+.deliver__person {
+  transition: filter 0.62s var(--fs-easing-soft),
+    opacity 0.62s var(--fs-easing-soft);
 }
 
 .deliver__moment {
