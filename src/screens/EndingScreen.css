@@ -1,0 +1,164 @@
+/*
+ * 季節がひと巡りした日。
+ *
+ * 紙は敷きません。**店内の上に、言葉だけ。**
+ * ここで紙を出すと「まとめ画面」になります。
+ * 設計書の【余韻】が殺すものとして挙げているのが、まさにそれです。
+ */
+
+/*
+ * 置きどころは、絵に合わせています（余韻の画面と同じ考え方）。
+ *
+ *   〜41%   窓。ここには何も置かない
+ *   44%〜   窓の下の壁。ここから問いと答え
+ *
+ * はじめは画面のまんなかに寄せていたので、**問いが窓に重なりました。**
+ * 明るい窓の上に大きな文字を置くと、読みにくいうえに字幕になります。
+ */
+.ending {
+  position: relative;
+  height: 100%;
+}
+
+.ending__body {
+  position: absolute;
+  top: 44%;
+  left: var(--fs-space-lg);
+  right: var(--fs-space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-lg);
+  text-align: center;
+}
+
+/* 何年めか。数えるためではなく、季節が巡ったことを言うためだけ。 */
+.ending__season {
+  margin: 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: var(--fs-font-letter);
+  color: var(--fs-color-ink-faint);
+  animation: ending-in 1.6s var(--fs-easing-soft) both;
+}
+
+/*
+ * このゲームの最後の問い。
+ *
+ * いちばん大きく、いちばん静かに。「？」は付けません ──
+ * 問い詰めたいのではないので。
+ */
+.ending__ask {
+  margin: 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xl);
+  font-weight: 400;
+  line-height: 1.9;
+  letter-spacing: 0.14em;
+  color: var(--fs-color-ink);
+  animation: ending-in 2.2s var(--fs-easing-rise) 0.5s both;
+}
+
+@keyframes ending-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+ * ♡を付けた花。プレイヤー自身の答えです。
+ * 問いを読み終えてから出ます（2.6秒後・TSX側）。同時に出すと、
+ * 問いが見出しになって、答えが本文になってしまう。
+ */
+/*
+ * ♡を一列だけに保ちます。何段にも折り返させません。
+ * 段が増えると、問いが上へ押し出されて窓に戻ってしまうためと、
+ * **段の多さが「たくさん集めた」に見えてしまう**ため。
+ * 多いときは横へ流します。
+ */
+.ending__loved {
+  display: flex;
+  justify-content: center;
+  gap: var(--fs-space-lg);
+  align-self: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: var(--fs-space-xs);
+  opacity: 0;
+  transition: opacity 2s var(--fs-easing-soft);
+}
+
+.ending__loved::-webkit-scrollbar {
+  display: none;
+}
+
+.ending.is-asked .ending__loved {
+  opacity: 1;
+}
+
+.ending__flower {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-xs);
+}
+
+.ending__flower img {
+  width: 74px;
+  height: 92px;
+  object-fit: contain;
+  object-position: center top;
+}
+
+.ending__flower span {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  color: var(--fs-color-ink-soft);
+}
+
+/*
+ * 次の朝へ。
+ * 問いのすぐ下には置きません ── 答える前に進める場所があると、
+ * 問いが読み飛ばせるものになるので。
+ */
+/*
+ * ボタンには直接さわらず、**入れ物を置いて**その中で中央に寄せます。
+ *
+ * `.button` を自分で置こうとして、二重に転びました。
+ *
+ *   1. `.button` は global.css で `position: relative` を持っている。
+ *      `.ending__on` も `.button` も単一クラスで詳細度が同じなので、
+ *      あとから読まれる global.css が勝つ。`position: absolute` は
+ *      **黙って捨てられて**、ボタンは y = -94px（画面の外）にいた。
+ *   2. 中央寄せに transform を使うと、`.button:hover` と `:active` の
+ *      transform に上書きされる。**押した瞬間に幅の半分だけ横へ跳ぶ。**
+ *
+ * 詳細度で殴り合うのではなく、入れ物を分けるのが正解。
+ * ボタン側の transform（沈む動き）もそのまま残ります。
+ *
+ * （transform の取り合いは、これで4度目。keyframes 3回、:hover/:active 1回。
+ *   位置決めに transform を使ったら、同じ要素が別の理由で
+ *   transform や position を使っていないか、必ず先に見ること。）
+ */
+.ending__foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12%;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+.ending.is-asked .ending__foot {
+  opacity: 1;
+  pointer-events: auto;
+}

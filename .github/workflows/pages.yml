@@ -1,0 +1,72 @@
+# お店を、ブラウザで開けるようにする。
+#
+# このゲームは 430×932 の縦画面で作っているので、
+# パソコンよりも**スマートフォンで触ったときが本番**です。
+# GitHub Pages に置いておけば、URL を開くだけで遊べます。
+#
+# 使い方（最初の一度だけ）
+#   リポジトリの Settings → Pages → Source を「GitHub Actions」にする
+#
+# それ以降は、push するたびに勝手に更新されます。
+
+name: お店を公開する
+
+on:
+  push:
+    branches:
+      - main
+      - claude/flower-shop-game-i7jj3f
+  # 手で動かしたいときのために
+  workflow_dispatch:
+
+# 同時に走らせない。あとから来たものを待たせる。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # vite.config.ts の base は './' なので、
+      # どのURLの下に置かれても画像を見失いません。
+      - run: npm run build
+
+      # enablement: true で、Pages の設定そのものをここから有効にする。
+      # これが無いと「Get Pages site failed」で落ちる（実際に2回落ちた）。
+      #
+      # ただし **非公開リポジトリの Pages は有料プランだけ**です。
+      # 無料プランのままなら、ここも失敗します。そのときは
+      # リポジトリを公開にするか、`npm run dev` の Network: の URL を
+      # 同じ Wi-Fi の電話で開いてください。
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

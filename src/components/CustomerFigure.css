@@ -1,0 +1,55 @@
+.figure {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--fs-space-sm);
+}
+
+.figure__person {
+  width: 46%;
+  max-width: 220px;
+  height: auto;
+  filter: drop-shadow(8px 14px 18px rgba(96, 74, 54, 0.24));
+  animation-duration: var(--fs-duration-bloom);
+}
+
+.figure__balloon {
+  position: relative;
+  flex: 1 1 auto;
+  margin-bottom: 12%;
+  padding: var(--fs-space-md) var(--fs-space-lg);
+}
+
+/* 吹き出しの尻尾 */
+.figure__balloon::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  bottom: 26px;
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+  background: var(--fs-color-glass);
+  border-left: 1px solid var(--fs-color-line);
+  border-bottom: 1px solid var(--fs-color-line);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.figure__who {
+  margin: 0 0 var(--fs-space-sm);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.12em;
+  color: var(--fs-color-ink-faint);
+}
+
+.figure__line {
+  margin: 0 0 var(--fs-space-sm);
+  font-size: var(--fs-font-md);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink);
+}
+
+.figure__line:last-child {
+  margin-bottom: 0;
+}

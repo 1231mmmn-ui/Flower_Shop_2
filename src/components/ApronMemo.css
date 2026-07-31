@@ -1,0 +1,116 @@
+/*
+ * エプロンのメモ。
+ *
+ * 画面のすみに、紙の角が出ているだけ。
+ * 光らせない、震わせない、印を付けない。気づかない人がいてよい。
+ */
+
+/*
+ * 置き場所は「手の帯」の中（画面の下 28% より下）。
+ * 花の間（14%〜72%）には、絶対にはみ出させない ── 花が隠れたら本末転倒。
+ */
+.apron {
+  position: absolute;
+  left: 0;
+  bottom: 7%;
+  z-index: 3;
+}
+
+/*
+ * 紙の角。エプロンの胸ポケットから、少しだけ出ている。
+ * ボタンの形（丸・枠・影の縁）を作らないこと。
+ */
+.apron__corner {
+  display: block;
+  width: 30px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(112deg, var(--fs-color-ivory), var(--fs-color-sand));
+  /* 光は左上の窓ひとつ。影は右下。 */
+  box-shadow: 3px 4px 10px rgba(74, 63, 53, 0.18);
+  cursor: pointer;
+  /* 角が少し折れている */
+  clip-path: polygon(0 0, 100% 6%, 100% 100%, 0 94%);
+  transform: translateX(-9px) rotate(-2deg);
+  transition: transform var(--fs-duration-base) var(--fs-easing-rise);
+}
+
+.apron__corner::after {
+  /* 手書きの行が、うっすら透けている */
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 13px;
+  width: 15px;
+  height: 1px;
+  background: rgba(124, 95, 68, 0.26);
+  box-shadow: 0 7px 0 rgba(124, 95, 68, 0.2), 0 14px 0 rgba(124, 95, 68, 0.14);
+}
+
+.apron__corner:hover {
+  transform: translateX(-3px) rotate(-2deg);
+}
+
+.apron.is-open .apron__corner {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 開いた紙。1画面に置いてよい紙は1枚まで、を守る。 */
+.apron__paper {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: min(66vw, 238px);
+  /* 花を隠さないよう、紙は低く小さく。花の間には入らない高さに収める。 */
+  max-height: 26vh;
+  overflow: hidden;
+  padding: var(--fs-space-md) var(--fs-space-lg);
+  border-radius: 2px var(--fs-radius-sm) var(--fs-radius-sm) 2px;
+  background: linear-gradient(150deg, var(--fs-color-cream), var(--fs-color-ivory));
+  box-shadow: 5px 7px 20px rgba(74, 63, 53, 0.2);
+  cursor: pointer;
+  transform-origin: 0 100%;
+  animation: apron-open var(--fs-duration-base) var(--fs-easing-rise) both;
+}
+
+@keyframes apron-open {
+  from {
+    opacity: 0;
+    transform: translateX(-14px) rotate(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotate(-1deg);
+  }
+}
+
+.apron__who {
+  margin: 0 0 var(--fs-space-sm);
+  color: var(--fs-color-ink-faint);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
+}
+
+.apron__lines p {
+  margin: 0 0 var(--fs-space-sm);
+  color: var(--fs-color-ink);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  line-height: var(--fs-font-line-tight);
+  animation: fade var(--fs-duration-base) var(--fs-easing-soft) both;
+}
+
+.apron__lines p:last-child {
+  margin-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apron__paper,
+  .apron__lines p {
+    animation: none;
+  }
+}

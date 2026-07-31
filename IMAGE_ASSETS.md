@@ -1,0 +1,247 @@
+# 画像アセット一覧（リアル画像化のための仕様書）
+
+このゲームは現在、花・人物・背景をすべてコードで描いています。
+ここに挙げる画像を用意して `assets/` 以下の指定パスに置けば、コード側の差し替え口
+（`img:` 指定）にそのまま流し込めます。まずは **花12〜21種＋背景1〜4枚** から始めるのが
+コストに対して見た目が最も変わるのでおすすめです。
+
+## 共通ルール
+
+- 背景透過PNG（花・小物・人物）／背景つきJPGまたはPNG（窓の景色・店内）
+- スタイル統一のため、どの画像にも同じ一言を必ず含めてください：
+
+  > 水彩とやわらかい光を基調にした、日本のスマホゲームのイラスト。
+  > 『あつまれ どうぶつの森』『ようこそ実力至上主義の花屋さん』のような、
+  > 癒し系・ナチュラルで優しい雰囲気。過度に写実的にせず、あたたかみのある半写実。
+
+- 光源は共通で「左上からやわらかい自然光」に統一してください（影の向きがバラバラだと違和感が出ます）
+- ファイル名・置き場所は下表のパスの通り（`index.html` の `img:` にそのまま書けます）
+
+---
+
+## 1. 花（優先度：最高／12〜21枚）
+
+> **（追記・この表は「第一弾」です）** 花はゆくゆく **182種**まで増やします。
+> **この節の共通ルール（1024×1024・背景透過PNG・構図・命名）は、追加ぶんにもそのまま適用します。**
+> 追加ぶんの一覧は別紙 `design/14-flowers.md`（⑭花の設計書）にあります。
+> **下の表は消しません。** ここに載っている花が、最初に描く花です。
+
+正方形・**1024×1024px**・背景透過PNG。花瓶に生けた状態ではなく、茎付きの1本の花を
+斜め正面・やや上から見たアングルで、画像の下端近くまで茎が伸びている構図（茎の下端で切れてOK）。
+
+置き場所: `assets/flowers/<id>.png`
+
+> **（追記・縮小版について）** 同じ絵を 512×512 でも書き出し、
+> `assets/flowers/small/<id>.png` に置きます。
+> **別の絵ではありません。仕様も命名も上と同じで、大きさだけが違います。**
+> 完成画に差し替えるときも、1024版を1枚用意すれば縮小版は自動で作られます。
+>
+> 使い分け（端末の実ピクセル・DPR2 想定）
+>
+> | どこ | 表示 | 要る解像度 | 使う絵 |
+> |---|---|---|---|
+> | 一輪の画面・ブーケ | 447pt | 894px | **1024版** |
+> | 棚・花瓶 | 224pt | 448px | 512版 |
+> | アルバム | 118pt | 236px | 512版 |
+>
+> 棚とアルバムが1024版を読んでいたころ、扉を押した直後に **6.96MB**
+> 読み込んでいました。開店前の30秒が、待ち時間から始まってしまいます。
+> 512版にして **2.41MB**。撮り比べた画素の差は平均 0.900/255 で、
+> **見た目は変わりません。**（減色で軽くする案は、色が平均3.51ずれるので採りません）
+
+| id | 和名 | 優先度 | 生成プロンプト（英語推奨・末尾に共通スタイル文を追加） |
+|---|---|---|---|
+| `sunflower` | ヒマワリ | 高 | A single sunflower stem with leaves, bright yellow petals, brown center, isolated on transparent background |
+| `lisianthus` | トルコキキョウ | 高 | A single lisianthus stem, ruffled purple petals, isolated on transparent background |
+| `lily` | ユリ | 高 | A single white lily stem with leaves, trumpet-shaped petals, visible stamens, isolated on transparent background |
+| `carnation` | カーネーション | 高 | A single pink carnation stem with ruffled petals, isolated on transparent background |
+| `delphinium` | デルフィニウム | 中 | A single delphinium stem, tall spike of small blue flowers, isolated on transparent background |
+| `gypsophila` | かすみ草 | 中 | A single gypsophila (baby's breath) stem, many tiny white flowers, airy and delicate, isolated on transparent background |
+| `rose` | バラ（ピンク） | 最高 | A single pink rose stem with leaves and thorns, classic layered petals, isolated on transparent background |
+| `hydrangea` | アジサイ | 中 | A single hydrangea stem, large round cluster of pale white-blue florets, isolated on transparent background |
+| `gerbera` | ガーベラ | 高 | A single pink gerbera daisy stem, round flat bloom, isolated on transparent background |
+| `alstroemeria` | アルストロメリア | 中 | A single alstroemeria stem with multiple yellow speckled blooms, isolated on transparent background |
+| `statice` | スターチス | 低 | A single statice stem, small papery purple clustered flowers, isolated on transparent background |
+| `eucalyptus` | ユーカリ | 中 | A single eucalyptus stem with round silvery-green leaves in pairs, isolated on transparent background |
+| `tulip` | チューリップ | 高 | A single pink tulip stem with a broad leaf, closed cup-shaped bloom, isolated on transparent background |
+| `sweetpea` | スイートピー | 低 | A single sweet pea stem, ruffled light pink butterfly-shaped petals, isolated on transparent background |
+| `ranunculus` | ラナンキュラス | 中 | A single orange ranunculus stem, densely layered rose-like petals, isolated on transparent background |
+| `cosmos` | コスモス | 中 | A single pink cosmos stem with feathery leaves, thin daisy-like petals, isolated on transparent background |
+| `dahlia` | ダリア | 中 | A single deep red dahlia stem, dense spiky layered petals, isolated on transparent background |
+| `gentian` | リンドウ | 低 | A single gentian stem, trumpet-shaped deep blue-purple flowers, isolated on transparent background |
+| `anemone` | アネモネ | 低 | A single purple anemone stem, dark center, isolated on transparent background |
+| `poinsettia` | ポインセチア | 低 | A single poinsettia stem, star-shaped red bracts with yellow center, isolated on transparent background |
+| `narcissus` | スイセン | 低 | A single white narcissus stem, trumpet-shaped yellow-orange center, isolated on transparent background |
+
+> 優先度「高〜最高」の9枚（sunflower, lisianthus, lily, carnation, rose, gerbera, tulip, ranunculus, dahlia）は
+> 参考イラストの店頭に写っている花＋人気の高い花です。まずここから着手すると効果が大きいです。
+
+#### 追加ぶん（薄い棚を埋める8種）
+
+**上の表は消していません。** ここは、そのあとに足したぶんです。
+共通ルール（1024×1024・背景透過PNG・構図・命名）は、このぶんにもそのまま適用します。
+
+足した理由は数あわせではありません。アルバムを季節の棚に分けたとき、
+実測でこうなっていたためです。
+
+```
+通年 8 ／ 冬 5 ／ 夏 3 ／ 春 2 ／ 秋 2 ／ みどり 1
+```
+
+**春・秋・みどりがほとんど空**で、その季節にアルバムを開くと
+ほとんどが影のままでした。いちばん薄いところから足しています。
+
+| id | 和名 | 棚 | 生成プロンプト（英語推奨・末尾に共通スタイル文を追加） |
+|---|---|---|---|
+| `freesia` | フリージア | 春 | A single yellow freesia stem, trumpet flowers opening along one side of the arching stalk, isolated on transparent background |
+| `marguerite` | マーガレット | 春 | A single white marguerite daisy, yellow center, finely divided leaves, isolated on transparent background |
+| `muscari` | ムスカリ | 春 | A single muscari stem, dense deep blue-violet grape-like bells, two strap leaves, isolated on transparent background |
+| `zinnia` | ジニア | 夏 | A single orange zinnia, many layered flat petals, sturdy stem, isolated on transparent background |
+| `celosia` | ケイトウ | 秋 | A single crimson celosia plume, dense velvety texture, isolated on transparent background |
+| `pompon` | ピンポンマム | 秋 | A single yellow pompon chrysanthemum, perfectly spherical head of tight petals, isolated on transparent background |
+| `ruscus` | ルスカス | みどり | A single ruscus stem, pointed dark green leaf-like flattened stems spaced along the branch, isolated on transparent background |
+| `solidago` | ソリダゴ | みどり | A single solidago stem, fine sprays of small yellow flowers, airy filler, isolated on transparent background |
+
+---
+
+## 2. 完成ブーケ用の花（任意・上級）
+
+上の「1本の花」画像とは別に、ブーケ全体を1枚絵で生成する方法もあります（自由度は高いが実装難度も上がる）。
+まずは上記「1本の花」を12〜21枚生成し、コード側で扇状に合成する現行方式を維持することを推奨します。
+
+---
+
+## 3. 店内背景（優先度：最高／5枚）
+
+横長 **1600×1200px** 程度、背景まで描き込んだ完成画（透過不要）。木目の店内、正面に大きな窓、
+右にラッピングコーナーという構図は共通。窓の中の景色だけ季節で差し替えます。
+
+置き場所: `assets/scenes/shop-<season>.jpg`（またはPNG）
+
+| ファイル | 季節 | プロンプト |
+|---|---|---|
+| `shop-spring.jpg` | 春 | Cozy wooden flower shop interior, large window showing cherry blossom trees and blue sky outside, wrapping paper rolls and ribbons on shelves to the right, warm sunlight, watercolor illustration style |
+| `shop-summer.jpg` | 夏 | Cozy wooden flower shop interior, large window showing lush green trees and bright summer sky with clouds outside, wrapping paper rolls and ribbons on shelves to the right, warm sunlight, watercolor illustration style |
+| `shop-autumn.jpg` | 秋 | Cozy wooden flower shop interior, large window showing autumn foliage trees in orange and red outside, wrapping paper rolls and ribbons on shelves to the right, warm sunlight, watercolor illustration style |
+| `shop-winter.jpg` | 冬 | Cozy wooden flower shop interior, large window showing snow-covered trees and pale winter sky outside, wrapping paper rolls and ribbons on shelves to the right, warm sunlight, watercolor illustration style |
+| `shop-title.jpg` | タイトル用 | Same as spring, wider framing to leave empty space at bottom center for a title card overlay |
+
+窓だけを差し替えたい場合は、店内を共通の1枚にして「窓の景色」だけ4枚（透過PNG、窓枠の内側サイズ）
+用意する方法でも構いません。実装コストは窓4枚方式のほうが低くなります。
+
+推奨: 窓の景色だけ4枚（透過PNG、**800×600px** 程度）
+`assets/scenes/window-spring.png` / `window-summer.png` / `window-autumn.png` / `window-winter.png`
+プロンプトは上表から「Cozy wooden flower shop interior,」以降の景色描写だけを使う。
+
+---
+
+## 4. お客さま（優先度：中／3〜8枚）
+
+正方形 **800×800px**、背景透過PNG、バストアップ、やわらかい笑顔。
+
+置き場所: `assets/customers/<id>.png`
+
+現在8人の依頼テンプレートがあり、性別・年齢感がそれぞれ異なります。最低限は
+「にこにこ（通常）」と「もっと嬉しそう（受け取り後）」の表情差分2枚を1人ぶん
+用意し、共通の1〜2人を使い回す形でも成立します。フル対応するなら8人×2表情＝16枚。
+
+| id | 人物像 |
+|---|---|
+| `customer-01` | よく笑う同僚。ビタミンカラーの服 |
+| `customer-02` | 落ち着いた雰囲気の男性 |
+| `customer-03` | 家族の世話を焼くのが好きな母 |
+| `customer-04` | 和の趣味がある年配の女性 |
+| `customer-05` | 春から進学する高校生 |
+| `customer-06` | ひとり暮らしの人 |
+| `customer-07` | 家族で新居に引っ越した夫婦の一方 |
+| `customer-08` | 入院中の親友 |
+
+各表情: `-normal.png`（依頼を聞いているとき）／`-happy.png`（花束を受け取ったとき）
+
+---
+
+## 5. 花瓶・カゴ・小物（優先度：高／4枚）
+
+正方形 **512×512px**、背景透過PNG。
+
+| ファイル | 用途 | プロンプト |
+|---|---|---|
+| `assets/props/vase.png` | 店頭の花瓶（花なし） | A simple clear glass vase with a little water inside, empty, isolated on transparent background, soft watercolor style |
+| `assets/props/basket.png` | ブーケ用バスケット | A rustic wicker basket for holding cut flowers, empty, isolated on transparent background, soft watercolor style |
+| `assets/props/basket-full.png` | 花が入ったカゴ（演出用） | Same wicker basket filled with an assortment of colorful cut flowers, isolated on transparent background |
+| `assets/props/counter.jpg` | カウンターの木目テクスチャ（タイル可） | Close-up wood counter texture, warm brown tone, seamless tileable, soft lighting |
+
+---
+
+## 6. ラッピング資材（優先度：中／11枚）
+
+**512×512px**、背景透過PNG。ロール状の紙・リボンの束。
+
+置き場所: `assets/wrap/paper-<id>.png`（6枚）／`assets/wrap/ribbon-<id>.png`（5枚）
+
+| id | 色 |
+|---|---|
+| `paper-kraft` | クラフト（茶） |
+| `paper-cream` | クリーム |
+| `paper-pink` | くすみピンク |
+| `paper-sage` | セージグリーン |
+| `paper-navy` | ネイビー |
+| `paper-lilac` | ライラック |
+| `ribbon-ivory` | アイボリー |
+| `ribbon-rose` | ローズ |
+| `ribbon-gold` | ゴールド |
+| `ribbon-moss` | モスグリーン |
+| `ribbon-blue` | スモークブルー |
+
+プロンプト共通形: “A roll of [色] wrapping paper standing upright” / “A spool of [色] satin ribbon”
+
+---
+
+## 7. 温室（優先度：低／4枚）── **現時点では不使用**
+
+> **（不使用）** 本編では温室を使いません。花屋は花を育てず、市場から仕入れるためです。
+> 育成に相当する要素は「今日の市場（今朝の入荷）」で扱います（→ `design/12-customers.md` 9-2章）。
+>
+> **仕様は残します。** 将来の DLC・イベント・番外編で使う可能性があるためです。
+> 素材を作る場合も、本編の画面には出しません。
+
+正方形 **512×512px**、背景透過PNG。1つの鉢または畝の中で生育段階を描く。
+
+置き場所: `assets/greenhouse/stage-<0-3>.png`
+
+| ファイル | 段階 |
+|---|---|
+| `stage-0.png` | 土に種をまいた直後の鉢植え |
+| `stage-1.png` | 小さな双葉が出た鉢植え |
+| `stage-2.png` | つぼみがついた鉢植え |
+| `stage-3.png` | 花が開いた鉢植え（花は種類ごとに1で作った画像と合成するため、鉢と葉のみでもよい） |
+
+---
+
+## 8. 完成ブーケ・メッセージカード台紙（優先度：低）
+
+- `assets/props/card-blank.png`：クラフト色の小さなメッセージカード、背景透過、**512×384px**
+- 完成ブーケ全体は、当面は「1本の花」画像をコード側で重ねる現行方式を継続（実装コストが低いため）
+
+---
+
+## 導入手順（画像が揃ったら）
+
+1. 上記パスに画像を置く
+2. `index.html` の `FLOWERS` 配列に `img:"assets/flowers/sunflower.png"` のように1行足す
+   → その花だけ店頭・詳細・ブーケ・図鑑すべてに自動反映（すでに実装済みの仕組み）
+3. 背景・人物・小物は現状 `img:` 差し替えの仕組みが未実装なので、画像が揃った段階で
+   同様の差し替え口をこちらで追加します（花で仕組みが確認できてから広げるのが安全）
+
+## まず着手する最小セット（8枚）
+
+これだけでも見た目の印象は大きく変わります。
+
+1. `assets/flowers/rose.png`
+2. `assets/flowers/tulip.png`
+3. `assets/flowers/sunflower.png`
+4. `assets/flowers/lily.png`
+5. `assets/flowers/gerbera.png`
+6. `assets/flowers/lisianthus.png`
+7. `assets/scenes/window-spring.png`
+8. `assets/props/vase.png`

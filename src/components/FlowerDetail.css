@@ -1,0 +1,291 @@
+.detail {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.detail__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--fs-color-veil);
+  cursor: default;
+  animation: fade var(--fs-duration-base) var(--fs-easing-soft) both;
+}
+
+/* 選んだ花だけが前に出て、光が当たる */
+.detail__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--fs-space-lg) 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.detail__flower {
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  max-width: 78%;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(10px 20px 26px rgba(48, 36, 28, 0.45));
+  animation: flower-step-forward var(--fs-duration-bloom) var(--fs-easing-rise) both;
+}
+
+@keyframes flower-step-forward {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.detail__light {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 120%;
+  height: 100%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    52% 46% at 42% 38%,
+    rgba(255, 246, 224, 0.5) 0%,
+    rgba(255, 246, 224, 0) 70%
+  );
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
+}
+
+.detail__card {
+  position: relative;
+  max-height: 52%;
+  margin-top: var(--fs-space-md);
+  animation: appear var(--fs-duration-slow) var(--fs-easing-rise) both;
+}
+
+.detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fs-space-md);
+}
+
+.detail__name {
+  margin: 0;
+  font-size: var(--fs-font-xl);
+  letter-spacing: 0.12em;
+  font-weight: 500;
+}
+
+.detail__price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.detail__yen {
+  font-size: var(--fs-font-lg);
+  color: var(--fs-color-ink);
+}
+
+.detail__meanings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fs-space-sm);
+  margin: var(--fs-space-md) 0 0;
+}
+
+.detail__meaning {
+  padding: 3px var(--fs-space-md);
+  border-radius: var(--fs-radius-pill);
+  background: var(--fs-color-petal-soft);
+  color: var(--fs-color-ink-soft);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.08em;
+}
+
+/*
+ * ひとこと。「出会った日」のすぐ下、知識より前。
+ *
+ * このふたつは、どちらも**花との距離**の話なので、
+ * あいだを詰めてひと続きに読ませる（sm）。
+ * 代わりに、この下の知識との境目は広く開ける（`.detail__rows` の xl）。
+ * 間の広さだけで「ここから先は辞典です」と分かるようにする ── 見出しは足さない。
+ */
+.detail__note {
+  margin: var(--fs-space-sm) 0 0;
+  font-size: var(--fs-font-md);
+  color: var(--fs-color-ink-soft);
+  line-height: var(--fs-font-line-base);
+}
+
+/*
+ * 出会った日。
+ * 花言葉と知識のあいだ。文字は小さく、飾らない。
+ * 「◯種集めました」ではなく「◯日目に出会いました」── 主語が違う。
+ */
+.detail__met {
+  margin: var(--fs-space-md) 0 0;
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
+  color: var(--fs-color-ink-faint);
+}
+
+/* 知識。ひとことから、はっきり離す（→ `.detail__note`）。 */
+.detail__rows {
+  margin: var(--fs-space-xl) 0 0;
+  display: grid;
+  gap: var(--fs-space-md);
+}
+
+.detail__row {
+  margin: 0;
+}
+
+.detail__row dd {
+  margin: 0;
+}
+
+.detail__badge {
+  margin-left: var(--fs-space-sm);
+  padding: 2px var(--fs-space-md);
+  border-radius: var(--fs-radius-pill);
+  background: var(--fs-color-sage);
+  color: var(--fs-color-cream);
+  font-size: var(--fs-font-xs);
+}
+
+.detail__hint {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-font-sm);
+  color: var(--fs-color-ink-faint);
+}
+
+.detail__actions {
+  display: flex;
+  gap: var(--fs-space-md);
+  margin-top: var(--fs-space-lg);
+}
+
+.detail__actions .button {
+  flex: 1 1 auto;
+}
+
+.detail__picked {
+  font-family: var(--fs-font-family-ui);
+  font-size: var(--fs-font-xs);
+  opacity: 0.85;
+}
+
+
+/* --------------------------------------------------------------------------
+   花だけを見る
+   -------------------------------------------------------------------------- */
+
+/*
+ * 花にふれると、紙が下がって花だけになる。もう一度ふれると戻る。
+ *
+ * 「一輪の花を、しばらく見つめてしまう」は五つの立ち止まる時間のひとつで、
+ * 紙が出たままだと、視線がどうしても文字のほうへ移ってしまう。
+ * 情報を消すのではなく、**読むのをやめられる**ようにする。
+ */
+/*
+ * 花そのものが、押せる場所になった。
+ * 背景（花瓶に戻す）が上に乗っていると、花にふれたつもりで閉じてしまうので、
+ * ここだけは背景より前に出す。
+ */
+.detail__stage {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  /* 上の .detail__stage で padding-top を入れているので、ここでは消さない */
+  z-index: 1;
+  pointer-events: auto;
+}
+
+/*
+ * `.detail__card` は登場時に animation: appear が掛かっている。
+ * animation の transform は同名プロパティの指定を丸ごと上書きするので、
+ * ここで animation を切ってから transform を渡すこと。
+ * （このプロジェクトで三度めの取り違え。忘れないよう書き残す）
+ */
+.detail.is-quiet .detail__card {
+  animation: none;
+  transform: translateY(112%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform var(--fs-duration-slow) var(--fs-easing-soft),
+    opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.detail__card {
+  transition: transform var(--fs-duration-slow) var(--fs-easing-rise),
+    opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+/* 紙が下がったぶん、花は少しだけ下りてきて、大きく見える */
+.detail.is-quiet .detail__stage {
+  transform: translateY(6%) scale(1.08);
+  transition: transform var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+.detail__stage {
+  transition: transform var(--fs-duration-slow) var(--fs-easing-soft);
+}
+
+/*
+ * 背景の暗さは、ゆるめない。
+ * 一度ゆるめてみたが、棚に立っている同じ花が透けて見えて、
+ * 一輪が二輪に見えてしまった。ここは暗いままでよい。
+ */
+
+
+/* --------------------------------------------------------------------------
+   ♡ お気に入り
+   -------------------------------------------------------------------------- */
+
+/*
+ * 押すだけ。押しても、何も起きない。
+ *
+ * 光らせない、跳ねさせない、数を出さない、音を鳴らさない。
+ * 「好き」にご褒美を付けた瞬間、それは「集める」に変わる。
+ * ここは、最後の問い「好きな花は、できましたか？」に
+ * プレイヤー自身が答える場所なので、答えを買収してはいけない。
+ */
+.detail__heart {
+  position: absolute;
+  top: var(--fs-space-lg);
+  right: var(--fs-space-lg);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--fs-color-ink-faint);
+  text-shadow: 1px 2px 4px rgba(74, 63, 53, 0.28);
+  transition: color var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.detail__heart.is-on {
+  color: var(--fs-color-petal);
+}
+
+/* 花だけを見ているあいだも、♡は残す（そこで押したくなることがあるので） */
+.detail.is-quiet .detail__heart {
+  opacity: 0.72;
+  transition: opacity var(--fs-duration-slow) var(--fs-easing-soft);
+}

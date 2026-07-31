@@ -1,0 +1,126 @@
+/* 店頭。画面のほとんどは店内と花で、UI は下の隅にだけ置く。 */
+
+.shop-view {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  transition: filter var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+/* 花を眺めているあいだ、店頭はそっと後ろへ下がる */
+.shop-view.is-inspecting > *:not(.detail) {
+  filter: blur(7px) brightness(0.88);
+  pointer-events: none;
+}
+
+.shop-view__murmur {
+  align-self: center;
+  margin: var(--fs-space-sm) 0 0;
+  padding: 4px var(--fs-space-xl);
+  text-align: center;
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.14em;
+  color: var(--fs-color-ink-soft);
+  /* 面ではなく、光をまとわせて読ませる */
+  background: radial-gradient(
+    60% 120% at 50% 50%,
+    rgba(255, 251, 240, 0.9) 0%,
+    rgba(255, 251, 240, 0) 78%
+  );
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
+}
+
+/* 作業台。横に流して花を眺めていく。 */
+.shop-view__counter {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2%;
+  /* 端の花も中央に来られるように、左右を花半分ぶん空ける */
+  padding: 0 calc(50% - min(26vw, 135px)) var(--fs-space-xs);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shop-view__counter::-webkit-scrollbar {
+  display: none;
+}
+
+/* 正面の花の、小さな木札 */
+.shop-view__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: var(--fs-space-xs) 0 var(--fs-space-sm);
+  animation: fade var(--fs-duration-base) var(--fs-easing-soft) both;
+}
+
+.shop-view__name {
+  font-size: var(--fs-font-lg);
+  letter-spacing: 0.16em;
+  color: var(--fs-color-ink);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+}
+
+.shop-view__price {
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.08em;
+  color: var(--fs-color-ink-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+}
+
+.shop-view__season {
+  margin-top: 2px;
+  font-size: var(--fs-font-xs);
+  letter-spacing: 0.14em;
+  color: var(--fs-color-sage-deep);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+}
+
+/* 手もと。財布の中身と、束ねるひとこと。 */
+.shop-view__hands {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fs-space-md);
+  padding: 0 var(--fs-space-xs) var(--fs-space-xs);
+}
+
+.shop-view__purse {
+  font-size: var(--fs-font-md);
+  letter-spacing: 0.06em;
+  color: var(--fs-color-ink-soft);
+  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  transition: color var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+/* 予算を超えても叱らない。色がほんの少し変わるだけ。 */
+.shop-view__purse.is-over {
+  color: var(--fs-color-petal);
+}
+
+.shop-view__of {
+  margin-left: 4px;
+  font-size: var(--fs-font-sm);
+  opacity: 0.68;
+}
+
+.shop-view__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 2px;
+  border-radius: var(--fs-radius-pill);
+  background: rgba(255, 253, 245, 0.28);
+  font-size: var(--fs-font-xs);
+}

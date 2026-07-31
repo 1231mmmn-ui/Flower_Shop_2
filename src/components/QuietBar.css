@@ -1,0 +1,59 @@
+/* 面を持たない。店内の空気の上に、文字だけを置く。 */
+
+.quiet {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--fs-space-xs);
+  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
+}
+
+.quiet__when {
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.18em;
+  color: var(--fs-color-ink-soft);
+  /* 明るい窓の前でも読めるように、光をまとわせる */
+  text-shadow: 0 1px 10px rgba(255, 250, 238, 0.9), 0 0 2px rgba(255, 250, 238, 0.9);
+}
+
+.quiet__dot {
+  opacity: 0.5;
+  margin: 0 0.1em;
+}
+
+.quiet__marks {
+  display: flex;
+  gap: var(--fs-space-md);
+}
+
+.quiet__mark {
+  position: relative;
+  padding: 6px 2px;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.14em;
+  color: var(--fs-color-ink-soft);
+  opacity: 0.62;
+  text-shadow: 0 1px 10px rgba(255, 250, 238, 0.9), 0 0 2px rgba(255, 250, 238, 0.9);
+  transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.quiet__mark:hover,
+.quiet__mark:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+
+/* 音が切れているときの、細い斜線 */
+.quiet__off {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 50%;
+  height: 1px;
+  background: currentColor;
+  transform: rotate(-24deg);
+  opacity: 0.7;
+}
