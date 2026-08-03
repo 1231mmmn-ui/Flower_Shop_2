@@ -19,8 +19,9 @@ import random
 
 from PIL import Image, ImageDraw, ImageFilter
 
-from .paint import (RGB, draw_blob, draw_leaf, draw_petal, hex_rgb, jitter,
-                    linear_gradient, mix, paper_texture, rotate_points, shade)
+from .paint import (LIGHT_ANGLE, RGB, draw_blob, draw_leaf, draw_petal, hex_rgb,
+                    jitter, linear_gradient, mix, paper_texture, rotate_points,
+                    shade, watercolor_mask)
 
 PROP_SIZE = (512, 512)
 CARD_SIZE = (512, 384)
@@ -364,11 +365,78 @@ def render_card(seed: int = 0) -> Image.Image:
 # お客さま
 # --------------------------------------------------------------------------
 
+def _wc(size, shape_fn, color: RGB, seed: int, softness: float = 3.0,
+        bleed: float = 0.22) -> Image.Image:
+    """
+    水彩の一筆。
+
+    花とまったく同じ描き方です。かたちを塗ってから、
+    輪郭をにじませ、顔料のムラを乗せます。
+
+    人物だけが浮いて見えていた原因は、ここでした。
+    人物は `ellipse` を塗って `GaussianBlur` を掛けていただけで、
+    **`watercolor_mask` を一度も通していませんでした。**
+    ぼかしと、にじみは、別のものです。
+    ぼかした縁はなめらかで均一 ── つまり「印刷」に見えます。
+
+    ただし **にじみの量は、かたちの大きさで変えること。**
+    花びらと同じ 0.22 を顔に掛けたら、頬いちめんが粒立って
+    **汚れて**見えました。花びらでは顔料に見えるムラが、
+    広い面では砂に見えます。広い面ほど、うんと弱く。
+    """
+    mask = Image.new("L", size, 0)
+    shape_fn(ImageDraw.Draw(mask))
+    return _paint(size, watercolor_mask(mask, seed=seed, softness=softness,
+                                        bleed=bleed), color)
+
+
+def _paint(size, mask: Image.Image, color: RGB) -> Image.Image:
+    layer = Image.new("RGBA", size, (0, 0, 0, 0))
+    layer.paste(Image.new("RGB", size, color), (0, 0), mask)
+    return layer
+
+
+def _shade_side(size, mask_fn, color: RGB, seed: int, amount: float = 0.22):
+    """
+    左上の光に対する、影の側。
+
+    店内も花も光源は左上ひとつ。人物だけ全体が均一に明るいと、
+    **同じ部屋にいるように見えません。**
+    かたちの右下側だけを、うすく落とします。
+    """
+    mask = Image.new("L", size, 0)
+    mask_fn(ImageDraw.Draw(mask))
+    soft = watercolor_mask(mask, seed=seed + 7, softness=6.0, bleed=0.1)
+    # 光と反対（右下）へずらしたものだけを残す＝陰になる側
+    dx = int(round(math.sin(math.radians(LIGHT_ANGLE + 180)) * max(size) * 0.06))
+    dy = int(round(-math.cos(math.radians(LIGHT_ANGLE + 180)) * max(size) * 0.06))
+    moved = Image.new("L", size, 0)
+    moved.paste(soft, (dx, dy))
+    from PIL import ImageChops
+    only = ImageChops.subtract(soft, moved)
+    return _paint(size, only.point(lambda v: int(v * amount)), shade(color, -0.55))
+
+
 def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
-    """やわらかな水彩のバストアップ。どの表情も穏やかであること。"""
+    """
+    やわらかな水彩のバストアップ。どの表情も穏やかであること。
+
+    **人物も、花と同じ筆で描きます。**
+
+    直したのは4つです。
+      にじみ  すべての面を `watercolor_mask` に通す（ぼかしではなく、にじみ）
+      光      左上ひとつ。かたちの右下に影の側を作る
+      重なり  髪→顔、顔→首、頭→体に、接する影を落とす
+      顔      目を小さく、白目のハイライトをやわらげ、頬を薄く
+
+    目指すのは「人物が主役になる」ことではなく、
+    **「花屋の空気の中に自然に存在している人物」**です。
+    だから、描き込むのではなく、**なじませます。**
+    """
     rng = random.Random(seed + hash(spec["id"] + mood) % 9000)
     w, h = CUSTOMER_SIZE
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    size = (w, h)
+    img = Image.new("RGBA", size, (0, 0, 0, 0))
     fx, fy = w * 0.5, h * 0.42          # 顔の中心
     skin = hex_rgb(spec.get("skin", "#F2D9C4"))
     hair = hex_rgb(spec["hair"])
@@ -376,81 +444,118 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
     face_r = 118
     hair_len = spec.get("hair_len", 140)
 
-    # 体（首 → なで肩 → 腕）
-    body = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(body)
-    bd.ellipse([fx - 42, fy + 84, fx + 42, fy + 180], fill=(*shade(skin, -0.05), 255))
-    bd.polygon([(fx - 290, h), (fx - 270, fy + 300), (fx - 200, fy + 196),
-                (fx - 90, fy + 146), (fx + 90, fy + 146), (fx + 200, fy + 196),
-                (fx + 270, fy + 300), (fx + 290, h)], fill=(*cloth, 255))
-    bd.ellipse([fx - 290, fy + 258, fx - 168, h], fill=(*cloth, 255))
-    bd.ellipse([fx + 168, fy + 258, fx + 290, h], fill=(*cloth, 255))
-    bd.ellipse([fx - 112, fy + 138, fx + 112, fy + 240], fill=(*cloth, 255))
-    img.alpha_composite(body.filter(ImageFilter.GaussianBlur(2.4)))
+    def body_shape(d):
+        d.ellipse([fx - 42, fy + 84, fx + 42, fy + 180], fill=255)
+        d.polygon([(fx - 290, h), (fx - 270, fy + 300), (fx - 200, fy + 196),
+                   (fx - 90, fy + 146), (fx + 90, fy + 146), (fx + 200, fy + 196),
+                   (fx + 270, fy + 300), (fx + 290, h)], fill=255)
+        d.ellipse([fx - 290, fy + 258, fx - 168, h], fill=255)
+        d.ellipse([fx + 168, fy + 258, fx + 290, h], fill=255)
+        d.ellipse([fx - 112, fy + 138, fx + 112, fy + 240], fill=255)
 
-    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).polygon([(fx + 40, h), (fx + 116, fy + 160), (fx + 260, h)],
-                                   fill=(*shade(cloth, -0.22), 150))
-    img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(24)))
+    def back_shape(d):
+        d.ellipse([fx - face_r - 22, fy - face_r - 36,
+                   fx + face_r + 22, fy + face_r * 0.30 + hair_len], fill=255)
 
-    # 後ろ髪
-    back = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(back).ellipse(
-        [fx - face_r - 22, fy - face_r - 36, fx + face_r + 22, fy + face_r * 0.30 + hair_len],
-        fill=(*shade(hair, -0.10), 255))
-    img.alpha_composite(back.filter(ImageFilter.GaussianBlur(3.0)))
+    def face_shape(d):
+        d.ellipse([fx - face_r * 0.88, fy - face_r,
+                   fx + face_r * 0.88, fy + face_r * 1.12], fill=255)
 
-    # 顔
-    face = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(face).ellipse([fx - face_r * 0.88, fy - face_r,
-                                  fx + face_r * 0.88, fy + face_r * 1.12],
-                                 fill=(*skin, 255))
-    img.alpha_composite(face.filter(ImageFilter.GaussianBlur(2.6)))
-    lit = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(lit).ellipse([fx - face_r * 0.8, fy - face_r * 0.9,
-                                 fx + face_r * 0.1, fy + face_r * 0.1],
-                                fill=(*shade(skin, 0.30), 120))
-    img.alpha_composite(lit.filter(ImageFilter.GaussianBlur(28)))
+    def fringe_shape(d):
+        d.ellipse([fx - face_r - 12, fy - face_r - 30,
+                   fx + face_r + 12, fy + face_r * 0.26], fill=255)
+        d.ellipse([fx - face_r * 0.52, fy - face_r * 0.50,
+                   fx + face_r * 0.62, fy + face_r * 0.42], fill=0)
 
-    # 前髪
-    fringe = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    fd = ImageDraw.Draw(fringe)
-    fd.ellipse([fx - face_r - 12, fy - face_r - 30, fx + face_r + 12, fy + face_r * 0.26],
-               fill=(*hair, 255))
-    fd.ellipse([fx - face_r * 0.52, fy - face_r * 0.50, fx + face_r * 0.62, fy + face_r * 0.42],
-               fill=(0, 0, 0, 0))
-    img.alpha_composite(fringe.filter(ImageFilter.GaussianBlur(3.0)))
-    gloss = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(gloss).ellipse([fx - face_r * 0.85, fy - face_r * 0.92,
-                                   fx - face_r * 0.10, fy - face_r * 0.62],
-                                  fill=(*shade(hair, 0.42), 130))
-    img.alpha_composite(gloss.filter(ImageFilter.GaussianBlur(15)))
+    # ---- 体
+    # 服はいちばん広い面。にじみはほとんど掛けない。
+    img.alpha_composite(_wc(size, body_shape, cloth, rng.randint(0, 9999), 3.4, 0.09))
+    img.alpha_composite(_shade_side(size, body_shape, cloth, rng.randint(0, 9999), 0.20))
 
-    # 表情（穏やかな線だけで描く）
-    fd = ImageDraw.Draw(img)
-    ink = shade(hair, -0.30)
-    ex, ey, er = 48, 24, 28
+    # ---- 後ろ髪。顔より先に置いて、あとで顔が上に乗る
+    img.alpha_composite(_wc(size, back_shape, shade(hair, -0.10),
+                            rng.randint(0, 9999), 3.6, 0.12))
+
+    # ---- 首もとの影。頭が体に接しているところ
+    neck = Image.new("L", size, 0)
+    ImageDraw.Draw(neck).ellipse([fx - 88, fy + face_r * 0.86, fx + 88, fy + 202], fill=84)
+    img.alpha_composite(_paint(size, neck.filter(ImageFilter.GaussianBlur(26)),
+                               shade(cloth, -0.42)))
+
+    # ---- 顔
+    # 顔はいちばん見られる面。ムラは、ほぼ入れない。
+    img.alpha_composite(_wc(size, face_shape, skin, rng.randint(0, 9999), 3.0, 0.05))
+    img.alpha_composite(_shade_side(size, face_shape, skin, rng.randint(0, 9999), 0.14))
+    # 左上からの光
+    lit = Image.new("L", size, 0)
+    ImageDraw.Draw(lit).ellipse([fx - face_r * 0.86, fy - face_r * 0.96,
+                                 fx + face_r * 0.06, fy + face_r * 0.06], fill=110)
+    img.alpha_composite(_paint(size, lit.filter(ImageFilter.GaussianBlur(30)),
+                               shade(skin, 0.34)))
+
+    # ---- 前髪
+    img.alpha_composite(_wc(size, fringe_shape, hair, rng.randint(0, 9999), 3.2, 0.13))
+    # 前髪が顔に落とす影。重なりの厚みはここで出る（花と同じ考え方）
+    brow_shadow = Image.new("L", size, 0)
+    ImageDraw.Draw(brow_shadow).ellipse(
+        [fx - face_r * 0.76, fy - face_r * 0.70, fx + face_r * 0.76, fy - face_r * 0.24],
+        fill=54)
+    img.alpha_composite(_paint(size, brow_shadow.filter(ImageFilter.GaussianBlur(20)),
+                               shade(skin, -0.40)))
+    # 髪のつや。左上だけ、うすく
+    gloss = Image.new("L", size, 0)
+    ImageDraw.Draw(gloss).ellipse([fx - face_r * 0.84, fy - face_r * 0.94,
+                                   fx - face_r * 0.12, fy - face_r * 0.60], fill=104)
+    img.alpha_composite(_paint(size, gloss.filter(ImageFilter.GaussianBlur(18)),
+                               shade(hair, 0.40)))
+
+    # ---- 表情
+    #
+    # 目を小さくしました。もとは 28px の黒い楕円に白い点で、
+    # 水彩の顔に**判子**が押してあるように見えていました。
+    # 線を細く、色を髪より薄い墨にして、白目の光はにじませます。
+    feat = Image.new("RGBA", size, (0, 0, 0, 0))
+    fd = ImageDraw.Draw(feat)
+    ink = shade(hair, -0.18)
+    ex, ey = 46, 26
+    lip = shade(hex_rgb("#C0817E"), -0.05)
     if mood == "happy":
         for side in (-1, 1):
+            er = 24
             fd.arc([fx + side * ex - er, fy + ey - er, fx + side * ex + er, fy + ey + er],
-                   start=196, end=344, fill=(*ink, 235), width=7)
-        fd.arc([fx - 32, fy + 62, fx + 32, fy + 108], start=8, end=172,
-               fill=(*shade(hex_rgb("#C97F80"), -0.1), 220), width=6)
+                   start=200, end=340, fill=(*ink, 220), width=5)
+        fd.arc([fx - 26, fy + 64, fx + 26, fy + 102], start=12, end=168,
+               fill=(*lip, 200), width=5)
     else:
         for side in (-1, 1):
-            fd.ellipse([fx + side * ex - 14, fy + ey - 18, fx + side * ex + 14, fy + ey + 18],
-                       fill=(*ink, 225))
-            fd.ellipse([fx + side * ex - 8, fy + ey - 14, fx + side * ex + 2, fy + ey - 4],
-                       fill=(255, 253, 246, 200))
-            fd.arc([fx + side * ex - 21, fy + ey - 38, fx + side * ex + 21, fy + ey - 4],
-                   start=190, end=350, fill=(*ink, 200), width=5)
-        fd.arc([fx - 24, fy + 66, fx + 24, fy + 96], start=14, end=166,
-               fill=(*shade(hex_rgb("#C97F80"), -0.1), 200), width=5)
-    for side in (-1, 1):
-        draw_blob(img, (fx + side * 84, fy + 48), 28, 18, hex_rgb("#EEB3AE"), rng,
-                  softness=12, bleed=0.0)
+            fd.ellipse([fx + side * ex - 10, fy + ey - 13, fx + side * ex + 10, fy + ey + 13],
+                       fill=(*ink, 210))
+            fd.arc([fx + side * ex - 18, fy + ey - 34, fx + side * ex + 18, fy + ey - 6],
+                   start=196, end=344, fill=(*ink, 165), width=4)
+        fd.arc([fx - 20, fy + 68, fx + 20, fy + 94], start=16, end=164,
+               fill=(*lip, 180), width=4)
+    # 顔立ちも、ほんの少しにじませる。線だけ硬いと、そこだけ別の絵に見える。
+    img.alpha_composite(feat.filter(ImageFilter.GaussianBlur(0.9)))
 
-    return paper_texture(img, seed=seed, strength=0.06)
+    if mood != "happy":
+        # 白目の光。硬い点ではなく、にじんだ明かり
+        spark = Image.new("L", size, 0)
+        sd = ImageDraw.Draw(spark)
+        for side in (-1, 1):
+            sd.ellipse([fx + side * ex - 7, fy + ey - 11, fx + side * ex - 1, fy + ey - 5],
+                       fill=170)
+        img.alpha_composite(_paint(size, spark.filter(ImageFilter.GaussianBlur(1.6)),
+                                   (255, 253, 246)))
+
+    # 頬。もとは直径56pxの桃色の玉が二つ乗っていた。うんと薄く、広く。
+    cheek = Image.new("L", size, 0)
+    cd = ImageDraw.Draw(cheek)
+    for side in (-1, 1):
+        cd.ellipse([fx + side * 80 - 34, fy + 44, fx + side * 80 + 34, fy + 76], fill=52)
+    img.alpha_composite(_paint(size, cheek.filter(ImageFilter.GaussianBlur(20)),
+                               hex_rgb("#E6A9A4")))
+
+    return paper_texture(img, seed=seed, strength=0.045)
 
 
 # --------------------------------------------------------------------------
