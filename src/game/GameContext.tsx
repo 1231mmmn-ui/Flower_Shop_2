@@ -18,7 +18,7 @@ import { flowerById } from '../data/flowers';
 import { SEASONS, seasonForDay, type Season } from '../data/seasons';
 import { customersForDay } from '../data/visits';
 import { RIBBONS, WRAPPINGS } from '../data/wrapping';
-import { arrange, makeStem } from './arrange';
+import { makeStem } from './bunch';
 import { evaluate, bouquetPrice, type Evaluation } from './evaluation';
 import type { Bouquet, BouquetStyleId, GameState, HintId } from './types';
 
@@ -128,14 +128,7 @@ function reducer(state: GameState, action: Action): GameState {
       return { ...state, picked: state.picked.filter((stem) => stem.uid !== action.uid) };
 
     case 'go-arrange':
-      return {
-        ...state,
-        phase: 'arrange',
-        bouquet: {
-          ...state.bouquet,
-          stems: arrange(state.picked, state.bouquet.styleId),
-        },
-      };
+      return { ...state, phase: 'arrange', bouquet: { ...state.bouquet, stems: state.picked } };
 
     case 'back-to-shop':
       return { ...state, phase: 'shop' };
@@ -147,22 +140,11 @@ function reducer(state: GameState, action: Action): GameState {
      * 花を失わないので「戻す」も「ひとつ前へ」も要りません。
      */
     case 'set-style':
-      return {
-        ...state,
-        bouquet: {
-          ...state.bouquet,
-          styleId: action.id,
-          stems: arrange(state.picked, action.id),
-        },
-      };
+      return { ...state, bouquet: { ...state.bouquet, styleId: action.id } };
 
     case 'remove-stem': {
       const picked = state.picked.filter((stem) => stem.uid !== action.uid);
-      return {
-        ...state,
-        picked,
-        bouquet: { ...state.bouquet, stems: arrange(picked, state.bouquet.styleId) },
-      };
+      return { ...state, picked, bouquet: { ...state.bouquet, stems: picked } };
     }
 
     case 'set-wrapping':

@@ -14,6 +14,7 @@ import { FirstTime } from '../components/FirstTime';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { FlowerStand } from '../components/FlowerStand';
 import { QuietBar } from '../components/QuietBar';
+import { TodayFlower } from '../components/TodayFlower';
 import { flowerById, formatPrice } from '../data/flowers';
 import { shelfFor } from '../data/shelf';
 import { useGame } from '../game/GameContext';
@@ -129,6 +130,9 @@ export function ShopScreen() {
           ¥{pickedTotal.toLocaleString('ja-JP')}
           <span className="shop-view__of">／ ¥{customer.budget.toLocaleString('ja-JP')}</span>
         </span>
+
+        {/* 市場で選んだ一輪が、今日ずっとついてくる。押せません。 */}
+        <TodayFlower />
 
         <button
           type="button"

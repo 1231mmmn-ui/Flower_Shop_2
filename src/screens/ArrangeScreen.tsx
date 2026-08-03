@@ -26,6 +26,7 @@ import { wrapMaterial } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
 import { ApronMemo } from '../components/ApronMemo';
 import { QuietBar } from '../components/QuietBar';
+import { TodayFlower } from '../components/TodayFlower';
 import { RIBBONS, WRAPPINGS, ribbonById, wrappingById } from '../data/wrapping';
 import { bouquetPrice } from '../game/evaluation';
 import { BOUQUET_STYLES, styleById } from '../game/styles';
@@ -129,6 +130,8 @@ export function ArrangeScreen() {
         </button>
 
         <span className="arrange__price">¥{total.toLocaleString('ja-JP')}</span>
+
+        <TodayFlower />
 
         <button
           type="button"

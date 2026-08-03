@@ -63,8 +63,8 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: center;
-  gap: var(--fs-space-xs);
-  padding: var(--fs-space-xs) var(--fs-space-sm) 0;
+  gap: 2px;
+  padding: var(--fs-space-xs) 0 0;
 }
 
 /* 二行になる名前があるので、三つとも二行ぶんの高さを取っておく。 */
@@ -81,8 +81,8 @@
    * 三等分した列（122px）に 1px 足りず、**「すっき／り」で折れて**いました。
    * 一字ぶん詰めれば 110px で収まります。
    */
-  font-size: 11px;
-  letter-spacing: 0;
+  font-size: clamp(10px, 2.85vw, 12px);
+  letter-spacing: -0.01em;
   color: var(--fs-color-ink-soft);
   text-shadow:
     0 1px 3px rgba(255, 252, 244, 0.98),

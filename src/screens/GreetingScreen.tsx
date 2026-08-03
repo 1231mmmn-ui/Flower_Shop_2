@@ -9,12 +9,11 @@
 import './GreetingScreen.css';
 import { customer as customerImage } from '../assets/paths';
 import { QuietBar } from '../components/QuietBar';
-import { flowerById } from '../data/flowers';
+import { TodayFlower } from '../components/TodayFlower';
 import { useGame } from '../game/GameContext';
 
 export function GreetingScreen() {
   const { customer, dispatch } = useGame();
-  const loved = customer.wish.loved?.map((id) => flowerById(id).name).join('と');
 
   return (
     <div className="greet">
@@ -55,7 +54,6 @@ export function GreetingScreen() {
         <p className="greet__note-line greet__note-line--sub">
           {customer.wish.toneLabel}　·　{customer.budget.toLocaleString('ja-JP')}円ほど
         </p>
-        {loved && <p className="greet__note-aside">{loved}がお好きだそうです</p>}
       </div>
 
       {/*
@@ -64,6 +62,7 @@ export function GreetingScreen() {
         窓の外は、絵にもう描いてあります。
       */}
       <footer className="greet__foot">
+        <TodayFlower />
         <button
           type="button"
           className="button"

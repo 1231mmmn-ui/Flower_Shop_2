@@ -8,9 +8,10 @@
 import { useState } from 'react';
 
 import './DeliverScreen.css';
-import { customer as customerImage } from '../assets/paths';
+import { customerArms, customer as customerImage } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
 import { QuietBar } from '../components/QuietBar';
+import { TodayFlower } from '../components/TodayFlower';
 import { useGame } from '../game/GameContext';
 
 export function DeliverScreen() {
@@ -43,12 +44,39 @@ export function DeliverScreen() {
         onClick={() => setAlone((was) => !was)}
         aria-label={alone ? '言葉を見る' : '束だけを眺める'}
       >
-        <img
-          className="deliver__person"
-          src={customerImage(customer.id, 'happy')}
-          alt={customer.name} draggable={false} />
-        <div className="deliver__bouquet">
-          <Bouquet bouquet={state.bouquet} scale={0.9} />
+        {/*
+          ── 抱えている姿にする ────────────────────────────
+
+          束を人物の**横に並べて**いました。同じ画面にいるだけで、
+          同じ空間にはいません。抱えている姿にするには、束が
+          **体より手前、腕より奥**になければいけません。
+
+              人物 → 束 → 腕
+
+          腕を別の紙にしたのは、この順番を作るためだけです
+          （→ tools/placeholder_art/props.py の render_customer_arms）。
+          手を描き足すだけでは、手が束の後ろに隠れて何も変わりません。
+
+          三枚は同じ枠（.deliver__figure）に置きます。人物と腕は
+          同じ 800×800 の絵なので、位置合わせは要りません。
+        */}
+        <div className="deliver__figure">
+          <img
+            className="deliver__person"
+            src={customerImage(customer.id, 'happy')}
+            alt={customer.name}
+            draggable={false}
+          />
+          <div className="deliver__bouquet">
+            <Bouquet bouquet={state.bouquet} />
+          </div>
+          <img
+            className="deliver__arms"
+            src={customerArms(customer.id)}
+            alt=""
+            aria-hidden
+            draggable={false}
+          />
         </div>
       </button>
 
@@ -98,9 +126,12 @@ export function DeliverScreen() {
           残りを数える一日になります）。最後の方のときだけ、
           文言が静かに変わります。
         */}
-        <button type="button" className="button" onClick={() => dispatch({ type: 'see-off' })}>
-          {visit.last ? 'お客様をお見送りして、店を片づける' : 'お客様をお見送りする'}
-        </button>
+        <div className="deliver__see-off">
+          <TodayFlower />
+          <button type="button" className="button" onClick={() => dispatch({ type: 'see-off' })}>
+            {visit.last ? 'お客様をお見送りして、店を片づける' : 'お客様をお見送りする'}
+          </button>
+        </div>
       </footer>
     </div>
   );

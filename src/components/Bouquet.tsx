@@ -23,7 +23,7 @@ import { flower as flowerImage } from '../assets/paths';
 import { RibbonBow, WrapCone } from './BouquetWrap';
 import { flowerById } from '../data/flowers';
 import { ribbonById, wrappingById } from '../data/wrapping';
-import { byDepth } from '../game/arrange';
+import { bunch } from '../game/bunch';
 import { styleById } from '../game/styles';
 import type { Bouquet as BouquetModel } from '../game/types';
 
@@ -36,21 +36,29 @@ interface BouquetProps {
 
 export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
   const style = styleById(bouquet.styleId);
+  /*
+   * **取った本数と、描く本数は違います。**
+   * 3〜5本を扇状に開いただけでは「紙の前に花を三つ置いた絵」になります。
+   * 花屋の束は20〜40本あって、だから重なり、前後ができ、
+   * 輪郭がかたまりになります（→ src/game/bunch.ts）。
+   * 値段も記録も、取った本数のまま変わりません。
+   */
+  const drawn = bunch(bouquet.stems, bouquet.styleId);
 
   return (
     <div
       className={`bouquet ${className}`}
       style={{ '--bouquet-scale': scale } as CSSProperties}
     >
-      {byDepth(bouquet.stems).map((stem) => {
+      {drawn.map((stem) => {
         const flower = flowerById(stem.flowerId);
         return (
           <div
-            key={stem.uid}
+            key={stem.key}
             className="bouquet__stem"
             style={
               {
-                '--angle': `${stem.angle + stem.sway * 0.3}deg`,
+                '--angle': `${stem.angle}deg`,
                 '--reach': stem.reach,
                 '--depth': stem.depth,
                 '--scale': stem.scale,
@@ -71,7 +79,7 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
       */}
       <WrapCone
         wrapping={wrappingById(bouquet.wrappingId)}
-        stems={bouquet.stems.length}
+        stems={drawn.length}
         paper={style.paper}
       />
       <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />

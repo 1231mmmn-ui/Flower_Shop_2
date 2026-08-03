@@ -15,20 +15,17 @@ export type Phase =
   | 'ending'     // 季節がひと巡りした日。「好きな花は、できましたか？」
   | 'library';   // 店のアルバム
 
-/** ブーケに挿さっている1本。 */
+/**
+ * 作業台に置いた、花のひと種。
+ *
+ * **位置は持ちません。** 角度も伸びも奥行きも、
+ * 描くときに束ね方から決まります（→ src/game/bunch.ts）。
+ * ここが位置を持っていたころは、一本ずつ動かす仕組みがありました。
+ */
 export interface BouquetStem {
-  /** 同じ花を何本挿しても区別できるように */
+  /** 同じ花を何本取っても区別できるように */
   uid: string;
   flowerId: string;
-  /** 扇の角度（度）。0 が真上、右が正。 */
-  angle: number;
-  /** 束の中心からの伸び具合（0.0〜1.0） */
-  reach: number;
-  /** 手前ほど大きい（0.0=奥, 1.0=手前） */
-  depth: number;
-  /** 一本ずつ表情を変えるための、ごく小さなゆらぎ */
-  sway: number;
-  scale: number;
 }
 
 export interface Bouquet {

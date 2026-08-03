@@ -103,17 +103,40 @@ def render_vase(seed: int = 0) -> Image.Image:
     w, h = PROP_SIZE
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
 
-    # 器のかたち。まっすぐな筒ではなく、下がわずかにすぼまる。
+    # ── 器のかたち ────────────────────────────────────────
+    #
+    # まっすぐな筒をやめました。**それはコップです。**
+    # 屈折も水面も描き足したのに「透明なコップを花の上に重ねた」ように
+    # 見え続けたのは、いちばん外側の輪郭が筒だったからです。
+    # かたちは、中に何を描くよりも先に目に入ります。
+    #
+    # 花屋のガラス花瓶の輪郭（口・首・胴・足）を、四点で持ちます。
+    #
+    #   口   0.00  0.215W   ほんの少し開く
+    #   首   0.34  0.176W   いちばん細いところ
+    #   胴   0.72  0.243W   いちばん太いところ
+    #   足   1.00  0.198W   台に接する
     top, bottom = int(h * 0.28), int(h * 0.94)
-    half_top = int(w * 0.235)
-    half_bot = int(w * 0.205)
     cx = w // 2
+    PROFILE = ((0.00, 0.215), (0.34, 0.176), (0.72, 0.243), (1.00, 0.198))
+    half_top = int(w * PROFILE[0][1])
+    half_bot = int(w * PROFILE[-1][1])
     # 口の楕円の高さ。**ここを厚くしないと、縮めたとき消えます。**
     rim_ry = int(w * 0.062)
 
     def half_at(y: float) -> float:
-        t = (y - top) / (bottom - top)
-        return half_top + (half_bot - half_top) * t
+        """四点のあいだを、なめらかにつなぐ（角を作らない）。"""
+        t = min(1.0, max(0.0, (y - top) / (bottom - top)))
+        for i in range(len(PROFILE) - 1):
+            t0, v0 = PROFILE[i]
+            t1, v1 = PROFILE[i + 1]
+            if t <= t1 or i == len(PROFILE) - 2:
+                k = (t - t0) / (t1 - t0)
+                k = max(0.0, min(1.0, k))
+                # なめらかに（両端で傾きが0になる補間）
+                k = k * k * (3 - 2 * k)
+                return w * (v0 + (v1 - v0) * k)
+        return w * PROFILE[-1][1]
 
     # ---- ガラスの胴（後ろの面）。淡く、下ほどわずかに濃い。
     body = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -125,16 +148,21 @@ def render_vase(seed: int = 0) -> Image.Image:
         bd.line([cx - hx, y, cx + hx, y], fill=(233, 242, 238, a))
     bd.ellipse([cx - half_bot, bottom - rim_ry, cx + half_bot, bottom + rim_ry],
                fill=(226, 236, 232, 78))
+    # 胴のふくらみは、**縁の線だけで出します。**
+    # 一度、白いにじみを胴に置いてみたら、ガラスではなく
+    # **牛乳の入った瓶**になりました。透明なものに面を足してはいけません。
     img = Image.alpha_composite(img, body)
 
     # ---- 水。**面として見えること。**
-    water_top = top + int((bottom - top) * 0.40)
+    # 水はたっぷり。少ないと、茎が水に入っている区間が短くて分かりません。
+    water_top = top + int((bottom - top) * 0.30)
     water = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     wd = ImageDraw.Draw(water)
     for y in range(water_top, bottom):
         t = (y - water_top) / (bottom - water_top)
         hx = half_at(y) - 5
-        wd.line([cx - hx, y, cx + hx, y], fill=(186, 208, 198, int(52 + 40 * t)))
+        # 上ほど薄く。水は、深いところほど濃く見えます。
+        wd.line([cx - hx, y, cx + hx, y], fill=(186, 208, 198, int(30 + 44 * t)))
     # 水面そのもの。線ではなく楕円の面。
     hw = half_at(water_top) - 5
     wd.ellipse([cx - hw, water_top - rim_ry * 0.72, cx + hw, water_top + rim_ry * 0.72],
@@ -184,6 +212,91 @@ def render_vase(seed: int = 0) -> Image.Image:
                                    fill=(96, 76, 60, 70))
     return paper_texture(Image.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(14)), img),
                          seed=seed, strength=0.05)
+
+
+def render_customer_arms(spec: dict, seed: int = 0) -> Image.Image:
+    """お客さまの、前腕と手だけ。人物とまったく同じ 800×800 の枠で描く。
+
+    ── なぜ別の絵にするか ────────────────────────────────
+
+    お渡しの画面で、ブーケが人物の**横に浮いて**いました。
+    同じ画面に並んでいるだけで、同じ空間にいません。
+
+    抱えている姿にするには、ブーケが**体より手前、腕より奥**に
+    なければいけません。一枚の絵ではその順番が作れないので、
+    腕だけを別の紙に描いて、三枚を重ねます。
+
+        人物（-happy）  →  ブーケ  →  腕（-arms）
+
+    腕がブーケの手前に来ることで、はじめて「抱えている」になります。
+    **これは小手先ではなく、順番の話です。**
+    手を描き足すだけでは、手がブーケの後ろに隠れて何も変わりません。
+
+    枠は人物とまったく同じ 800×800。同じ位置に重ねるだけで合います。
+    """
+    rng = random.Random(seed + hash(spec["id"] + "arms") % 9000)
+    w, h = CUSTOMER_SIZE
+    size = (w, h)
+    img = Image.new("RGBA", size, (0, 0, 0, 0))
+    fx, fy = w * 0.5, h * 0.42
+    skin = hex_rgb(spec.get("skin", "#F2D9C4"))
+    cloth = hex_rgb(spec["cloth"])
+
+    # 束を受ける高さ。ここに手が来る。
+    # **胸より下**。胸の高さで抱えると、赤ちゃんを抱いている形になります。
+    hold_y = fy + 306
+
+    def sleeve_shape(d):
+        """袖。肩の外側から、胸の前へ斜めに上がってくる。"""
+        for side in (-1, 1):
+            # 付け根（外・下） → ひじ → 手首（内・上）
+            # 付け根は**体の外へ出さない**（出すと肩から生えて見えます）。
+            root = (fx + side * 250, h - 10)
+            elbow = (fx + side * 214, hold_y + 104)
+            wrist = (fx + side * 122, hold_y + 20)
+            # 前腕は、**細く。** 太いと羽根に見えます。
+            d.polygon([
+                (root[0] - side * 2, root[1]),
+                (elbow[0] - side * 6, elbow[1]),
+                (wrist[0] - side * 4, wrist[1] - 28),
+                (wrist[0] + side * 40, wrist[1] - 10),
+                (elbow[0] + side * 44, elbow[1] + 14),
+                (root[0] + side * 42, root[1]),
+            ], fill=255)
+            # ひじは、丸めるだけ。**ふくらませると鰭に見えます。**
+            d.ellipse([elbow[0] - 22, elbow[1] - 20, elbow[0] + 22, elbow[1] + 24], fill=255)
+
+    def hand_shape(d):
+        """手。束の根もとを、下から支える。指は描かない（にじみで丸く）。"""
+        for side in (-1, 1):
+            # 手は小さく。**束を包む手は、束より目立ってはいけません。**
+            # 束のふちに、少しだけ乗せます（離れていると添えているだけに見える）。
+            cxx = fx + side * 96
+            d.ellipse([cxx - 38, hold_y - 14, cxx + 38, hold_y + 48], fill=255)
+            # 親指。束のほうへ、内側に回り込む
+            d.ellipse([cxx - side * 34 - 20, hold_y + 2, cxx - side * 34 + 20,
+                       hold_y + 40], fill=255)
+
+    # 袖。服といちばん近い面なので、にじみは服と同じ弱さで。
+    # **体より少しだけ濃く**します。同じ色だと、体と溶けて腕に見えません。
+    img.alpha_composite(_wc(size, sleeve_shape, shade(cloth, -0.09),
+                            rng.randint(0, 9999), 3.4, 0.09))
+    img.alpha_composite(_shade_side(size, sleeve_shape, cloth, rng.randint(0, 9999), 0.24))
+
+    # 手。顔と同じ肌なので、ムラはほとんど入れない。
+    img.alpha_composite(_wc(size, hand_shape, skin, rng.randint(0, 9999), 3.0, 0.05))
+    img.alpha_composite(_shade_side(size, hand_shape, skin, rng.randint(0, 9999), 0.16))
+
+    # 袖口が手に落とす影。重なりの厚みは、ここで出る（花と同じ考え方）。
+    cuff = Image.new("L", size, 0)
+    cd = ImageDraw.Draw(cuff)
+    for side in (-1, 1):
+        cd.ellipse([fx + side * 96 - 44, hold_y + 10, fx + side * 96 + 44, hold_y + 50],
+                   fill=70)
+    img.alpha_composite(_paint(size, cuff.filter(ImageFilter.GaussianBlur(18)),
+                               shade(skin, -0.38)))
+
+    return paper_texture(img, seed=seed, strength=0.05)
 
 
 # --------------------------------------------------------------------------

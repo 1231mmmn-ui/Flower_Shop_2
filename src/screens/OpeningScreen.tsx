@@ -118,7 +118,7 @@ export function OpeningScreen() {
       {front && (
         <p className="morning__name">
           {front.name}
-          <span className="morning__today">今日の、店の花</span>
+          <span className="morning__today">今日のお店のお花</span>
         </p>
       )}
 

@@ -46,7 +46,36 @@ export function FlowerStand({
       onClick={onSelect}
       aria-label={flower.name}
     >
-      <span className="stand__flowers">
+      {/*
+        ── 茎を、水の上と水の中で分けて描きます ──────────────
+
+        「透明なコップを花の上に重ねた」ように見えていたのは、
+        **水を通しても茎が何も変わらなかった**からです。
+        本物のガラスと水は、通ったものをずらします。
+
+        同じ絵を二枚置いて、水面（下から14.8%）で切り分け、
+        水の中のほうだけ横へずらし、少し太く、少し淡くします。
+        位置はガラスの絵から逆算しています（→ FlowerStand.css）。
+      */}
+      <span className="stand__flowers stand__flowers--water">
+        {STEMS.map((stem, index) => (
+          <img
+            key={index}
+            className="stand__stem"
+            src={flowerImage(flower.id)}
+            alt=""
+            aria-hidden
+            style={
+              {
+                '--angle': `${stem.angle}deg`,
+                '--stem-scale': stem.scale,
+                zIndex: index,
+              } as CSSProperties
+            } draggable={false} />
+        ))}
+      </span>
+
+      <span className="stand__flowers stand__flowers--air">
         {STEMS.map((stem, index) => (
           <img
             key={index}
@@ -65,6 +94,8 @@ export function FlowerStand({
       </span>
 
       <img className="stand__vase" src={vase()} alt="" aria-hidden draggable={false} />
+      {/* 台に触れている影。これが無いと、器が宙に浮いて見える。 */}
+      <span className="stand__contact" aria-hidden />
       <span className="stand__glow" style={{ background: flower.swatch }} aria-hidden />
 
       {picked > 0 && (

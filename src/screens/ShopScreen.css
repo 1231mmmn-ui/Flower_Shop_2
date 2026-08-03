@@ -31,7 +31,6 @@
   min-height: 0;
   display: flex;
   align-items: flex-end;
-  gap: 2%;
   /* 端の花も中央に来られるように、左右を花半分ぶん空ける */
   padding: 0 calc(50% - min(26vw, 135px)) var(--fs-space-xs);
   overflow-x: auto;
@@ -43,6 +42,18 @@
 
 .shop-view__counter::-webkit-scrollbar {
   display: none;
+}
+
+/*
+ * **隣と重ねます。**
+ *
+ * 遠近感は、ぼかしではなく重なりで出ます。
+ * 花屋の店頭で、花が等間隔に離れて立っていることはありません。
+ * `gap` は負にできないので、左右の余白を負にして寄せます
+ * （前は `gap: 2%` で、隣とのあいだが空いていました）。
+ */
+.shop-view__counter .stand {
+  margin: 0 -3.5%;
 }
 
 /* 正面の花の、小さな木札 */

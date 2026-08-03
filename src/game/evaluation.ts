@@ -32,7 +32,6 @@ export interface Evaluation {
   detail: {
     impression: number;
     tone: number;
-    loved: number;
     volume: number;
     balance: number;
   };
@@ -96,12 +95,6 @@ export function evaluate(bouquet: Bouquet, customer: Customer): Evaluation {
   // ---- 色
   const tone = clamp01(toneRatio(bouquet, wish.tones) / 0.7);
 
-  // ---- 好きな花
-  const lovedIn = (wish.loved ?? []).filter((id) =>
-    flowers.some((flower) => flower.id === id),
-  ).length;
-  const loved = wish.loved?.length ? clamp01(lovedIn / Math.min(2, wish.loved.length)) : 1;
-
   // ---- 量（多すぎても少なすぎても、責めずにそっと伝える）
   const target = VOLUME_TARGET[wish.volume];
   const volume = clamp01(1 - Math.abs(flowers.length - target) / (target + 3));
@@ -114,8 +107,12 @@ export function evaluate(bouquet: Bouquet, customer: Customer): Evaluation {
       (roles.has('green') ? 0.25 : 0),
   );
 
-  const total =
-    impression * 0.32 + tone * 0.22 + loved * 0.16 + volume * 0.14 + balance * 0.16;
+  /*
+   * 「好きな花」（16%）を外したぶんを、四つに配り直しました。
+   * 見ているのは、雰囲気・色・量・束としてのまとまりだけ。
+   * **どれも「特定の花を入れたか」ではありません。**
+   */
+  const total = impression * 0.38 + tone * 0.26 + volume * 0.17 + balance * 0.19;
 
   // 花が入ってさえいれば、お客様は必ず笑顔になる。
   const smile = flowers.length === 0 ? 1 : Math.max(2, Math.round(total * 4) + 1);
@@ -126,9 +123,9 @@ export function evaluate(bouquet: Bouquet, customer: Customer): Evaluation {
   return {
     smile: Math.min(5, smile),
     words: customer.reactions[tier],
-    praise: buildPraise({ impression, tone, loved, volume, balance }, bouquet, customer),
+    praise: buildPraise({ impression, tone, volume, balance }, bouquet, customer),
     meaningNote: buildMeaningNote(flowers),
-    detail: { impression, tone, loved, volume, balance },
+    detail: { impression, tone, volume, balance },
     total,
     overBudget: price > customer.budget * 1.12,
   };
@@ -154,10 +151,6 @@ function buildPraise(
       return `${customer.wish.tones
         .map((key) => TONE_LABEL[key])
         .join('と')}が気持ちよくそろっていて、目にやさしい束です。`;
-    case 'loved':
-      return `${(customer.wish.loved ?? [])
-        .map((id) => flowerById(id).name)
-        .join('と')}が入っているのが、なによりうれしいところ。`;
     case 'volume':
       return `${VOLUME_LABEL[customer.wish.volume]}で、腕におさまりがいい形になりました。`;
     case 'balance':

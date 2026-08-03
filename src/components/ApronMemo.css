@@ -36,13 +36,12 @@
   justify-content: center;
   gap: 2px;
   /*
-   * 幅を広げました（84 → 148）。
-   * 「オーダー内容」と、お客さまが言った色みの一言が入ります。
-   * 色みの一言は、前まで**花の上に**浮いていました ──
-   * 花を隠すうえに、誰の言葉なのかも分かりませんでした。
+   * 「オーダー内容」の一語ぶん。**中身は出しません。**
+   * 一度は色みの一言を添えていましたが、ずっと見えていると
+   * それは伝票ではなく条件表です。開いたときにだけ出します。
    */
-  width: 148px;
-  min-height: 46px;
+  width: 106px;
+  min-height: 44px;
   padding: 6px 8px 6px 10px;
   border: 0;
   border-radius: 0 4px 4px 0;
@@ -84,18 +83,22 @@
 }
 
 /*
- * お客さまが言った、色みの一言。
+ * 開いた紙の中の、聞いたこと。
  *
- * ここは伝票の中なので、条件表に見えないよう**そのままの言葉**で。
+ * 条件表に見えないよう**そのままの言葉**で。
  * 「暖色系・明度高め」ではなく「明るい色のお花が好き」。
  */
-.apron__tone {
+.apron__ask {
+  margin: var(--fs-space-sm) 0 0;
   font-family: var(--fs-font-family-base);
-  font-size: 11px;
-  line-height: 1.3;
-  letter-spacing: 0.02em;
+  font-size: var(--fs-font-sm);
+  line-height: var(--fs-font-line-base);
   color: var(--fs-color-ink-soft);
-  max-width: 100%;
+}
+
+.apron__ask--tone {
+  margin-top: 2px;
+  color: var(--fs-color-ink-faint);
 }
 
 .apron__corner:hover {

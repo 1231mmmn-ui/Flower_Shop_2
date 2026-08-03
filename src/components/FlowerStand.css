@@ -9,19 +9,39 @@
   aspect-ratio: 1 / 1.15;
   padding: 0;
   scroll-snap-align: center;
-  /* 奥の花は小さく、少し沈む */
-  transform: scale(calc(1 - var(--far) * 0.20)) translateY(calc(var(--far) * 3%));
+  /*
+   * ── 奥の花は「遠い」のであって、「ピントが外れている」のではない ──
+   *
+   * 2.4px のぼかしは、写真の被写界深度の強さでした。
+   * 店に立って棚を見たとき、隣の花はぼけません。**少し小さく、
+   * 少し淡く、重なって見える**だけです。
+   *
+   *          前        いま
+   *   ぼかし  2.4px     0.7px     花びらの輪郭は残る
+   *   縮み    20%       14%
+   *   彩度    −28%      −16%
+   *   薄さ    −34%      −22%
+   *   重なり  すきま2%   −6%      ← 隣と重ねる。これがいちばん効く
+   *
+   * 遠近感は、ぼかしではなく**重なり**で出ます。
+   */
+  transform: scale(calc(1 - var(--far) * 0.14)) translateY(calc(var(--far) * 2%));
   transform-origin: bottom center;
-  opacity: calc(1 - var(--far) * 0.34);
-  filter: blur(calc(var(--far) * 2.4px)) saturate(calc(1 - var(--far) * 0.28))
-    brightness(calc(1 - var(--far) * 0.05));
+  opacity: calc(1 - var(--far) * 0.22);
+  filter: blur(calc(var(--far) * 0.7px)) saturate(calc(1 - var(--far) * 0.16))
+    brightness(calc(1 - var(--far) * 0.03));
   transition: transform var(--fs-duration-base) var(--fs-easing-soft),
     opacity var(--fs-duration-base) var(--fs-easing-soft),
     filter var(--fs-duration-base) var(--fs-easing-soft);
 }
 
-.stand.is-focus:hover .stand__flowers,
-.stand.is-focus:focus-visible .stand__flowers {
+/*
+ * ふれたときの、ひと持ち上がり。
+ * **水の中の茎（--water）は動かしません。** ここで動かすと、
+ * せっかく分けた二枚がずれて、茎が割れて見えます。
+ */
+.stand.is-focus:hover .stand__flowers--air,
+.stand.is-focus:focus-visible .stand__flowers--air {
   transform: translate(-50%, -4px);
 }
 
@@ -33,6 +53,18 @@
  * 茎の切り口は、**花瓶の口より下**へ入れます。
  * 9% では口の高さとほぼ同じで、茎が縁の手前で終わって見えました。
  * 4% まで沈めると、茎は縁に隠れて水の中へ続きます。
+ *
+ * ── 水面のところで、二枚に分けます ──────────────────────
+ *
+ * 「透明なコップを花の上に重ねた」ように見えていたのは、
+ * **水を通しても茎が何も変わらなかった**からです。
+ *
+ * 水面の高さは、ガラスの絵（props.py）から逆算しています。
+ *   絵の中の水面   上から 0.544
+ *   花瓶の幅       この台の 72%（正方形なので高さも 0.72W）
+ *   水面の高さ     台の下から 0.328W
+ *   花の絵の箱     高さ 1.9W、下端は台の下から 0.046W
+ *   → 箱の下から (0.328 − 0.046) / 1.9 = **14.8%**
  */
 .stand__flowers {
   position: absolute;
@@ -56,6 +88,52 @@
 
 .stand__stem:first-child {
   position: relative;
+}
+
+/* 水の上。水面より下は、こちらでは描かない。 */
+.stand__flowers--air {
+  clip-path: inset(0 0 14.8% 0);
+}
+
+/*
+ * 水の中。
+ *
+ * 横へずらし、少し太くし、淡くします。
+ * ガラスと水を通ったものは、まっすぐには見えません。
+ * ずらす量は 1.5% ── **大きくすると割れて見えます。**
+ * 水そのものの色はガラスの絵の側に描いてあるので、
+ * ここでは形の話だけをします。
+ */
+.stand__flowers--water {
+  clip-path: inset(85.2% 0 0 0);
+  transform: translateX(-50%) translateX(1.5%) scaleX(1.05);
+  opacity: 0.82;
+  filter: saturate(0.8) brightness(1.04);
+}
+
+/*
+ * 台に触れている影。
+ *
+ * 器の絵にも影は描いてありますが、絵の中の影は器と一緒に縮みます。
+ * ここで台の上に一枚置くと、**器が台に載っている**ことがはっきりします。
+ * 光は左上ひとつなので、影は右下へ少しだけ流れます。
+ */
+.stand__contact {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 62%;
+  height: 5%;
+  transform: translateX(-46%);
+  border-radius: 50%;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(74, 63, 53, 0.34) 0%,
+    rgba(74, 63, 53, 0.14) 58%,
+    rgba(74, 63, 53, 0) 100%
+  );
+  z-index: 4;
+  pointer-events: none;
 }
 
 /*

@@ -34,7 +34,19 @@ export interface BouquetStyle {
   name: string;
   /** 一行だけ。良し悪しは言わない。 */
   note: string;
-  /** 扇の広がり（度）。端の花が何度まで倒れるか。 */
+  /**
+   * 扇の広がり（度）。端の花が何度まで倒れるか。
+   *
+   * ── 広げました（38 → 54）──────────────────────────
+   *
+   * 束のかたまりを測ったら、**169px 幅 × 235px 高さ**でした。
+   * 縦に細長い。花屋の束を正面から見ると、逆です（横に広い）。
+   * 縦に伸びていたぶん、顔を隠さないためには小さくするしかなく、
+   * 「もっと大きく」と両立しませんでした。
+   *
+   * 角度を広げ、中心の抜け（crown）を下げると、
+   * 同じ本数のまま**低く広い**かたまりになります。
+   */
   spread: number;
   /**
    * 中心の花が、どれだけ抜けて高いか。
@@ -63,9 +75,9 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     id: 'round',
     name: '丸くやわらかい',
     note: '花の顔がそろって、まるい輪郭になります。',
-    spread: 38,
-    crown: 0.18,
-    drop: 0.05,
+    spread: 54,
+    crown: 0.10,
+    drop: 0.02,
     scatter: 0.22,
     paper: { width: 1.06, height: 0.96 },
   },
@@ -73,9 +85,9 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     id: 'tall',
     name: '高さを出してすっきり',
     note: '真ん中の花が高く立って、縦に伸びます。',
-    spread: 21,
-    crown: 0.52,
-    drop: 0.02,
+    spread: 26,
+    crown: 0.42,
+    drop: 0.00,
     scatter: 0.16,
     paper: { width: 0.9, height: 1.1 },
   },
@@ -83,9 +95,9 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     id: 'natural',
     name: '自然に広がる',
     note: '一本ずつ向きが違って、摘んできたように見えます。',
-    spread: 46,
-    crown: 0.24,
-    drop: 0.09,
+    spread: 62,
+    crown: 0.16,
+    drop: 0.05,
     scatter: 0.72,
     paper: { width: 1.12, height: 1.0 },
   },

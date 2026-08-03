@@ -126,11 +126,17 @@
   color: var(--fs-color-ink-faint);
 }
 
+/*
+ * 下の帯。今日のお花を、ボタンのとなりに並べる。
+ * （季節の一行はここから外しました ── 一日に3〜5回、
+ *   一字一句おなじものが出るので。窓の外は絵に描いてあります。）
+ */
 .greet__foot {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: var(--fs-space-sm);
+  justify-content: center;
+  gap: var(--fs-space-lg);
   padding: var(--fs-space-md) 0 var(--fs-space-xs);
 }
 

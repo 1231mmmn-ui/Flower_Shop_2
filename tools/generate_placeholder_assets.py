@@ -78,12 +78,20 @@ def build_scenes() -> None:
 
 
 def build_customers() -> None:
-    """§4 お客さま（800x800・透過・表情2種）"""
+    """§4 お客さま（800x800・透過・表情2種）と、腕だけの一枚
+
+    腕は**別の紙**です。お渡しの画面で
+      人物 → ブーケ → 腕
+    の順に重ねると、はじめて「抱えている」姿になります。
+    一枚の絵では、この順番が作れません。
+    """
     print("お客さま")
     for i, spec in enumerate(P.CUSTOMER_SPECS):
         for mood in ("normal", "happy"):
             save(P.render_customer(spec, mood, seed=i * 37 + 3),
                  "customers", f"{spec['id']}-{mood}.png")
+        save(P.render_customer_arms(spec, seed=i * 37 + 3),
+             "customers", f"{spec['id']}-arms.png")
 
 
 def build_props() -> None:

@@ -3,7 +3,6 @@
 import { useEffect, useMemo } from 'react';
 
 import { ambience } from './audio/ambience';
-import { FrontVase } from './components/FrontVase';
 import { MorningAir } from './components/MorningAir';
 import { Scene } from './components/Scene';
 import { WindowLife } from './components/WindowLife';
@@ -72,15 +71,16 @@ export function App() {
       {!inspecting && state.phase !== 'library' && <MorningAir morning={morning} />}
 
       {/*
-        入口の一輪挿し。市場で選んだ花が、その日ずっとここにある。
-        市場・アルバム・タイトルには出さない（店の中の話なので）。
+        入口の一輪挿し（左下すみの小さな花瓶）は、やめました。
 
-        **開店前にも出しません。** あの画面では、同じ花が
-        まんなかの一輪挿しに大きく立っています（→ OpeningScreen.tsx）。
-        両方に出すと、同じ花が二本あるように見えます。
+        実機で「唐突で、何の表示なのか分からない」と言われ、
+        そのとおりでした。店の絵の中に小さく描かれた花は、
+        **背景の一部**にしか見えません。市場で自分が選んだものだと
+        気づく手がかりが、どこにもありませんでした。
+
+        いまは、その画面でいちばん押すボタンのとなりに、
+        名札つきで並びます（→ src/components/TodayFlower.tsx）。
       */}
-      {['greeting', 'shop', 'arrange', 'after'].includes(state.phase) &&
-        !inspecting && <FrontVase />}
 
       <div className="stage">
         {state.phase === 'title' && <TitleScreen />}

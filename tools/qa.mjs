@@ -107,10 +107,26 @@ async function serveOne(page, { picks = 3, touchBouquet = true, tag = '' } = {})
     if (chosen !== '自然に広がる') throw new Error(`選ばれたのは ${chosen}`);
   });
 
-  // 花を失っていないこと。**選び直しであって、組み直しではない。**
-  await must(page, `${tag}③-d 形を変えても花は減らない`, async () => {
-    const n = await page.locator('.bouquet__stem').count();
-    if (n !== picks) throw new Error(`花が ${n} 本（取ったのは ${picks} 本）`);
+  /*
+   * 形を変えても、**束は同じ束であること。**
+   *
+   * ここは前まで「描かれている茎の数＝取った花の数」を見ていました。
+   * いまは違います。取った3本は、描くときに10本以上に増えます
+   * （→ src/game/bunch.ts）。3本を扇状に開いただけでは
+   * 「紙の前に花を三つ置いた絵」にしかならないので。
+   *
+   * だから見るのは**値段**にしました。値段は取った本数から出るので、
+   * 描き方をどう変えても動きません。動いたら、それは
+   * 「形を選んだら花が増えた／減った」という本当の不具合です。
+   */
+  await must(page, `${tag}③-d 形を変えても、束は同じ束`, async () => {
+    const drawn = await page.locator('.bouquet__stem').count();
+    if (drawn < picks) throw new Error(`描かれた花が ${drawn} 本（取ったのは ${picks} 本）`);
+    const price = await page.locator('.arrange__price').textContent();
+    await page.getByRole('button', { name: '丸くやわらかい' }).click({ timeout: 8000 });
+    await page.waitForTimeout(500);
+    const after = await page.locator('.arrange__price').textContent();
+    if (price !== after) throw new Error(`形を変えたら値段が ${price} → ${after}`);
   });
 
   await must(page, `${tag}④ お渡しする`, () =>

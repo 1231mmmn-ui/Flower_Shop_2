@@ -66,6 +66,19 @@ export const windowView = (season: SeasonId) => asset(`scenes/window-${season}.p
 export const customer = (id: string, mood: CustomerMood = 'normal') =>
   asset(`customers/${id}-${mood}.png`);
 
+/**
+ * その人の、前腕と手だけ（800x800・透過）— §4（追記）
+ *
+ * **人物と同じ枠です。** 同じ位置に重ねるだけで合います。
+ * お渡しの画面で
+ *
+ *   人物 → ブーケ → 腕
+ *
+ * の順に重ねると、束が腕の内側に入って「抱えている」姿になります。
+ * 一枚の絵では、この順番が作れません。
+ */
+export const customerArms = (id: string) => asset(`customers/${id}-arms.png`);
+
 /** 小物（512x512・透過）— §5 */
 export const vase = () => asset(`props/vase.png`);
 export const basket = () => asset(`props/basket.png`);

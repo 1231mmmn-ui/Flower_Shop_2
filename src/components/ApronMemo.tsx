@@ -46,17 +46,16 @@ export function ApronMemo({ customer }: ApronMemoProps) {
           誰の紙かは分かっても、**何の紙かが分かりません。**
           押すと何が出るのか分からないものは、押されません。
 
-          いまは「オーダー内容」と書いてあります。
-          そのすぐ下に、お客さまが言った色みの一言を添えます ──
-          これは前まで花の上に浮いていたもので、
-          花を隠すうえに、誰の言葉なのかも分かりませんでした。
+          いまは「オーダー内容」とだけ書いてあります。
+          **中身は出しません。** 一度は色みの一言を添えていましたが、
+          ずっと見えていると、それは伝票ではなく**条件表**です。
+          思い出したいときに開く紙、という距離を保ちます。
 
           ボタンには見せません。花屋の伝票らしく、上をピンで留めた
           紙が一枚、カウンターに置いてあるだけ、という見え方にします。
         */}
         <span className="apron__pin" aria-hidden />
         <span className="apron__label">オーダー内容</span>
-        <span className="apron__tone">{customer.wish.toneLabel}</span>
       </button>
 
       {open && (
@@ -72,7 +71,13 @@ export function ApronMemo({ customer }: ApronMemoProps) {
             ))}
           </div>
 
-          {/* 数字も、どの花が合うかも書かない。予算は手の帯にすでに出ている。 */}
+          {/*
+            聞いたこと。**開いたときにだけ**出します。
+            用向きと色みだけ ── どの花が合うかは、書きません。
+            予算は手の帯にすでに出ています。
+          */}
+          <p className="apron__ask">{customer.purpose}</p>
+          <p className="apron__ask apron__ask--tone">{customer.wish.toneLabel}</p>
         </div>
       )}
     </div>

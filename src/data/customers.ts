@@ -16,9 +16,20 @@ export interface CustomerWish {
   tones: ColorTone[];
   /** 値札を見ながら伝えてくれる、色の言い方 */
   toneLabel: string;
-  /** 特に喜ぶ花（入っていると嬉しい） */
-  loved?: string[];
-  lovedHint?: string;
+  /*
+   * ── 「好きな花」を、やめました ──────────────────────
+   *
+   * ここには `loved: ['alstroemeria', 'carnation']` がありました。
+   * 挨拶の紙には「アルストロメリアとカーネーションがお好きだそうです」
+   * と出て、評価では 16% の重みを持っていました。
+   *
+   * **正解ができてしまいます。**
+   * 名前を挙げられた花は、入れないといけない花になります。
+   * 選ぶことが「この人に、この花を」から「言われた花を探す」に変わります。
+   *
+   * 残すのは、用途・雰囲気・色・予算だけ。
+   * 「長もちして、あたたかい感じ」で選べれば、それで足ります。
+   */
   /** 本数の好み */
   volume: 'small' | 'medium' | 'full';
 }
@@ -89,8 +100,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['bright', 'lively'],
       tones: ['warm'],
       toneLabel: '明るい色のお花が好き',
-      loved: ['gerbera', 'sunflower'],
-      lovedHint: '丸くて元気な花がとくに好きだそうです',
       volume: 'medium',
     },
     reactions: {
@@ -131,8 +140,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['elegant', 'calm'],
       tones: ['cool', 'white'],
       toneLabel: '派手すぎない、上品な色',
-      loved: ['lisianthus', 'gentian'],
-      lovedHint: '感謝の花言葉を持つ花が、そっと想いを添えてくれます',
       volume: 'medium',
     },
     reactions: {
@@ -173,8 +180,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['warm', 'natural'],
       tones: ['warm', 'green'],
       toneLabel: 'あたたかい色と、みどりを少し',
-      loved: ['alstroemeria', 'carnation'],
-      lovedHint: '長く楽しめる花だと、次の金曜まで持ってくれます',
       volume: 'medium',
     },
     reactions: {
@@ -215,8 +220,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['elegant', 'bright'],
       tones: ['warm', 'white'],
       toneLabel: 'やわらかい色で、少し華やかに',
-      loved: ['ranunculus', 'lisianthus'],
-      lovedHint: '重なりのある花が、晴れの日らしく見えるそうです',
       volume: 'medium',
     },
     reactions: {
@@ -257,8 +260,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['warm', 'gentle'],
       tones: ['warm'],
       toneLabel: 'ピンクっぽい色',
-      loved: ['carnation', 'sweetpea'],
-      lovedHint: '「門出」の花言葉を持つ花が、そっと背中を押してくれます',
       volume: 'small',
     },
     reactions: {
@@ -299,8 +300,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['natural', 'calm'],
       tones: ['green', 'white'],
       toneLabel: 'みどりが多めで、落ち着いた色',
-      loved: ['eucalyptus', 'gypsophila'],
-      lovedHint: '葉ものが入ると、狭い部屋でも重たくならないそうです',
       volume: 'small',
     },
     reactions: {
@@ -341,8 +340,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['bright', 'natural'],
       tones: ['warm', 'green'],
       toneLabel: '明るいけれど、うるさくない色',
-      loved: ['hydrangea', 'alstroemeria'],
-      lovedHint: '長く楽しめる花だと、新しい暮らしに寄り添えます',
       volume: 'full',
     },
     reactions: {
@@ -383,8 +380,6 @@ export const CUSTOMERS: Customer[] = [
       impressions: ['gentle', 'bright'],
       tones: ['warm', 'white'],
       toneLabel: 'やさしくて、少し明るい色',
-      loved: ['gerbera', 'gypsophila'],
-      lovedHint: '香りの穏やかな花のほうが、病室では過ごしやすいそうです',
       volume: 'small',
     },
     reactions: {
