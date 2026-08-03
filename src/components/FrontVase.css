@@ -1,0 +1,59 @@
+/*
+ * 入口の一輪挿し。
+ *
+ * **見せにきません。** 視界のすみに、いつもある状態を作るだけです。
+ * 大きくしたり、光らせたり、名前を出したりした瞬間に、
+ * 「選んだご褒美」になってしまいます。
+ *
+ * 置き場所は左下 ── 店の入口のあたり。UIより下、店内より上。
+ */
+
+.front-vase {
+  position: absolute;
+  /*
+   * 左下 ── 店の入口のあたり。
+   * 二度、置き場所を直した。
+   *   left:2% / bottom:6%   画面の端で切れて「隅に落ちている小枝」に見えた
+   *   bottom:9%             エプロンのメモと重なって、ごちゃついた
+   * いまはカウンターの高さ。メモの上、下の帯より内側。
+   * それでも**主役にはしない。** 視界のすみに、いつもある大きさ。
+   */
+  left: 3%;
+  bottom: 21%;
+  width: 98px;
+  height: 196px;
+  z-index: 1;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  /* 手前にあるので、奥の棚よりわずかに濃い */
+  filter: drop-shadow(3px 5px 8px rgba(74, 63, 53, 0.22));
+  animation: front-vase-in 2.4s var(--fs-easing-soft) both;
+}
+
+.front-vase img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  /* 朝の風で、店内の花と同じようにゆれる。ここだけ止まっていると作り物に見える。 */
+  transform-origin: 50% 96%;
+  animation: petal-sway 6.1s var(--fs-easing-soft) infinite;
+}
+
+/* 市場から戻ってきた朝は、そっと現れる。落ちてくる動きは付けない。 */
+@keyframes front-vase-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .front-vase img {
+    animation: none;
+  }
+}

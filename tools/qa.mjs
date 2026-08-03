@@ -57,6 +57,20 @@ async function playDay(page, { picks = 3, touchBouquet = true } = {}) {
   );
   await page.waitForTimeout(1400);
 
+  await must(page, '⓪-a 市場：花を手に取る', () =>
+    page.locator('.market__stall').nth(1).click({ force: true, timeout: 8000 }),
+  );
+  await page.waitForTimeout(700);
+  await must(page, '⓪-a 市場：入口の花を決める', () =>
+    page.getByRole('button', { name: 'この花を連れて帰る' }).click({ timeout: 8000 }),
+  );
+  await page.waitForTimeout(1800);
+
+  await must(page, '入口の一輪挿しが出ている', async () => {
+    const n = await page.locator('.front-vase').count();
+    if (n !== 1) throw new Error(`front-vase が ${n} 個`);
+  });
+
   await must(page, '⓪-b 開店前：札を裏返す', () =>
     page.getByRole('button', { name: 'お店を開ける' }).click({ timeout: 8000 }),
   );
@@ -164,7 +178,11 @@ await must(page, 'タイトル → アルバム → 閉じる', async () => {
 });
 
 await page.getByRole('button', { name: '扉を押す' }).click();
-await page.waitForTimeout(1400);
+await page.waitForTimeout(1600);
+await page.locator('.market__stall').nth(0).click({ force: true });
+await page.waitForTimeout(600);
+await page.getByRole('button', { name: 'この花を連れて帰る' }).click();
+await page.waitForTimeout(1800);
 await must(page, '開店前 → アルバム → 閉じる → 開店前', async () => {
   await page.getByRole('button', { name: 'アルバム' }).click({ timeout: 8000 });
   await page.waitForTimeout(900);
@@ -180,7 +198,11 @@ await must(page, '開店前 → アルバム → 閉じる → 開店前', async
 console.log('\n【7】束ねる画面の取り消し');
 await open(page, base(2));
 await page.getByRole('button', { name: '扉を押す' }).click();
-await page.waitForTimeout(1400);
+await page.waitForTimeout(1600);
+await page.locator('.market__stall').nth(0).click({ force: true });
+await page.waitForTimeout(600);
+await page.getByRole('button', { name: 'この花を連れて帰る' }).click();
+await page.waitForTimeout(1800);
 await page.getByRole('button', { name: 'お店を開ける' }).click();
 await page.waitForTimeout(1500);
 await page.getByRole('button', { name: 'わかりました' }).click();

@@ -40,6 +40,7 @@ const initialState: GameState = {
   library: {},
   favorites: [],
   memories: [],
+  frontFlowerId: null,
   libraryReturn: 'title',
   inspectingFlowerId: null,
   lastResultId: null,
@@ -48,6 +49,7 @@ const initialState: GameState = {
 
 export type Action =
   | { type: 'enter-morning' }
+  | { type: 'set-front'; flowerId: string }
   | { type: 'open-shop' }
   | { type: 'accept-request' }
   | { type: 'inspect'; flowerId: string | null }
@@ -74,9 +76,14 @@ export type Action =
 
 function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
-    // 扉を押すと、まず開店前の時間に入る。ここはまだゲームではない。
+    // 扉を押すと、まず市場へ。ここもまだゲームではない。
     case 'enter-morning':
-      return { ...state, phase: 'opening' };
+      return { ...state, phase: 'market' };
+
+    // 入口に飾る花を決めた。決めたら、店へ戻って開店前になる。
+    // 何も起きない ── 音も鳴らず、数も増えず、何ももらえない。
+    case 'set-front':
+      return { ...state, frontFlowerId: action.flowerId, phase: 'opening' };
 
     // 「CLOSED」の札を裏返した。ここから一日が始まる。
     case 'open-shop':
@@ -203,7 +210,9 @@ function reducer(state: GameState, action: Action): GameState {
         ...next,
         // 季節がひと巡りした日は、店を開ける前に一度だけ問いが出る。
         // それ以外の朝は、いつもどおり開店前から始まる。
-        phase: isTurnOfTheYear(state.day) ? 'ending' : 'opening',
+        phase: isTurnOfTheYear(state.day) ? 'ending' : 'market',
+        // 入口の花は、日をまたがない。毎朝また決める。
+        frontFlowerId: null,
         customerId: pickCustomer(next),
         picked: [],
         bouquet: emptyBouquet(),
@@ -331,6 +340,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           library: state.library,
           favorites: state.favorites,
           memories: state.memories,
+          // frontFlowerId は保存しない。**その日で終わるもの**なので。
           soundOn: state.soundOn,
         }),
       );

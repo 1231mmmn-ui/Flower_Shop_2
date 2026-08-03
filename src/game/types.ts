@@ -5,6 +5,7 @@ import type { SeasonId } from '../data/seasons';
 /** 画面の流れ。急かす要素は入れない。 */
 export type Phase =
   | 'title'      // お店を開ける前
+  | 'market'     // ⓪-a 市場。今日いちばん美しい花に出会う（→ src/data/market.ts）
   | 'opening'    // 開店前。鳥と風だけの時間（→ design/15-build-order.md 3章）
   | 'greeting'   // お客様が来店し、希望を聞く
   | 'shop'       // 花瓶から花を選ぶ
@@ -87,6 +88,18 @@ export interface GameState {
    */
   favorites: string[];
   memories: DeliveredMemory[];
+  /**
+   * 今日、入口の一輪挿しに飾った花。
+   *
+   * お客さまが店に入って**最初に見る花**です。「今日の店の顔」。
+   * 効果はひとつもありません。能力も、売上補正も、贔屓も。
+   *
+   * **記録しません。** 毎朝決めて、その日で終わります。
+   * 一年ぶんためて「あなたが飾った20輪」と並べたくなりますが、
+   * 並べた瞬間に集めるものになります。このゲームで唯一
+   * **残らない選択**があるのは、むしろいいことだと思います。
+   */
+  frontFlowerId: string | null;
   /** 図鑑を開く直前にいた画面 */
   libraryReturn: Phase;
   /** 眺めている花（詳細を開いている） */

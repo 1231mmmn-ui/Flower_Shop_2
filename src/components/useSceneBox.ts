@@ -75,3 +75,40 @@ export function useWindowRect(ref: RefObject<HTMLElement | null>): Rect | null {
 
   return rect;
 }
+
+/**
+ * 市場の台の面が、いま画面のどこにあるか（上端の y、px）。
+ *
+ * 花を「台の上に置く」ために要ります。
+ * はじめは画面の高さの比で置いていましたが、背景は cover で切られるので、
+ * **画面の縦横比が変わると花が宙に浮きました。**
+ * 絵の中の台の位置（`scene.py` の 0.72）から逆算します。
+ */
+export const MARKET_BENCH_Y = 0.72;
+
+export function useBenchTop(ref: RefObject<HTMLElement | null>): number | null {
+  const [top, setTop] = useState<number | null>(null);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const measure = (): void => {
+      const { width, height } = node.getBoundingClientRect();
+      if (width === 0 || height === 0) return;
+      const rect = project(
+        { x0: 0, y0: MARKET_BENCH_Y, x1: 1, y1: MARKET_BENCH_Y },
+        width,
+        height,
+      );
+      setTop(rect.top);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return top;
+}

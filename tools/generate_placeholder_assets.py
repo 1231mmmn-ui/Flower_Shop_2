@@ -72,6 +72,9 @@ def build_scenes() -> None:
         save(S.render_window(season, seed=11), "scenes", f"window-{season}.png")
         save(S.render_shop(season, seed=11), "scenes", f"shop-{season}.jpg")
     save(S.render_shop("spring", seed=11, title=True), "scenes", "shop-title.jpg")
+    # ⓪-a 市場。店内ではなく外なので、別の場所として持つ。
+    for season in S.SEASONS:
+        save(S.render_market(season, seed=11), "scenes", f"market-{season}.jpg")
 
 
 def build_customers() -> None:

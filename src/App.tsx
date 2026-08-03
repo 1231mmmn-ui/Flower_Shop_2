@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react';
 
 import { ambience } from './audio/ambience';
+import { FrontVase } from './components/FrontVase';
 import { MorningAir } from './components/MorningAir';
 import { Scene } from './components/Scene';
 import { WindowLife } from './components/WindowLife';
@@ -14,6 +15,7 @@ import { DeliverScreen } from './screens/DeliverScreen';
 import { EndingScreen } from './screens/EndingScreen';
 import { GreetingScreen } from './screens/GreetingScreen';
 import { LibraryScreen } from './screens/LibraryScreen';
+import { MarketScreen } from './screens/MarketScreen';
 import { OpeningScreen } from './screens/OpeningScreen';
 import { ShopScreen } from './screens/ShopScreen';
 import { TitleScreen } from './screens/TitleScreen';
@@ -55,7 +57,9 @@ export function App() {
     <div className="shop">
       <Scene
         season={season.id}
-        title={state.phase === 'title'}
+        place={
+          state.phase === 'title' ? 'title' : state.phase === 'market' ? 'market' : 'shop'
+        }
         blurred={blurred}
         dimmed={inspecting}
         morning={morning}
@@ -67,8 +71,16 @@ export function App() {
       {/* 舞うもの、横切るもの、白い息。花を見ているあいだは出さない。 */}
       {!inspecting && state.phase !== 'library' && <MorningAir morning={morning} />}
 
+      {/*
+        入口の一輪挿し。市場で選んだ花が、その日ずっとここにある。
+        市場・アルバム・タイトルには出さない（店の中の話なので）。
+      */}
+      {['opening', 'greeting', 'shop', 'arrange', 'after'].includes(state.phase) &&
+        !inspecting && <FrontVase />}
+
       <div className="stage">
         {state.phase === 'title' && <TitleScreen />}
+        {state.phase === 'market' && <MarketScreen />}
         {state.phase === 'opening' && <OpeningScreen />}
         {state.phase === 'greeting' && <GreetingScreen />}
         {state.phase === 'shop' && <ShopScreen />}

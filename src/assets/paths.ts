@@ -32,6 +32,15 @@ export const flowerSmall = (id: string) => `${BASE}/flowers/small/${id}.png`;
 /** 店内背景（1600x1200・季節ごと）— §3 */
 export const shopScene = (season: SeasonId) => `${BASE}/scenes/shop-${season}.jpg`;
 
+/**
+ * ⓪-a 市場（1600x1200・季節ごと）— §3
+ *
+ * **店内ではありません。外です。**
+ * 市場を店内の絵の上に置いたら、ただの「店の中の別画面」に見えました。
+ * 窓の外の景色を、まわりに広げただけの場所として別に持ちます。
+ */
+export const marketScene = (season: SeasonId) => `${BASE}/scenes/market-${season}.jpg`;
+
 /** タイトル用の店内（下中央を空けた構図）— §3 */
 export const titleScene = () => `${BASE}/scenes/shop-title.jpg`;
 

@@ -363,3 +363,105 @@ def render_shop(season: str, seed: int = 0, title: bool = False) -> Image.Image:
     img = Image.alpha_composite(img, calm.filter(ImageFilter.GaussianBlur(70)))
 
     return paper_texture(img, seed=seed + 5, strength=0.10).convert("RGB")
+
+
+# --------------------------------------------------------------------------
+# ⓪-a 市場
+# --------------------------------------------------------------------------
+
+def render_market(season: str, seed: int = 0) -> Image.Image:
+    """
+    朝の市場。
+
+    **店内ではありません。** ここは外です。
+    はじめ市場を店内の絵の上に描いたら、ただの「店の中の別画面」に見えました。
+    市場は花屋の朝そのものなので、場所が違わないと意味がありません。
+
+    とはいえ新しい画風は持ち込みません。窓の外の景色 ── プレイヤーが
+    毎朝ながめているあの風景 ── を、**まわりに広げただけ**の場所にします。
+    同じ世界の、外側です。
+
+    作りは3層だけ。
+      奥    季節の空と木立（`render_window` と同じ語彙）
+      中    朝もや。奥をやわらげて、遠さを出す
+      手前  木の台。花はここに並ぶ
+    """
+    cfg = SEASONS[season]
+    rng = random.Random(seed + 900 + sum(map(ord, season)))
+    w, h = SCENE_SIZE
+
+    # ---- 奥。空と木立
+    img = linear_gradient((w, h), hex_rgb(cfg["sky"][0]), hex_rgb(cfg["sky"][1])).convert("RGBA")
+    d = ImageDraw.Draw(img)
+    for _ in range(120):
+        x = rng.uniform(-80, w + 80)
+        y = rng.uniform(h * 0.30, h * 0.74)
+        r = rng.uniform(w * 0.05, w * 0.19)
+        d.ellipse([x - r, y - r * 0.72, x + r, y + r * 0.72],
+                  fill=jitter(hex_rgb(rng.choice(cfg["foliage"])), rng, 12))
+    for _ in range(cfg["accent_n"]):
+        x = rng.uniform(0, w)
+        y = rng.uniform(0, h * 0.80)
+        r = rng.uniform(w * 0.006, w * 0.026)
+        d.ellipse([x - r, y - r * 0.9, x + r, y + r * 0.9],
+                  fill=jitter(hex_rgb(rng.choice(cfg["accent"])), rng, 8))
+
+    # 奥はしっかりぼかす。市場で見るのは花で、景色ではない。
+    img = img.filter(ImageFilter.GaussianBlur(9.0))
+
+    # ---- 中。朝もや
+    haze = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    hd = ImageDraw.Draw(haze)
+    for i in range(30):
+        t = i / 30
+        hd.rectangle([0, int(h * (0.20 + t * 0.40)), w, h],
+                     fill=(*hex_rgb(cfg["light"]), 7))
+    img = Image.alpha_composite(img, haze)
+
+    # ---- 手前。木の台
+    #
+    # 台は「見せるもの」ではないので、板目は出しすぎない。
+    # はじめ rows=5 で描いたら、太い横縞が5本並んで**縞模様**に見えた。
+    # 板を細かくして、うっすらぼかして、面として沈める。
+    top = int(h * 0.72)
+    bench = Image.new("RGBA", (w, h - top), hex_rgb(WOOD))
+    bd = ImageDraw.Draw(bench)
+    _planks(bd, (0, 0, w, h - top), rng, hex_rgb(WOOD), rows=16)
+    bench = bench.filter(ImageFilter.GaussianBlur(2.2))
+    img.paste(bench, (0, top))
+
+    d = ImageDraw.Draw(img)
+    # 台の縁。ここだけは、はっきり。花が「乗っている」線になる。
+    d.rectangle([0, top, w, top + 20], fill=hex_rgb(WOOD_LIGHT))
+    d.line([(0, top), (w, top)], fill=hex_rgb(WOOD_DARK), width=4)
+
+    # 手前へ来るほど、わずかに暗く。板の面が奥へ続いて見える。
+    depth = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    dd = ImageDraw.Draw(depth)
+    for i in range(28):
+        t = i / 28
+        dd.rectangle([0, top + int((h - top) * t), w, h], fill=(70, 52, 40, 4))
+    img = Image.alpha_composite(img, depth)
+
+    # 台の下は影。ここが暗いと、台が「置かれている」ように見える。
+    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shadow)
+    for i in range(24):
+        t = i / 24
+        sd.rectangle([0, top + 26 + int(t * h * 0.18), w, h],
+                     fill=(58, 44, 36, 5))
+    img = Image.alpha_composite(img, shadow)
+
+    # ---- 左上からの朝日。店内と同じ向き。
+    light = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(light)
+    lc = hex_rgb(cfg["light"])
+    for i in range(24):
+        t = i / 24
+        r = int(w * (0.26 + t * 0.72))
+        ld.ellipse([-r + int(w * 0.26), -r + int(h * 0.06),
+                    r + int(w * 0.26), r + int(h * 0.06)],
+                   fill=(*lc, 6))
+    img = Image.alpha_composite(img, light.filter(ImageFilter.GaussianBlur(60)))
+
+    return paper_texture(img, seed=seed, strength=0.05).convert("RGB")
