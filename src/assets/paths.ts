@@ -8,11 +8,26 @@ import type { SeasonId } from '../data/seasons';
 
 const BASE = `${import.meta.env.BASE_URL}assets`;
 
+/**
+ * 絵の在り処を、一段はさんで引く。
+ *
+ * ふだんは `assets/flowers/rose.png` のような、ただのパスを返します。
+ * ただし **一枚だけのHTML**（tools/build_single_file.py）に詰めたときは、
+ * 絵がファイルではなく `window.__FS_ASSETS` の中に文字列として入っています。
+ * そのときだけ、ここが差し替え先を返します。
+ *
+ * 画面側は何も変わりません。パスを組み立てる場所がここ一箇所だからこそ、
+ * 「ファイルが無い場所でも動く」を、たった3行で足せました。
+ */
+type AssetMap = Record<string, string>;
+const INLINE: AssetMap | undefined = (globalThis as { __FS_ASSETS?: AssetMap }).__FS_ASSETS;
+const asset = (path: string) => INLINE?.[path] ?? `${BASE}/${path}`;
+
 /** お客さまの表情差分（IMAGE_ASSETS.md §4） */
 export type CustomerMood = 'normal' | 'happy';
 
 /** 茎付きの1本の花（1024x1024・透過・下端近くまで茎）— §1 */
-export const flower = (id: string) => `${BASE}/flowers/${id}.png`;
+export const flower = (id: string) => asset(`flowers/${id}.png`);
 
 /**
  * 同じ花の、小さいほう（512x512）— §1
@@ -27,10 +42,10 @@ export const flower = (id: string) => `${BASE}/flowers/${id}.png`;
  * 読み込んでいました。開店前の30秒が、待ち時間から始まってしまいます。
  * 見た目は変わりません（端末の実ピクセルより大きいまま）。
  */
-export const flowerSmall = (id: string) => `${BASE}/flowers/small/${id}.png`;
+export const flowerSmall = (id: string) => asset(`flowers/small/${id}.png`);
 
 /** 店内背景（1600x1200・季節ごと）— §3 */
-export const shopScene = (season: SeasonId) => `${BASE}/scenes/shop-${season}.jpg`;
+export const shopScene = (season: SeasonId) => asset(`scenes/shop-${season}.jpg`);
 
 /**
  * ⓪-a 市場（1600x1200・季節ごと）— §3
@@ -39,29 +54,29 @@ export const shopScene = (season: SeasonId) => `${BASE}/scenes/shop-${season}.jp
  * 市場を店内の絵の上に置いたら、ただの「店の中の別画面」に見えました。
  * 窓の外の景色を、まわりに広げただけの場所として別に持ちます。
  */
-export const marketScene = (season: SeasonId) => `${BASE}/scenes/market-${season}.jpg`;
+export const marketScene = (season: SeasonId) => asset(`scenes/market-${season}.jpg`);
 
 /** タイトル用の店内（下中央を空けた構図）— §3 */
-export const titleScene = () => `${BASE}/scenes/shop-title.jpg`;
+export const titleScene = () => asset(`scenes/shop-title.jpg`);
 
 /** 窓の景色だけの差し替え用（800x600・透過）— §3 */
-export const windowView = (season: SeasonId) => `${BASE}/scenes/window-${season}.png`;
+export const windowView = (season: SeasonId) => asset(`scenes/window-${season}.png`);
 
 /** お客さま（800x800・透過・バストアップ）— §4 */
 export const customer = (id: string, mood: CustomerMood = 'normal') =>
-  `${BASE}/customers/${id}-${mood}.png`;
+  asset(`customers/${id}-${mood}.png`);
 
 /** 小物（512x512・透過）— §5 */
-export const vase = () => `${BASE}/props/vase.png`;
-export const basket = () => `${BASE}/props/basket.png`;
-export const basketFull = () => `${BASE}/props/basket-full.png`;
-export const cardBlank = () => `${BASE}/props/card-blank.png`;
+export const vase = () => asset(`props/vase.png`);
+export const basket = () => asset(`props/basket.png`);
+export const basketFull = () => asset(`props/basket-full.png`);
+export const cardBlank = () => asset(`props/card-blank.png`);
 
 /** カウンターの木目テクスチャ（タイル可）— §5 */
-export const counterTexture = () => `${BASE}/props/counter.jpg`;
+export const counterTexture = () => asset(`props/counter.jpg`);
 
 /** ラッピング資材（512x512・透過）— §6。id は paper-* / ribbon-* をそのまま渡す。 */
-export const wrapMaterial = (id: string) => `${BASE}/wrap/${id}.png`;
+export const wrapMaterial = (id: string) => asset(`wrap/${id}.png`);
 
 /**
  * 包んだ姿 — §6（追記）
@@ -71,12 +86,12 @@ export const wrapMaterial = (id: string) => `${BASE}/wrap/${id}.png`;
  * 等間隔の折り目（conic-gradient）で、花と店内が水彩なのに
  * ここだけ図形に見えていたので、同じ筆で描いた絵に差し替えました。
  */
-export const wrapCone = (paperId: string) => `${BASE}/wrap/cone-${paperId}.png`;
-export const ribbonBow = (ribbonId: string) => `${BASE}/wrap/bow-${ribbonId}.png`;
+export const wrapCone = (paperId: string) => asset(`wrap/cone-${paperId}.png`);
+export const ribbonBow = (ribbonId: string) => asset(`wrap/bow-${ribbonId}.png`);
 
 /** 温室の生育段階（512x512・透過）— §7 */
 export const greenhouseStage = (stage: 0 | 1 | 2 | 3) =>
-  `${BASE}/greenhouse/stage-${stage}.png`;
+  asset(`greenhouse/stage-${stage}.png`);
 
 /**
  * 素材の規定サイズ。合成時の基準の計算に使う。

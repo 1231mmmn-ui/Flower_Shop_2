@@ -8,10 +8,26 @@
  *
  * 各手順に見出しを付けて、止まった場所がそのまま報告になるようにしてある。
  */
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
 import { chromium } from 'playwright';
 
-const PORT = process.argv[2] ?? '4220';
-const URL = `http://localhost:${PORT}/`;
+/**
+ * 相手はポート番号でも、URLでも、ファイルでもよい。
+ *
+ *   node tools/qa.mjs 4220                    ふだんの `vite preview`
+ *   node tools/qa.mjs dist/flower-shop.html   一枚にまとめたほう
+ *
+ * 一枚のほうも同じ手順で通すこと。**束ね方を変えたら壊れる**ものが
+ * あるかどうかは、遊んでみるまで分かりません。
+ */
+const ARG = process.argv[2] ?? '4220';
+const URL = /^\d+$/.test(ARG)
+  ? `http://localhost:${ARG}/`
+  : ARG.startsWith('http')
+    ? ARG
+    : pathToFileURL(resolve(ARG)).href;
 
 const fails = [];
 let step = '';
