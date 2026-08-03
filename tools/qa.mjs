@@ -156,11 +156,13 @@ await must(page, '⑧ エンディング：店を開ける', () =>
   page.getByRole('button', { name: '店を開ける' }).click({ timeout: 8000 }),
 );
 await page.waitForTimeout(1500);
-await must(page, '⑨ 翌朝へ戻っている', async () => {
+// 市場が入ったので、新しい一日は**市場から**始まる（開店前ではない）。
+// ここは実装が変わったぶん、期待のほうを直した。
+await must(page, '⑨ 新しい一日が、市場から始まっている', async () => {
   const cls = await page.evaluate(
     () => document.querySelector('.stage')?.firstElementChild?.className ?? '',
   );
-  if (!cls.includes('morning')) throw new Error(cls);
+  if (!cls.includes('market')) throw new Error(cls);
 });
 
 // ── 6. アルバムを各画面から開いて、元の画面へ戻れるか
