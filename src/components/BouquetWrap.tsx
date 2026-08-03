@@ -12,14 +12,29 @@
  * 紙は6色ぶん、リボンは5色ぶん、あらかじめ書き出してある。
  */
 
+import type { CSSProperties } from 'react';
+
 import './BouquetWrap.css';
 import { ribbonBow, wrapCone } from '../assets/paths';
 import type { Ribbon, Wrapping } from '../data/wrapping';
 
-export function WrapCone({ wrapping }: { wrapping: Wrapping }) {
+/**
+ * 包み紙。
+ *
+ * 絵は紙の色ごとに一枚ずつ。**ただし、太さだけは花の数で変わります。**
+ * 実際のラッピングでは、束が太いほど紙が押し広げられます。
+ * 絵を何枚も持たなくても、幅を変えるだけでその感じは出ます。
+ *
+ *   3本   幅 57%
+ *   6本   幅 63%
+ *   9本   幅 69%
+ */
+export function WrapCone({ wrapping, stems = 3 }: { wrapping: Wrapping; stems?: number }) {
+  const spread = Math.min(12, Math.max(2, stems));
   return (
     <img
       className={`wrap-cone ${wrapping.sheer ? 'wrap-cone--sheer' : ''}`}
+      style={{ '--spread': spread } as CSSProperties}
       src={wrapCone(wrapping.id)}
       alt=""
       aria-hidden

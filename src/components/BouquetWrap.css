@@ -9,7 +9,11 @@
   position: absolute;
   left: 50%;
   bottom: var(--knot-bottom);
-  width: calc(62% * var(--bouquet-scale, 1));
+  /*
+   * 花が多いほど、紙が押し広げられる。
+   * 絵は一枚だが、幅がその日の束に応えるので「包んだ」感じが出る。
+   */
+  width: calc((51% + var(--spread, 3) * 2%) * var(--bouquet-scale, 1));
   height: auto;
   /* 下辺（結び目）が、ちょうど扇の軸にくるように置く */
   transform: translate(-50%, 6%);

@@ -161,7 +161,7 @@ export function Bouquet({
         );
       })}
 
-      <WrapCone wrapping={wrappingById(bouquet.wrappingId)} />
+      <WrapCone wrapping={wrappingById(bouquet.wrappingId)} stems={bouquet.stems.length} />
       <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />
     </div>
   );
