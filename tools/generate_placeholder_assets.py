@@ -97,12 +97,20 @@ def build_props() -> None:
 
 
 def build_wrap() -> None:
-    """§6 ラッピング資材（512x512・透過）"""
+    """
+    §6 ラッピング資材（512x512・透過）と、包んだ姿
+
+    包んだ姿（円錐の紙・蝶結び）は、これまで CSS の多角形で描いていました。
+    真っ直ぐな辺と等間隔の折り目で、花と店内が水彩なのに
+    **ここだけ図形**に見えていたので、同じ筆で描き直しています。
+    """
     print("ラッピング資材")
     for paper_id in P.PAPERS:
         save(P.render_paper_roll(paper_id, seed=23), "wrap", f"{paper_id}.png")
+        save(P.render_wrap_cone(paper_id, seed=13), "wrap", f"cone-{paper_id}.png")
     for ribbon_id in P.RIBBONS:
         save(P.render_ribbon_spool(ribbon_id, seed=29), "wrap", f"{ribbon_id}.png")
+        save(P.render_ribbon_bow(ribbon_id, seed=13), "wrap", f"bow-{ribbon_id}.png")
 
 
 def build_greenhouse() -> None:

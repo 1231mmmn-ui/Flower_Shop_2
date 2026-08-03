@@ -19,9 +19,11 @@ import random
 
 from PIL import Image, ImageDraw, ImageFilter
 
-from .paint import (LIGHT_ANGLE, RGB, draw_blob, draw_leaf, draw_petal, hex_rgb,
-                    jitter, linear_gradient, mix, paper_texture, rotate_points,
-                    shade, watercolor_mask)
+from PIL import ImageChops
+
+from .paint import (LIGHT_ANGLE, RGB, bezier, draw_blob, draw_leaf, draw_petal,
+                    hex_rgb, jitter, linear_gradient, mix, paper_texture,
+                    rotate_points, shade, tapered_band, watercolor_mask)
 
 PROP_SIZE = (512, 512)
 CARD_SIZE = (512, 384)
@@ -634,3 +636,181 @@ def render_greenhouse_stage(stage: int, seed: int = 0) -> Image.Image:
                                    fill=(96, 76, 60, 74))
     return paper_texture(Image.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(14)), img),
                          seed=seed, strength=0.08)
+
+
+# --------------------------------------------------------------------------
+# 包んだ姿（ブーケの包み紙とリボン）
+# --------------------------------------------------------------------------
+
+WRAP_SIZE = (768, 640)
+BOW_SIZE = (512, 512)
+
+
+def render_wrap_cone(paper_id: str, seed: int = 0) -> Image.Image:
+    """
+    ブーケを包んだ紙。円錐に巻いた一枚。
+
+    **これまで CSS の多角形で描いていました。**
+    真っ直ぐな辺と、等間隔の折り目（conic-gradient）で、
+    花と店内が水彩なのにここだけ図形に見えていました。
+
+    花・人物と同じ筆で描き直します。
+      にじみ  輪郭を watercolor_mask に通す（切り抜きではなく、紙の縁）
+      光      左上ひとつ。左が明るく、右へ落ちる
+      重なり  折り目ごとに、隣の面へ影を落とす
+      縁      口もとを内側へ折り返す（紙は必ず二重になる）
+    """
+    spec = PAPERS[paper_id]
+    rng = random.Random(seed + 700 + sum(map(ord, paper_id)))
+    w, h = WRAP_SIZE
+    color = hex_rgb(spec["color"])
+    edge = hex_rgb(spec["edge"])
+
+    # ---- 円錐のかたち。辺はまっすぐにしない（紙は手で巻くので、たわむ）
+    top_l, top_r = w * 0.03, w * 0.97
+    bot_l, bot_r = w * 0.40, w * 0.60
+    left = bezier((top_l, 0), (w * 0.16, h * 0.58), (bot_l, h), 28)
+    right = bezier((bot_r, h), (w * 0.86, h * 0.58), (top_r, 0), 28)
+    # 口もとも、まっすぐには切らない
+    # 口もとの波。**小さすぎると、まっすぐ切った線に見えます。**
+    # ±6px では 768px 幅に対して見えず、花の上に黒い横棒が渡っていました。
+    mouth = [(x,
+              20 * math.sin(x / w * 5.5 + 1.1)
+              + 9 * math.sin(x / w * 13.0 + 0.4) - 6)
+             for x in [top_l + (top_r - top_l) * i / 24 for i in range(25)]]
+    shape = left + [(bot_l, h), (bot_r, h)] + right + list(reversed(mouth))
+
+    def cone(d):
+        d.polygon(shape, fill=255)
+
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    # 紙は広い面なので、にじみは弱く（人物で学んだこと）
+    img.alpha_composite(_wc((w, h), cone, color, rng.randint(0, 9999), 3.2, 0.07))
+
+    mask = Image.new("L", (w, h), 0)
+    cone(ImageDraw.Draw(mask))
+    solid = watercolor_mask(mask, seed=seed, softness=3.2, bleed=0.07)
+
+    # ---- 光。左上から右下へ落ちる
+    #
+    # ここで一度、**紙のまわりに黒い輪郭**が出ました。
+    # 下に黒を敷いてから色を重ねていたので、にじんで薄くなった縁から
+    # 黒が透けていたためです。水彩の縁は、透けるほど**淡くなる**もので、
+    # 濃くなってはいけません。敷かずに、色だけを置きます。
+    grad = linear_gradient((w, h), shade(color, 0.22), shade(edge, -0.06), horizontal=True)
+    lit = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    lit.paste(grad, (0, 0), solid)
+    img.alpha_composite(lit)
+
+    # ---- 折り目。等間隔にしないこと。手で巻いた紙は、幅がそろわない。
+    folds = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    fd = ImageDraw.Draw(folds)
+    apex = (w * 0.5, h * 1.30)
+    t = 0.06
+    while t < 0.94:
+        x = top_l + (top_r - top_l) * t
+        dark = rng.uniform(0.10, 0.20)
+        fd.line([(x, 0), apex], fill=(*shade(edge, -0.34), int(255 * dark)),
+                width=max(2, int(rng.uniform(2, 5))))
+        # 折り目のすぐ左は、光が乗る面
+        fd.line([(x - rng.uniform(6, 13), 0), apex],
+                fill=(*shade(color, 0.34), int(255 * rng.uniform(0.10, 0.18))),
+                width=max(2, int(rng.uniform(3, 7))))
+        t += rng.uniform(0.055, 0.115)
+    folds = folds.filter(ImageFilter.GaussianBlur(2.6))
+    img.alpha_composite(Image.composite(folds, Image.new("RGBA", (w, h), (0, 0, 0, 0)),
+                                        solid))
+
+    # ---- 口もとの折り返し。紙は必ず二重になる。
+    cuff = Image.new("L", (w, h), 0)
+    # 濃くしすぎないこと。最初 210 で塗ったら、口もとに**黒い帯**が
+    # 渡っているように見えた。折り返しは影であって、縁取りではない。
+    ImageDraw.Draw(cuff).polygon(
+        mouth + [(top_r, h * 0.052), (top_l, h * 0.052)], fill=66)
+    cuff = ImageChops.multiply(cuff.filter(ImageFilter.GaussianBlur(5)), solid)
+    img.alpha_composite(_paint((w, h), cuff, shade(edge, -0.30)))
+    # 折り返しの手前側は、逆に明るい
+    lip = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(lip).polygon(
+        mouth + [(top_r, h * 0.045), (top_l, h * 0.045)], fill=120)
+    img.alpha_composite(_paint((w, h),
+                               ImageChops.multiply(lip.filter(ImageFilter.GaussianBlur(3)),
+                                                   solid),
+                               shade(color, 0.42)))
+
+    return paper_texture(img, seed=seed, strength=0.09)
+
+
+def render_ribbon_bow(ribbon_id: str, seed: int = 0) -> Image.Image:
+    """
+    リボンの蝶結び。
+
+    もとは角丸の四角を5枚並べたもので、**折り紙**に見えていました。
+    輪は平らではなく、ねじれて、光を片側だけ返します。
+    """
+    spec = RIBBONS[ribbon_id]
+    rng = random.Random(seed + 800 + sum(map(ord, ribbon_id)))
+    w, h = BOW_SIZE
+    color = hex_rgb(spec["color"])
+    edge = hex_rgb(spec["edge"])
+    sheen = spec["sheen"]
+    cx, cy = w * 0.5, h * 0.44
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+
+    def band(pts, width_a, width_b):
+        return tapered_band(pts, width_a, width_b)
+
+    # ---- 垂れ。左右で長さも角度も変える
+    for side, ln in ((-1, rng.uniform(0.30, 0.38)), (1, rng.uniform(0.34, 0.44))):
+        tipx = cx + side * w * rng.uniform(0.10, 0.20)
+        path = bezier((cx, cy), (cx + side * w * 0.06, cy + h * ln * 0.55),
+                      (tipx, cy + h * ln), 26)
+        pts = band(path, w * 0.075, w * 0.105)
+        img.alpha_composite(_wc((w, h), lambda d, p=pts: d.polygon(p, fill=255),
+                                shade(color, -0.06), rng.randint(0, 9999), 2.4, 0.10))
+
+    # ---- 輪。ねじれを出すため、二本の帯を重ねる
+    for side in (-1, 1):
+        far = (cx + side * w * rng.uniform(0.20, 0.26), cy - h * rng.uniform(0.03, 0.07))
+        up = bezier((cx, cy), (cx + side * w * 0.16, cy - h * 0.17), far, 24)
+        down = bezier(far, (cx + side * w * 0.17, cy + h * 0.12), (cx, cy), 24)
+        for k, path in enumerate((up, down)):
+            pts = band(path, w * 0.085, w * 0.055)
+            tone = shade(color, 0.10 if k == 0 else -0.16)
+            img.alpha_composite(_wc((w, h), lambda d, p=pts: d.polygon(p, fill=255),
+                                    tone, rng.randint(0, 9999), 2.2, 0.09))
+        # 輪の内側の影。ここが無いと、輪が輪に見えない。
+        inner = Image.new("L", (w, h), 0)
+        x0, x1 = sorted((cx + side * w * 0.04, cx + side * w * 0.21))
+        ImageDraw.Draw(inner).ellipse(
+            [x0, cy - h * 0.058, x1, cy + h * 0.058], fill=58)
+        # 輪の内側だけを暗くする。リボンの外へはみ出させない。
+        ring = ImageChops.multiply(inner.filter(ImageFilter.GaussianBlur(11)),
+                                   img.getchannel("A"))
+        img.alpha_composite(_paint((w, h), ring, shade(edge, -0.20)))
+
+    # ---- 光。左上からの筋を、上の面にだけ
+    gloss = Image.new("L", (w, h), 0)
+    gd = ImageDraw.Draw(gloss)
+    for side in (-1, 1):
+        gd.line([(cx + side * w * 0.05, cy - h * 0.05),
+                 (cx + side * w * 0.21, cy - h * 0.05)],
+                fill=int(150 * sheen), width=int(h * 0.035))
+    img.alpha_composite(_paint((w, h), gloss.filter(ImageFilter.GaussianBlur(6)),
+                               shade(color, 0.45)))
+
+    # ---- 結び目
+    knot = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(knot).ellipse([cx - w * 0.055, cy - h * 0.048,
+                                  cx + w * 0.055, cy + h * 0.048], fill=255)
+    img.alpha_composite(_paint((w, h),
+                               watercolor_mask(knot, seed=seed + 3, softness=2.6, bleed=0.08),
+                               shade(color, -0.10)))
+    kl = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(kl).ellipse([cx - w * 0.045, cy - h * 0.042,
+                                cx - w * 0.004, cy - h * 0.004],
+                               fill=int(130 * min(1.0, 0.4 + sheen)))
+    img.alpha_composite(_paint((w, h), kl.filter(ImageFilter.GaussianBlur(5)),
+                               shade(color, 0.46)))
+
+    return paper_texture(img, seed=seed, strength=0.07)

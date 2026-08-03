@@ -63,6 +63,17 @@ export const counterTexture = () => `${BASE}/props/counter.jpg`;
 /** ラッピング資材（512x512・透過）— §6。id は paper-* / ribbon-* をそのまま渡す。 */
 export const wrapMaterial = (id: string) => `${BASE}/wrap/${id}.png`;
 
+/**
+ * 包んだ姿 — §6（追記）
+ *
+ * ブーケを包んだ紙と、結んだリボン。
+ * **これまで CSS の多角形で描いていました。** 真っ直ぐな辺と、
+ * 等間隔の折り目（conic-gradient）で、花と店内が水彩なのに
+ * ここだけ図形に見えていたので、同じ筆で描いた絵に差し替えました。
+ */
+export const wrapCone = (paperId: string) => `${BASE}/wrap/cone-${paperId}.png`;
+export const ribbonBow = (ribbonId: string) => `${BASE}/wrap/bow-${ribbonId}.png`;
+
 /** 温室の生育段階（512x512・透過）— §7 */
 export const greenhouseStage = (stage: 0 | 1 | 2 | 3) =>
   `${BASE}/greenhouse/stage-${stage}.png`;
