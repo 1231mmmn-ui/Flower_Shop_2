@@ -117,7 +117,7 @@ export function LibraryScreen() {
                       className="album__loved-card"
                       onClick={() => setOpened(item.id)}
                     >
-                      <img src={flowerImage(item.id)} alt="" aria-hidden />
+                      <img src={flowerImage(item.id)} alt="" aria-hidden draggable={false} />
                       <span>{item.name}</span>
                     </button>
                   ))}
@@ -151,7 +151,7 @@ export function LibraryScreen() {
                     aria-label={entry ? item.name : 'まだ会っていない花'}
                   >
                     <span className="album__thumb">
-                      <img src={flowerImage(item.id)} alt="" aria-hidden />
+                      <img src={flowerImage(item.id)} alt="" aria-hidden draggable={false} />
                     </span>
                     {/* まだ会っていない花は、影だけ。名前も出しません。 */}
                     {entry && <span className="album__name">{item.name}</span>}
@@ -189,8 +189,7 @@ export function LibraryScreen() {
                         className="album__flower"
                         src={flowerImage(main.flowerId)}
                         alt=""
-                        aria-hidden
-                      />
+                        aria-hidden draggable={false} />
                     )}
                     {said && <p className="album__word">「{said}」</p>}
                   </article>

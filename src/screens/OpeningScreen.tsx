@@ -18,6 +18,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import './OpeningScreen.css';
+import { FirstTime } from '../components/FirstTime';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { FlowerStand } from '../components/FlowerStand';
 import { ambience } from '../audio/ambience';
@@ -144,6 +145,11 @@ export function OpeningScreen() {
           <span className="morning__sign-face morning__sign-face--open">OPEN</span>
         </span>
       </button>
+
+      {/*
+        初めての人にだけ。札が押せると分からないと、朝がずっと続いてしまう。
+      */}
+      <FirstTime id="sign" text="札を裏返すと、お店が開きます。" />
 
       {/* 花にふれれば詳細は開ける。でも、まだ取れない ── 開店前だから。 */}
       {inspecting && (

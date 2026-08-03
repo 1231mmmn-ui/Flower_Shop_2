@@ -42,11 +42,25 @@
   line-height: var(--fs-font-line-tight);
 }
 
+/*
+ * この一行は、**折り返させません。**
+ * 二行に割れると「誰かを想いながら、」で切れて、
+ * 標語ではなく説明文に見えます。
+ * 幅の狭い端末では、字間と文字を少しだけ詰めて一行に収めます。
+ */
 .title-screen__lead {
   margin: var(--fs-space-md) 0 0;
   font-size: var(--fs-font-md);
   letter-spacing: 0.08em;
   color: var(--fs-color-ink-soft);
+  white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+  .title-screen__lead {
+    font-size: var(--fs-font-sm);
+    letter-spacing: 0.02em;
+  }
 }
 
 /* 作業台に置かれたカゴ */
@@ -80,8 +94,15 @@
   margin: 0;
   font-size: var(--fs-font-sm);
   line-height: var(--fs-font-line-base);
-  color: var(--fs-color-ink-faint);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  color: var(--fs-color-ink-soft);
+  /*
+   * 店内の絵の上に、下地なしで置く文字。
+   * 影ひとつでは背景の濃いところで沈むので、白いにじみを二重にする。
+   * 面（パネル）を敷かずに読めるようにするための、いちばん静かな方法。
+   */
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .title-screen__memo {
@@ -103,9 +124,11 @@
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-sm);
   letter-spacing: 0.12em;
-  color: var(--fs-color-ink-soft);
+  color: var(--fs-color-ink);
   border-bottom: 1px solid var(--fs-color-line);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
   transition: color var(--fs-duration-quick) var(--fs-easing-soft),
     border-color var(--fs-duration-quick) var(--fs-easing-soft);
 }

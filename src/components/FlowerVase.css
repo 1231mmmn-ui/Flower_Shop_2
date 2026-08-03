@@ -47,11 +47,12 @@
   position: relative;
 }
 
+/* 花に対して器が細く、一輪挿しというより試験管に見えていた（62% → 72%）。 */
 .vase__glass {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 62%;
+  width: 72%;
   transform: translateX(-50%);
   z-index: 5;
   filter: drop-shadow(5px 9px 12px rgba(96, 74, 54, 0.22));

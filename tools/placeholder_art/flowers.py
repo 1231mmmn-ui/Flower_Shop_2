@@ -641,12 +641,17 @@ def _draw_leaves(layer, recipe: Recipe, path, rng: random.Random, scale: float) 
                       jitter(leaf_col, rng, 7), rng, tip=0.95,
                       curl=side * rng.uniform(0.4, 0.9))
         elif recipe.leaf_style == "feather":
-            # コスモス・アネモネの、糸のように細かい葉
-            for k in range(7):
-                ang = side * rng.uniform(40, 96) + 180
-                draw_leaf(layer, (px + rng.uniform(-6, 6), py + k * length * 0.10),
-                          ang, length * rng.uniform(0.24, 0.42), length * 0.028,
-                          jitter(leaf_col, rng, 8), rng, tip=1.4)
+            # コスモス・アネモネの、細かく切れ込んだ葉。
+            #
+            # もとは幅 0.028・7枚を茎ぎわに散らしていたので、
+            # **茎から生えたトゲ**に見えていた（実際にそう指摘された）。
+            # 本物は「細い」のであって「尖っている」のではない。
+            # 少し太く、少し短く、枚数を減らして、寝かせる。
+            for k in range(5):
+                ang = side * rng.uniform(58, 104) + 180
+                draw_leaf(layer, (px + rng.uniform(-5, 5), py + k * length * 0.085),
+                          ang, length * rng.uniform(0.20, 0.32), length * 0.062,
+                          jitter(leaf_col, rng, 8), rng, tip=1.05, waist=0.9)
         else:
             # 角度の幅を広げる。52〜78°では、どの葉もほぼ同じ開きだった。
             # ただし 80°を超えると水平になる。切り花の葉が真横へまっすぐ

@@ -112,7 +112,7 @@ export function ArrangeScreen() {
               onClick={() => dispatch({ type: 'set-wrapping', id: item.id })}
               title={item.name}
             >
-              <img src={wrapMaterial(item.id)} alt={item.name} />
+              <img src={wrapMaterial(item.id)} alt={item.name} draggable={false} />
             </button>
           ))}
           <span className="arrange__divider" aria-hidden />
@@ -126,7 +126,7 @@ export function ArrangeScreen() {
               onClick={() => dispatch({ type: 'set-ribbon', id: item.id })}
               title={item.name}
             >
-              <img src={wrapMaterial(item.id)} alt={item.name} />
+              <img src={wrapMaterial(item.id)} alt={item.name} draggable={false} />
             </button>
           ))}
         </div>

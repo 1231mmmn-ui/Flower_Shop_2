@@ -68,7 +68,7 @@ export function MarketScreen() {
               onClick={() => setHeld(flower.id)}
               aria-label={flower.name}
             >
-              <img src={flowerImage(flower.id)} alt="" aria-hidden />
+              <img src={flowerImage(flower.id)} alt="" aria-hidden draggable={false} />
               <span className="market__name">{flower.name}</span>
               {/* ひとことは、三輪に一輪くらい。全部に付くと仕様欄になる。 */}
               {remark && <span className="market__remark">{remark}</span>}

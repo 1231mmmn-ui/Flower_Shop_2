@@ -77,12 +77,42 @@
   text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }
 
+/*
+ * 花言葉。名前と値段のあいだ。
+ * 面は持たせず、字だけ。図鑑の丸い札にすると、棚が図鑑に見えるので。
+ */
+.shop-view__meanings {
+  display: flex;
+  justify-content: center;
+  gap: var(--fs-space-sm);
+  margin-top: 3px;
+}
+
+.shop-view__meaning {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.10em;
+  color: var(--fs-color-ink-soft);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
+}
+
+/*
+ * 「いまが旬」。
+ * セージ色は木の上でほとんど沈んでいた（読みにくいという指摘の一つ）。
+ * 色は変えず、下地の薄い面を敷いて浮かせる。
+ * 木の上の文字は、どの色でもコントラストが足りないため（最大2.91）。
+ */
 .shop-view__season {
-  margin-top: 2px;
+  align-self: center;
+  margin-top: 5px;
+  padding: 2px var(--fs-space-sm);
+  border-radius: var(--fs-radius-pill);
+  background: rgba(255, 252, 244, 0.86);
   font-size: var(--fs-font-xs);
   letter-spacing: 0.14em;
   color: var(--fs-color-sage-deep);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
 }
 
 /* 手もと。財布の中身と、束ねるひとこと。 */

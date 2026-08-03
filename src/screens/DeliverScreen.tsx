@@ -43,8 +43,7 @@ export function DeliverScreen() {
         <img
           className="deliver__person"
           src={customerImage(customer.id, 'happy')}
-          alt={customer.name}
-        />
+          alt={customer.name} draggable={false} />
         <div className="deliver__bouquet">
           <Bouquet bouquet={state.bouquet} scale={0.9} />
         </div>

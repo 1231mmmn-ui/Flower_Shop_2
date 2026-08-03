@@ -24,6 +24,7 @@
 import { useEffect, useState } from 'react';
 
 import './AfterScreen.css';
+import { FirstTime } from '../components/FirstTime';
 import { petalOnCounter, petalPlacement } from '../data/afterglow';
 import { useGame } from '../game/GameContext';
 
@@ -71,6 +72,11 @@ export function AfterScreen() {
           />
         )}
       </div>
+
+      {/*
+        朝と同じ一言。id が同じなので、朝に消していればここには出ない。
+      */}
+      {settled && <FirstTime id="sign" text="札を裏返すと、今日のお店を閉めます。" />}
 
       {/*
         札を裏返して、一日を閉じる。

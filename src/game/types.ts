@@ -64,6 +64,15 @@ export interface DeliveredMemory {
   words?: string[];
 }
 
+/**
+ * 初めての人にだけ出す一言の、種類。
+ *
+ * 押せると分からないものだけです。**遊び方の説明ではありません。**
+ */
+export type HintId =
+  | 'sign'      // 「CLOSED」の札を裏返すと、一日が始まる／終わる
+  | 'inspect';  // 花にふれると、その花だけの紙が開く
+
 export interface GameState {
   phase: Phase;
   day: number;
@@ -100,6 +109,14 @@ export interface GameState {
    * **残らない選択**があるのは、むしろいいことだと思います。
    */
   frontFlowerId: string | null;
+  /**
+   * もう出さなくていい一言。
+   *
+   * 消すのはプレイヤーの判断です（「今後は表示しない」）。
+   * こちらから「分かりましたか？」とは聞きません。試している感じになるので。
+   * ここは**保存します** ── 毎回また出てきたら、ただの邪魔なので。
+   */
+  hintsDone: HintId[];
   /** 図鑑を開く直前にいた画面 */
   libraryReturn: Phase;
   /** 眺めている花（詳細を開いている） */

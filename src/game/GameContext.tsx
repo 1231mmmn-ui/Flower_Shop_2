@@ -19,7 +19,7 @@ import { SEASONS, seasonForDay, type Season } from '../data/seasons';
 import { RIBBONS, WRAPPINGS } from '../data/wrapping';
 import { arrange, bringForward, makeStem } from './arrange';
 import { evaluate, bouquetPrice, type Evaluation } from './evaluation';
-import type { Bouquet, GameState } from './types';
+import type { Bouquet, GameState, HintId } from './types';
 
 const STORAGE_KEY = 'flower-shop-hanasaku:v1';
 
@@ -41,6 +41,7 @@ const initialState: GameState = {
   favorites: [],
   memories: [],
   frontFlowerId: null,
+  hintsDone: [],
   libraryReturn: 'title',
   inspectingFlowerId: null,
   lastResultId: null,
@@ -71,6 +72,7 @@ export type Action =
   | { type: 'open-library' }
   | { type: 'close-library' }
   | { type: 'toggle-favorite'; flowerId: string }
+  | { type: 'hint-done'; id: HintId }
   | { type: 'toggle-sound' }
   | { type: 'restore'; saved: Partial<GameState> };
 
@@ -236,6 +238,12 @@ function reducer(state: GameState, action: Action): GameState {
           : [...state.favorites, action.flowerId],
       };
 
+    // 「今後は表示しない」。消すのはプレイヤーの判断。
+    case 'hint-done':
+      return state.hintsDone.includes(action.id)
+        ? state
+        : { ...state, hintsDone: [...state.hintsDone, action.id] };
+
     case 'toggle-sound':
       return { ...state, soundOn: !state.soundOn };
 
@@ -340,6 +348,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           library: state.library,
           favorites: state.favorites,
           memories: state.memories,
+          hintsDone: state.hintsDone,
           // frontFlowerId は保存しない。**その日で終わるもの**なので。
           soundOn: state.soundOn,
         }),
@@ -347,7 +356,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     } catch {
       /* 保存できなくても遊べる */
     }
-  }, [state.day, state.earnings, state.library, state.memories, state.soundOn]);
+  }, [
+    state.day,
+    state.earnings,
+    state.library,
+    state.favorites,
+    state.memories,
+    state.hintsDone,
+    state.soundOn,
+  ]);
 
   const value = useMemo<GameValue>(() => {
     const customer = customerById(state.customerId);

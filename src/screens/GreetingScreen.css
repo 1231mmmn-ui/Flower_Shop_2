@@ -22,8 +22,10 @@
   );
   font-size: var(--fs-font-sm);
   line-height: var(--fs-font-line-base);
-  color: var(--fs-color-ink-faint);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  color: var(--fs-color-ink-soft);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
   animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
 }
 
@@ -136,8 +138,10 @@
   margin: 0;
   font-size: var(--fs-font-xs);
   letter-spacing: 0.14em;
-  color: var(--fs-color-ink-faint);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  color: var(--fs-color-ink-soft);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .greet__foot .button {

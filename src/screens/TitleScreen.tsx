@@ -24,7 +24,7 @@ export function TitleScreen() {
       </div>
 
       {/* 作業台には、朝いちばんに切ってきた花のカゴ */}
-      <img className="title-screen__basket" src={basketFull()} alt="" aria-hidden />
+      <img className="title-screen__basket" src={basketFull()} alt="" aria-hidden draggable={false} />
 
       <div className="title-screen__foot">
         <p className="title-screen__season">{season.greeting}</p>

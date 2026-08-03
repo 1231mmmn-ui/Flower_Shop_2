@@ -37,8 +37,21 @@ export function ApronMemo({ customer }: ApronMemoProps) {
         className="apron__corner"
         onClick={() => setOpen((was) => !was)}
         aria-expanded={open}
-        aria-label={open ? 'メモをしまう' : 'エプロンのメモを見る'}
-      />
+        aria-label={open ? 'メモをしまう' : `${customer.name}のご依頼を見る`}
+      >
+        {/*
+          **誰のご依頼かを、開かなくても分かるように。**
+
+          もとは無地の紙の角だけで、「今どのご依頼なのか分からない」という
+          指摘のとおりでした。名前だけ出します ── 用向きや条件は出しません。
+          そこまで出すと、開く意味も、覚えておく意味もなくなるので。
+
+          ボタンには見せません。花屋の伝票らしく、上をピンで留めた
+          紙が一枚、エプロンから出ているだけ、という見え方にします。
+        */}
+        <span className="apron__pin" aria-hidden />
+        <span className="apron__label">{customer.name}</span>
+      </button>
 
       {open && (
         <div className="apron__paper" onClick={() => setOpen(false)}>

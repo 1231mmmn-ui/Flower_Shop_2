@@ -53,11 +53,18 @@
   position: relative;
 }
 
+/*
+ * 花瓶。
+ *
+ * 47% では花に対して小さく、**一輪挿しというより試験管**に見えていた。
+ * 実際の店頭のバケツ／花瓶は、花の広がりに対してもっと器がある。
+ * 花より大きくしないまま、受けとして成立する太さへ（47% → 58%）。
+ */
 .stand__vase {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 47%;
+  width: 58%;
   transform: translateX(-50%);
   z-index: 5;
   filter: drop-shadow(5px 8px 11px rgba(96, 74, 54, 0.24));

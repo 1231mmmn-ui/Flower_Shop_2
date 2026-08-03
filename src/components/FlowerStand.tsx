@@ -60,12 +60,11 @@ export function FlowerStand({
                 '--stem-scale': stem.scale,
                 zIndex: index,
               } as CSSProperties
-            }
-          />
+            } draggable={false} />
         ))}
       </span>
 
-      <img className="stand__vase" src={vase()} alt="" aria-hidden />
+      <img className="stand__vase" src={vase()} alt="" aria-hidden draggable={false} />
       <span className="stand__glow" style={{ background: flower.swatch }} aria-hidden />
 
       {picked > 0 && (

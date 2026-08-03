@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import './ShopScreen.css';
 import { ApronMemo } from '../components/ApronMemo';
+import { FirstTime } from '../components/FirstTime';
 import { FlowerDetail } from '../components/FlowerDetail';
 import { FlowerStand } from '../components/FlowerStand';
 import { QuietBar } from '../components/QuietBar';
@@ -84,14 +85,38 @@ export function ShopScreen() {
         ))}
       </div>
 
-      {/* 正面の花にだけ、小さな木札 */}
+      {/*
+        正面の花にだけ、小さな木札。
+
+        **花言葉を、名前と値段のあいだに入れました。**
+        これまでは花にふれて紙を開かないと読めませんでしたが、
+        花言葉はこのゲームの「花 → 人」の道の要なので、
+        棚を歩いているあいだ、ずっと見えていてよいものです。
+        （→ ⑭花の設計書「花言葉は見ただけで読める」）
+
+        値段より上に置きます。先に目に入るのが値段だと、
+        選ぶ理由が気持ちから比較に変わるので。
+      */}
       <div className="shop-view__label" key={front.id}>
         <span className="shop-view__name">{front.name}</span>
+        <span className="shop-view__meanings">
+          {front.meanings.map((meaning) => (
+            <span key={meaning} className="shop-view__meaning">
+              {meaning}
+            </span>
+          ))}
+        </span>
         <span className="shop-view__price">{formatPrice(front.price)}／本</span>
         {front.seasons.length < 4 && front.seasons.includes(season.id) && (
           <span className="shop-view__season">いまが旬</span>
         )}
       </div>
+
+      {/*
+        初めての人にだけ。花にふれられると分からないと、
+        このゲームでいちばん見てほしいもの（一輪の画面）に一生辿り着かない。
+      */}
+      {!inspecting && <FirstTime id="inspect" text="花にふれると、その花のことが見られます。" />}
 
       <footer className="shop-view__hands">
         <span className={`shop-view__purse ${overBudget ? 'is-over' : ''}`}>

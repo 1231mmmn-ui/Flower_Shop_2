@@ -28,7 +28,7 @@ export function FrontVase() {
 
   return (
     <span className="front-vase" aria-hidden>
-      <img src={flowerImage(flower.id)} alt="" />
+      <img src={flowerImage(flower.id)} alt="" draggable={false} />
     </span>
   );
 }
