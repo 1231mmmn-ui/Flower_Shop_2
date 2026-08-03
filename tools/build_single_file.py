@@ -154,7 +154,12 @@ def main() -> None:
         "m.name=\'viewport\';m.content=\'width=device-width,initial-scale=1,"
         "viewport-fit=cover,maximum-scale=1,user-scalable=no\';})();</script>"
     )
-    OUT_BODY.write_text(fix_head + body, encoding="utf-8")
+    # 高さの保険。global.css は html/body/#root に height:100% を敷いていますが、
+    # 向こうが body の中に何か（ヘッダなど）を足していると、100% の基準が
+    # 崩れて店が縦に潰れます。画面の高さそのものを直に入れておきます。
+    # （同じ強さの指定なので、**あとに置かないと**負けます。）
+    guard = "<style>#root{height:100dvh;height:100svh}</style>"
+    OUT_BODY.write_text(fix_head + body + guard, encoding="utf-8")
     print(f"{OUT_BODY.relative_to(ROOT)}  "
           f"{OUT_BODY.stat().st_size / 1024 / 1024:.2f} MB")
 
