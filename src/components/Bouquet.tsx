@@ -32,6 +32,26 @@ const MAX_ANGLE = 46;
 const MIN_REACH = 0.24;
 const MAX_REACH = 1.0;
 
+/**
+ * 花をつかむ場所。
+ *
+ * ── 触れなかった本当の理由 ─────────────────────────────
+ *
+ * 一本ぶんの `<div>` は、**1024×1024 の透過画像まるごと**の四角でした。
+ * 見えている花はその中のごく一部で、まわりは透明です。
+ * 手前の花の**透明なところ**が、奥の花にかぶさっていました。
+ *
+ * だから、
+ *   ・押したい花が反応しない  … 手前の花の透明な部分を押していた
+ *   ・隣の花を掴んでしまう    … 同上。見えている花と、当たり判定がずれていた
+ * この2つは**同じ原因**でした。
+ *
+ * 直し方は、当たり判定を**花の頭のところだけ**にすること。
+ * 画像そのものは触れなくして（pointer-events: none）、
+ * 花の頭に、指のとどく大きさの丸をひとつ置きます。
+ */
+const GRAB_R = 26;      // つかめる丸の半径（%指定ではなく、指の大きさで決める）
+
 export function Bouquet({
   bouquet,
   interactive = false,
@@ -43,31 +63,57 @@ export function Bouquet({
 }: BouquetProps) {
   const knotRef = useRef<HTMLDivElement>(null);
   const dragging = useRef<string | null>(null);
+  /**
+   * 掴んだ瞬間の「指の位置」と「花の位置」のずれ。
+   *
+   * これが無いと、掴んだ瞬間に花が指のところへ**飛びます。**
+   * 花の軸が指を向くように計算していたので、花の頭を持ったつもりでも
+   * 根もとが指に来ていました。「思った位置に動かしにくい」の正体です。
+   * 掴んだときのずれを覚えて、そのぶんを差し引きます。
+   */
+  const grip = useRef<{ angle: number; reach: number } | null>(null);
 
-  const handlePointerDown = (uid: string) => (event: PointerEvent<HTMLDivElement>) => {
-    onSelect?.(uid);
-    if (!interactive) return;
-    dragging.current = uid;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const uid = dragging.current;
+  /** 指の位置を、束の（角度・伸び）に直す。 */
+  const readPointer = (event: PointerEvent<HTMLElement>) => {
     const knot = knotRef.current;
-    if (!uid || !knot || !onMove) return;
-
+    if (!knot) return null;
     const box = knot.getBoundingClientRect();
     const dx = event.clientX - (box.left + box.width / 2);
     const dy = event.clientY - (box.top + box.height / 2);
-    // 真上を 0 度として、時計回りに測る
-    const angle = clamp((Math.atan2(dx, -dy) * 180) / Math.PI, -MAX_ANGLE, MAX_ANGLE);
-    const distance = Math.hypot(dx, dy) / (box.height * 0.62 || 1);
-    onMove(uid, angle, clamp(distance, MIN_REACH, MAX_REACH));
+    return {
+      // 真上を 0 度として、時計回りに測る
+      angle: (Math.atan2(dx, -dy) * 180) / Math.PI,
+      reach: Math.hypot(dx, dy) / (box.height * 0.62 || 1),
+    };
+  };
+
+  const handlePointerDown =
+    (uid: string, angle: number, reach: number) => (event: PointerEvent<HTMLElement>) => {
+      onSelect?.(uid);
+      if (!interactive) return;
+      const at = readPointer(event);
+      grip.current = at ? { angle: at.angle - angle, reach: at.reach - reach } : null;
+      dragging.current = uid;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      event.stopPropagation();
+    };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const uid = dragging.current;
+    const at = readPointer(event);
+    if (!uid || !at || !onMove) return;
+    const off = grip.current ?? { angle: 0, reach: 0 };
+    onMove(
+      uid,
+      clamp(at.angle - off.angle, -MAX_ANGLE, MAX_ANGLE),
+      clamp(at.reach - off.reach, MIN_REACH, MAX_REACH),
+    );
   };
 
   const endDrag = (event: PointerEvent<HTMLDivElement>) => {
     if (dragging.current) event.currentTarget.releasePointerCapture?.(event.pointerId);
     dragging.current = null;
+    grip.current = null;
   };
 
   return (
@@ -96,9 +142,21 @@ export function Bouquet({
                 zIndex: 10 + Math.round(stem.depth * 40),
               } as CSSProperties
             }
-            onPointerDown={handlePointerDown(stem.uid)}
           >
             <img src={flowerImage(flower.id)} alt={flower.name} draggable={false} />
+            {/*
+              つかむところ。花の頭のあたりに、指のとどく大きさで。
+              画像ではなくこれを押します（画像は pointer-events: none）。
+            */}
+            {interactive && (
+              <button
+                type="button"
+                className="bouquet__grab"
+                style={{ width: GRAB_R * 2, height: GRAB_R * 2 }}
+                onPointerDown={handlePointerDown(stem.uid, stem.angle, stem.reach)}
+                aria-label={`${flower.name}を動かす`}
+              />
+            )}
           </div>
         );
       })}

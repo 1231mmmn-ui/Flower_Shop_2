@@ -35,20 +35,69 @@
   transition: transform var(--fs-duration-base) var(--fs-easing-soft),
     filter var(--fs-duration-base) var(--fs-easing-soft);
   animation: stem-bloom var(--fs-duration-bloom) var(--fs-easing-rise) both;
+  /*
+   * **一本ぶんの四角も、触れません。**
+   *
+   * 画像を pointer-events: none にしただけでは足りませんでした。
+   * 画像が透けていても、それを包んでいる `<div>` の四角は残るので、
+   * 手前の花の四角が、奥の花の「つかむところ」を覆い続けます。
+   * 実際、4本のうち動かせたのは1本だけでした。
+   *
+   * 触れてよいのは、花の頭に置いた丸だけです。
+   */
+  pointer-events: none;
 }
 
 .bouquet__stem img {
   width: 100%;
   height: auto;
+  /*
+   * **画像は触れません。**
+   * 1024×1024 の透過画像まるごとが当たり判定になっていたので、
+   * 手前の花の「透明なところ」が奥の花にかぶさっていました。
+   * 押したい花が反応しないのも、隣を掴んでしまうのも、これが原因です。
+   */
+  pointer-events: none;
+}
+
+/*
+ * つかむところ。花の頭のあたりに、指のとどく大きさで置きます。
+ *
+ * 見た目は出しません（枠も点も影も無し）。
+ * 花に印が付くと、束ではなく操作盤に見えるので。
+ */
+.bouquet__grab {
+  position: absolute;
+  left: 50%;
+  /* 花の頭は、画像の上から3割あたり（assetSize.flower.headY と同じ） */
+  top: 30%;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: grab;
+  touch-action: none;
+  z-index: 2;
+  /* 触れてよいのは、ここだけ。 */
+  pointer-events: auto;
+}
+
+.bouquet__grab:active {
+  cursor: grabbing;
+}
+
+/*
+ * 選んでいる花は、つかめる範囲を少し広げます。
+ * 「いま動かしている花」に指が戻りやすいように。
+ */
+.bouquet__stem.is-selected .bouquet__grab {
+  transform: translate(-50%, -50%) scale(1.35);
 }
 
 /* 束ねている最中だけ、花に触れられる */
-.bouquet--live .bouquet__stem {
-  cursor: grab;
-}
-
-.bouquet--live .bouquet__stem:active {
-  cursor: grabbing;
+/* 動かしている最中は、追従を止めない（transition が遅れて見える） */
+.bouquet--live .bouquet__stem:has(.bouquet__grab:active) {
   transition: none;
 }
 

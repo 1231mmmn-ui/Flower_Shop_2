@@ -26,7 +26,7 @@
  *
  * ── 数（実測）────────────────────────────────────────
  *
- * 29種から毎日8輪、20日ぶん。完全にランダムでも：
+ * 29種から毎日10輪、20日ぶん。完全にランダムでも：
  *
  *   1種あたりの登場       平均 5.5 回
  *   20日で一度も出ない     0.16%（29種のうち 0.05 種）
@@ -34,15 +34,45 @@
  * 「昨日出た花は今日は出さない」を足すと、出ない花は 0.00 種になり、
  * 同じ花との再会は中央値3日になります。**それで足りています。**
  *
- * そもそも市場は何も塞ぎません。並ばなかった花も、その日ちゃんと棚にあります
- * （→ src/data/shelf.ts「消さない」）。
+ * 並ばなかった花は、その日は店にもいません。
+ * **それでいい**と決めました ── 花屋は図書館ではないので。
+ * 会った花はアルバムに残り、♡はいつでも見られます
+ * （→ src/data/shelf.ts「前提を、途中で変えました」）。
  */
 
-import { FLOWERS, type Flower } from './flowers';
+import { FLOWERS, type Flower, type FlowerRole } from './flowers';
 import type { SeasonId } from './seasons';
 
-/** 市場に並ぶ数。ひと画面に収まって、一輪ずつ見られる数。 */
-export const MARKET_SIZE = 8;
+/**
+ * 今日、市場から連れて帰る数。
+ *
+ * **これがそのまま、今日の店の棚になります。**
+ * 少なすぎると束が組めず、多すぎると棚がまた長くなるので、
+ * 束（3〜5本）を選ぶのに困らない数にしています。
+ */
+export const MARKET_SIZE = 10;
+
+/**
+ * 何を、どれだけ買うか。
+ *
+ * **役割を見ずに引いてはいけません。**
+ * 実際に測ったら、役割を見ずに8輪引くと
+ * **2日に1日はみどりが一本も入りませんでした（51.7%）。**
+ * 葉ものの無い束は、どう組んでも締まりません。
+ *
+ * 花屋の仕入れは、そういう買い方をしません。
+ * 主役を数本、寄り添う花を数本、すきまを埋める花、そして葉もの ──
+ * **束が組める組み合わせで買います。**
+ *
+ * ここはプレイヤーには見えません。見えるのは
+ * 「今日はいいのが入っているな」だけです。
+ */
+const BASKET: { role: FlowerRole; count: number }[] = [
+  { role: 'main', count: 4 },
+  { role: 'sub', count: 3 },
+  { role: 'filler', count: 1 },
+  { role: 'green', count: 1 },
+];
 
 /** その日ごとに決まる、ぶれない乱数。同じ日なら何度開いても同じ市場。 */
 function roll(day: number, salt: number): number {
@@ -79,24 +109,51 @@ function weight(flower: Flower, season: SeasonId, lastSeen: number): number {
   return w;
 }
 
-/** 重みつきで、重複なく MARKET_SIZE 本選ぶ。ここは履歴を作らない。 */
+/** 重みつきで1本引く。引いた花は pool から取り除く。 */
+function pickOne(
+  pool: Flower[],
+  day: number,
+  salt: number,
+  season: SeasonId,
+  lastSeen: Map<string, number>,
+): Flower | null {
+  if (pool.length === 0) return null;
+  const w = pool.map((f) => weight(f, season, lastSeen.get(f.id) ?? 99));
+  const total = w.reduce((a, b) => a + b, 0);
+  let cut = roll(day, salt) * total;
+  let index = pool.length - 1;
+  for (let k = 0; k < pool.length; k += 1) {
+    cut -= w[k];
+    if (cut <= 0) {
+      index = k;
+      break;
+    }
+  }
+  return pool.splice(index, 1)[0];
+}
+
+/** その日の仕入れ。役割ごとに、束が組める組み合わせで買う。 */
 function pickDay(day: number, season: SeasonId, lastSeen: Map<string, number>): Flower[] {
   const rest = [...FLOWERS];
   const picked: Flower[] = [];
-  for (let i = 0; i < MARKET_SIZE && rest.length > 0; i += 1) {
-    const w = rest.map((f) => weight(f, season, lastSeen.get(f.id) ?? 99));
-    const total = w.reduce((a, b) => a + b, 0);
-    let cut = roll(day, i) * total;
-    let index = rest.length - 1;
-    for (let k = 0; k < rest.length; k += 1) {
-      cut -= w[k];
-      if (cut <= 0) {
-        index = k;
-        break;
-      }
+  let salt = 0;
+
+  for (const { role, count } of BASKET) {
+    for (let i = 0; i < count; i += 1) {
+      const pool = rest.filter((f) => f.role === role);
+      const got = pickOne(pool, day, salt, season, lastSeen);
+      salt += 1;
+      if (!got) break;
+      rest.splice(rest.indexOf(got), 1);
+      picked.push(got);
     }
-    picked.push(rest[index]);
-    rest.splice(index, 1);
+  }
+  // 残りは役割を問わず。ここで「今日はやけに◯◯が多いな」が生まれる。
+  while (picked.length < MARKET_SIZE && rest.length > 0) {
+    const got = pickOne(rest, day, salt, season, lastSeen);
+    salt += 1;
+    if (!got) break;
+    picked.push(got);
   }
   return picked;
 }

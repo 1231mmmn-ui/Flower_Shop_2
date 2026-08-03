@@ -97,6 +97,11 @@ async function playDay(page, { picks = 3, touchBouquet = true } = {}) {
   );
   await page.waitForTimeout(1200);
 
+  await must(page, '③-b 束ねる：花が一本ずつつかめる', async () => {
+    const n = await page.locator('.bouquet__grab').count();
+    if (n !== picks) throw new Error(`つかむところが ${n} 個（花は ${picks} 本）`);
+  });
+
   await must(page, '④ お渡しする', () =>
     page.getByRole('button', { name: 'お渡しする' }).click({ timeout: 8000 }),
   );

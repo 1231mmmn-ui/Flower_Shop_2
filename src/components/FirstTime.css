@@ -13,11 +13,21 @@
   position: absolute;
   left: 50%;
   /*
-   * 花の名前の札より上。
-   * bottom:15% では、棚でも開店前でも**花の名前を隠していました。**
-   * 案内が、いちばん見せたいものを覆っては本末転倒なので。
+   * ── 置き場所を、三度まちがえました ─────────────────────
+   *
+   *   bottom 15%   花の名前を隠していた
+   *   bottom 27%   紙は素通りにしたのに、紙の中の「今後は表示しない」が
+   *                **花のまん中に重なっていた**（花が取れなくなった）
+   *   top 13%      いま。窓のあたり。花にも名前にも触れない
+   *
+   * 決めごとにします。**案内は「花の帯」に入れないこと。**
+   * 花が並ぶのは画面の 17%〜45%（下から）で、名前の札はその下です。
+   * ここに何かを置くと、必ず花か名前のどちらかを覆います。
+   *
+   * 「素通りさせる」だけでは足りません。**押せるものが一つでも
+   * 混じっていれば、そこは通れなくなります。**
    */
-  bottom: 27%;
+  top: 13%;
   transform: translateX(-50%);
   z-index: 6;
   display: flex;
@@ -30,7 +40,18 @@
   border-radius: var(--fs-radius-md);
   background: rgba(255, 252, 244, 0.94);
   box-shadow: var(--fs-shadow-soft);
-  pointer-events: auto;
+  /*
+   * **案内は、指を遮りません。**
+   *
+   * 「花にふれると見られます」と書いた紙が、**その花の上に乗っていました。**
+   * 案内のとおりにしようとした人が、案内に阻まれる ──
+   * いちばん間抜けな作りです。実際、通し確認で花が取れなくなっていました。
+   *
+   * 触れてよいのは「今後は表示しない」だけ。紙そのものは素通りさせます。
+   * （名前を隠していたのを直したのに続いて、これで二度目です。
+   *   **案内は、置いた場所と、遮るものの両方を確かめること。**）
+   */
+  pointer-events: none;
   /* すぐには出さない。画面を見てからにする。 */
   animation: first-time-in 1.2s var(--fs-easing-soft) 1.6s both;
 }
@@ -38,7 +59,7 @@
 @keyframes first-time-in {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(6px);
+    transform: translateX(-50%) translateY(-6px);
   }
   to {
     opacity: 1;
@@ -70,6 +91,8 @@
   color: var(--fs-color-ink-faint);
   border-bottom: 1px solid var(--fs-color-line);
   cursor: pointer;
+  /* 紙は素通りだが、ここだけは押せる。 */
+  pointer-events: auto;
 }
 
 .first-time__hide:hover {
