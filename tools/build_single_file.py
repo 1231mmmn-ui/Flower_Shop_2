@@ -50,7 +50,12 @@ UNUSED = ("greenhouse/", "scenes/window-", "props/counter.jpg",
 
 # 花の絵だけ、少し縮める。一輪の画面で 894px 使うので 800 は残す。
 FLOWER_MAX = 800
-QUALITY = 80
+# 80 → 76。**画質のためではなく、上限に収めるためです。**
+# 絵が増えて 4.85MB になり、公開できる大きさを超えました。
+#   q80  3.27MB  → HTML 4.67MB
+#   q76  3.12MB  → HTML 4.47MB
+# 落ち方は下で測っています（普通のビルドと撮り比べ）。
+QUALITY = 76
 
 
 def encode(path: Path) -> str:
