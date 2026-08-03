@@ -28,13 +28,32 @@ import type { Ribbon, Wrapping } from '../data/wrapping';
  *   3本   幅 57%
  *   6本   幅 63%
  *   9本   幅 69%
+ *
+ * **束ね方でも変わります。**（→ src/game/styles.ts の `paper`）
+ * 高さを出した束には細くて高い紙、広がった束には広い紙。
+ * 絵は色ごとに一枚のままで、伸ばし方だけを変えています。
  */
-export function WrapCone({ wrapping, stems = 3 }: { wrapping: Wrapping; stems?: number }) {
+export function WrapCone({
+  wrapping,
+  stems = 3,
+  paper = { width: 1, height: 1 },
+}: {
+  wrapping: Wrapping;
+  stems?: number;
+  /** 束ね方ごとの、紙の伸ばし方（→ src/game/styles.ts） */
+  paper?: { width: number; height: number };
+}) {
   const spread = Math.min(12, Math.max(2, stems));
   return (
     <img
       className={`wrap-cone ${wrapping.sheer ? 'wrap-cone--sheer' : ''}`}
-      style={{ '--spread': spread } as CSSProperties}
+      style={
+        {
+          '--spread': spread,
+          '--paper-w': paper.width,
+          '--paper-h': paper.height,
+        } as CSSProperties
+      }
       src={wrapCone(wrapping.id)}
       alt=""
       aria-hidden

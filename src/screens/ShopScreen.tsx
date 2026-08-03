@@ -22,7 +22,11 @@ export function ShopScreen() {
   const { state, dispatch, customer, season, pickedTotal } = useGame();
   const counterRef = useRef<HTMLDivElement>(null);
   // 今日の棚。季節で花は入れ替えず、旬のものが手前に来るだけ。
-  const shelf = useMemo(() => shelfFor(season.id, state.day), [season.id, state.day]);
+  // 今日の棚。入口に飾った一輪は抜いてある（→ src/data/shelf.ts）。
+  const shelf = useMemo(
+    () => shelfFor(season.id, state.day, state.frontFlowerId),
+    [season.id, state.day, state.frontFlowerId],
+  );
   const [center, setCenter] = useState(0);
 
   /** いま画面の中央にある花を見つける。 */
@@ -63,12 +67,14 @@ export function ShopScreen() {
     <div className={`shop-view ${inspecting ? 'is-inspecting' : ''}`}>
       <QuietBar />
 
-      {/* お客様の望みは、一行のつぶやきとして残しておく */}
-      <p className="shop-view__murmur">{customer.wish.toneLabel}</p>
-
       {/*
-        エプロンのメモ。選んでいるあいだ、お客さまの言葉がずっと手元にある。
+        オーダー票。選んでいるあいだ、お客さまの言葉がずっと手元にある。
         こちらからは開かない。気づかない人がいてよい。
+
+        **お客さまの望み（「明るい色のお花が好き」）は、ここへ移しました。**
+        前は花の上に一行浮いていて、花を隠すうえに、
+        誰の言葉なのかも分かりませんでした。伝票の中なら、
+        誰が何を言ったのかが、置き場所そのもので分かります。
       */}
       {!inspecting && <ApronMemo customer={customer} />}
 

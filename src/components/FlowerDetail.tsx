@@ -15,8 +15,16 @@ interface FlowerDetailProps {
   flower: Flower;
   inSeason: boolean;
   picked?: number;
-  /** 図鑑から開いたときは、花を取るボタンを出さない */
+  /** 図鑑・店頭の花では、取るボタンを出さない */
   canPick?: boolean;
+  /**
+   * 値段を出すか。
+   *
+   * **店頭に飾った花には出しません。** あれは商品ではなく、
+   * 今日の店の顔なので。値段を書いた瞬間、
+   * 「今日はいくらの花を飾ったか」の話になります。
+   */
+  showPrice?: boolean;
   onPick?: () => void;
   onClose: () => void;
 }
@@ -26,6 +34,7 @@ export function FlowerDetail({
   inSeason,
   picked = 0,
   canPick = true,
+  showPrice = true,
   onPick,
   onClose,
 }: FlowerDetailProps) {
@@ -90,9 +99,29 @@ export function FlowerDetail({
             <h2 className="detail__name">{flower.name}</h2>
             <p className="whisper">{flower.reading}</p>
           </div>
-          <div className="detail__price">
-            <span className="detail__yen">{formatPrice(flower.price)}</span>
-            <span className="whisper">／本</span>
+          {/*
+            名前の右。値段と、取ること。
+
+            **紙の下まで行かずに選べる**ようにしました ── 花のことを
+            読んで「これだ」と思った、その手のままで取れるように。
+            前は紙のいちばん下まで下りないと選べず、
+            そこまで下りる人は、たいてい読むのをやめていました。
+
+            店頭に飾った花には値段を出しません（showPrice=false）。
+            あれは商品ではなく、今日の店の顔なので。
+          */}
+          <div className="detail__aside">
+            {showPrice && (
+              <div className="detail__price">
+                <span className="detail__yen">{formatPrice(flower.price)}</span>
+                <span className="whisper">／本</span>
+              </div>
+            )}
+            {canPick && (
+              <button type="button" className="button button--small detail__take" onClick={onPick}>
+                この花を選ぶ
+              </button>
+            )}
           </div>
         </header>
 
@@ -148,20 +177,21 @@ export function FlowerDetail({
           </div>
         </dl>
 
+        {/*
+          紙の下は、**戻る道だけ**にしました。
+          前はここに「この花を取る」が並んでいて、名前を読んだあと
+          いちばん下まで下りないと選べませんでした。
+          いまは名前の右で選べます（上の detail__take）。
+
+          「そっと戻す」もやめました。何が起きるか分からない言い方で、
+          しかも取り消しのように読めます。ただ棚へ戻るだけなので、
+          そう書きます。
+        */}
         <div className="detail__actions">
-          <button
-            type="button"
-            className={canPick ? 'button button--quiet' : 'button'}
-            onClick={onClose}
-          >
-            {canPick ? 'そっと戻す' : '閉じる'}
+          <button type="button" className="button button--quiet" onClick={onClose}>
+            {canPick ? 'ほかの花も見る' : '閉じる'}
           </button>
-          {canPick && (
-            <button type="button" className="button" onClick={onPick}>
-              この花を取る
-              {picked > 0 && <span className="detail__picked">いま {picked} 本</span>}
-            </button>
-          )}
+          {picked > 0 && <span className="detail__picked">いま {picked} 本</span>}
         </div>
       </div>
     </div>

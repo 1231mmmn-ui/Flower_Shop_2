@@ -66,7 +66,80 @@ const base = (day) => ({
   soundOn: false,
 });
 
-/** 開店前 → 挨拶 → 選ぶ → 束ねる → 渡す → 余韻 → 翌日。 */
+/**
+ * 一組ぶんの接客。挨拶 → 選ぶ → 束ねる → 渡す → お見送り。
+ *
+ * 返り値は「この方が最後だったか」。
+ * 一日に3〜5組いらっしゃるので、呼ぶ側が繰り返します。
+ */
+async function serveOne(page, { picks = 3, touchBouquet = true, tag = '' } = {}) {
+  await must(page, `${tag}① 挨拶：希望を受ける`, () =>
+    page.getByRole('button', { name: 'わかりました' }).click({ timeout: 8000 }),
+  );
+  await page.waitForTimeout(900);
+
+  for (let i = 0; i < picks; i += 1) {
+    await must(page, `${tag}② 棚：${i + 1}本目を見る`, () =>
+      page.locator('.shop-view .stand').nth(i * 2).click({ force: true, timeout: 8000 }),
+    );
+    await page.waitForTimeout(600);
+    // **紙の下ではなく、名前の右**で選べること（実機の指摘で移した）。
+    await must(page, `${tag}② 一輪：${i + 1}本目を取る`, () =>
+      page.getByRole('button', { name: 'この花を選ぶ' }).click({ timeout: 8000 }),
+    );
+    await page.waitForTimeout(450);
+  }
+
+  await must(page, `${tag}③ 束ねるへ進む`, () =>
+    page.getByRole('button', { name: /束ねる/ }).click({ timeout: 8000 }),
+  );
+  await page.waitForTimeout(1100);
+
+  await must(page, `${tag}③-b 束ね方が三つある`, async () => {
+    const n = await page.locator('.arrange__style').count();
+    if (n !== 3) throw new Error(`束ね方が ${n} 個`);
+  });
+
+  await must(page, `${tag}③-c 束ね方を選び替えられる`, async () => {
+    await page.getByRole('button', { name: '自然に広がる' }).click({ timeout: 8000 });
+    await page.waitForTimeout(600);
+    const chosen = await page.locator('.arrange__style.is-chosen').textContent();
+    if (chosen !== '自然に広がる') throw new Error(`選ばれたのは ${chosen}`);
+  });
+
+  // 花を失っていないこと。**選び直しであって、組み直しではない。**
+  await must(page, `${tag}③-d 形を変えても花は減らない`, async () => {
+    const n = await page.locator('.bouquet__stem').count();
+    if (n !== picks) throw new Error(`花が ${n} 本（取ったのは ${picks} 本）`);
+  });
+
+  await must(page, `${tag}④ お渡しする`, () =>
+    page.getByRole('button', { name: 'お渡しする' }).click({ timeout: 8000 }),
+  );
+  await page.waitForTimeout(1600);
+
+  if (touchBouquet) {
+    await must(page, `${tag}⑤ 眺める間：束にふれて戻せる`, async () => {
+      await page.locator('.deliver__moment').click({ force: true, timeout: 8000 });
+      await page.waitForTimeout(700);
+      await page.locator('.deliver__moment').click({ force: true, timeout: 8000 });
+      await page.waitForTimeout(700);
+      // 戻せていないと、ここから出られない（一度そうなっていた）。
+      const foot = await page.locator('.deliver__foot .button').isEnabled();
+      if (!foot) throw new Error('お見送りが押せない');
+    });
+  }
+
+  const label = await page.locator('.deliver__foot .button').textContent();
+  const last = label?.includes('片づける') ?? false;
+  await must(page, `${tag}⑥ ${last ? '最後の方を' : ''}お見送りする`, () =>
+    page.locator('.deliver__foot .button').click({ timeout: 8000 }),
+  );
+  await page.waitForTimeout(1500);
+  return last;
+}
+
+/** 市場 → 今日の花 → 開店 → 3〜5組 → 閉店 → 翌日。 */
 async function playDay(page, { picks = 3, touchBouquet = true } = {}) {
   await must(page, '扉を押す', () =>
     page.getByRole('button', { name: '扉を押す' }).click({ timeout: 8000 }),
@@ -77,67 +150,61 @@ async function playDay(page, { picks = 3, touchBouquet = true } = {}) {
     page.locator('.market__stall').nth(1).click({ force: true, timeout: 8000 }),
   );
   await page.waitForTimeout(700);
-  await must(page, '⓪-a 市場：入口の花を決める', () =>
-    page.getByRole('button', { name: 'この花を連れて帰る' }).click({ timeout: 8000 }),
+  await must(page, '⓪-a 市場：今日の花を決める', () =>
+    page.getByRole('button', { name: 'この花を店頭に飾る' }).click({ timeout: 8000 }),
   );
-  await page.waitForTimeout(1800);
+  await page.waitForTimeout(1600);
 
-  await must(page, '入口の一輪挿しが出ている', async () => {
-    const n = await page.locator('.front-vase').count();
-    if (n !== 1) throw new Error(`front-vase が ${n} 個`);
+  // ⓪-b 開店前は「今日の一輪だけ」。売り物の棚は出さない。
+  await must(page, '⓪-b 開店前：今日の一輪が中央にある', async () => {
+    const n = await page.locator('.morning__front').count();
+    if (n !== 1) throw new Error(`中央の花が ${n} 個`);
+    const shelf = await page.locator('.morning .stand').count();
+    if (shelf !== 0) throw new Error(`売り物の棚が ${shelf} 台 出ている`);
   });
 
-  await must(page, '⓪-b 開店前：札を裏返す', () =>
-    page.getByRole('button', { name: 'お店を開ける' }).click({ timeout: 8000 }),
+  await must(page, '⓪-b 開店前：中央の花と、開く紙が一致している', async () => {
+    const name = (await page.locator('.morning__name').textContent()) ?? '';
+    await page.locator('.morning__front').click({ timeout: 8000 });
+    await page.waitForTimeout(900);
+    const shown = await page.locator('.detail__name').textContent();
+    if (!name.startsWith(shown ?? '@')) throw new Error(`札は ${name}、紙は ${shown}`);
+    // 店頭の花は商品ではないので、値段は出さない。
+    const price = await page.locator('.detail__price').count();
+    if (price !== 0) throw new Error('店頭の花に値段が出ている');
+    await page.getByRole('button', { name: '閉じる' }).click({ timeout: 8000 });
+    await page.waitForTimeout(700);
+  });
+
+  await must(page, '⓪-b 開店前：お店を開く', () =>
+    page.getByRole('button', { name: 'お店を開く' }).click({ timeout: 8000 }),
   );
   await page.waitForTimeout(1500);
 
-  await must(page, '① 挨拶：希望を受ける', () =>
-    page.getByRole('button', { name: 'わかりました' }).click({ timeout: 8000 }),
-  );
-  await page.waitForTimeout(1000);
-
-  for (let i = 0; i < picks; i += 1) {
-    await must(page, `② 棚：${i + 1}本目を見る`, () =>
-      page.locator('.shop-view .stand').nth(i * 2).click({ force: true, timeout: 8000 }),
-    );
-    await page.waitForTimeout(600);
-    await must(page, `② 一輪：${i + 1}本目を取る`, () =>
-      page.getByRole('button', { name: /この花を取る/ }).click({ timeout: 8000 }),
-    );
-    await page.waitForTimeout(500);
+  // 3〜5組。最後の方をお見送りするまで繰り返す。
+  let guests = 0;
+  for (let i = 0; i < 6; i += 1) {
+    guests += 1;
+    const last = await serveOne(page, {
+      picks,
+      touchBouquet: touchBouquet && i === 0,
+      tag: `${i + 1}組目 `,
+    });
+    if (last) break;
   }
+  await must(page, '来店は3〜5組', () => {
+    if (guests < 3 || guests > 5) throw new Error(`${guests}組`);
+  });
+  console.log(`  （${guests}組）`);
 
-  await must(page, '③ 束ねるへ進む', () =>
-    page.getByRole('button', { name: /束ねる/ }).click({ timeout: 8000 }),
-  );
-  await page.waitForTimeout(1200);
-
-  await must(page, '③-b 束ねる：花が一本ずつつかめる', async () => {
-    const n = await page.locator('.bouquet__grab').count();
-    if (n !== picks) throw new Error(`つかむところが ${n} 個（花は ${picks} 本）`);
+  await page.waitForTimeout(1800);
+  await must(page, '⑦ 余韻：今日いらした方の名前がある', async () => {
+    const n = await page.locator('.after__guest').count();
+    if (n !== guests) throw new Error(`名前が ${n} 人ぶん（来たのは ${guests}組）`);
   });
 
-  await must(page, '④ お渡しする', () =>
-    page.getByRole('button', { name: 'お渡しする' }).click({ timeout: 8000 }),
-  );
-  // 自動版はここで3秒後にUIが消える。消えたあとに触れるかを見る。
-  await page.waitForTimeout(4200);
-
-  if (touchBouquet) {
-    await must(page, '⑤ 眺める間：束にふれて戻せる', () =>
-      page.locator('.deliver__moment').click({ force: true, timeout: 8000 }),
-    );
-    await page.waitForTimeout(1300);
-  }
-
-  await must(page, '⑥ お見送りする', () =>
-    page.getByRole('button', { name: 'お見送りする' }).click({ timeout: 8000 }),
-  );
-  await page.waitForTimeout(3400);
-
-  await must(page, '⑦ 余韻：札を裏返して閉める', () =>
-    page.getByRole('button', { name: 'お店を閉める' }).click({ timeout: 8000 }),
+  await must(page, '⑦ 余韻：今日のお店を閉める', () =>
+    page.getByRole('button', { name: '今日のお店を閉める' }).click({ timeout: 8000 }),
   );
   await page.waitForTimeout(1400);
 }
@@ -149,13 +216,13 @@ page.on('console', (m) => {
   if (m.type() === 'error') fails.push(`console.error: ${m.text()}（${step}）`);
 });
 
-// ── 1. 自動版の日（1〜4日目）。詰みが出ていたのはここ。
-console.log('\n【1】自動版の日（1日目）');
+// ── 1. ふつうの一日。束にふれて、戻せるか。
+console.log('\n【1】1日目（束にふれる）');
 await open(page, base(1));
 await playDay(page, { picks: 3 });
 
-// ── 2. 手動版の日（5〜8日目）。束にふれずに進めるか。
-console.log('\n【2】手動版の日（5日目）・束にふれずに進む');
+// ── 2. 束にふれずに、そのまま進めるか。
+console.log('\n【2】5日目（束にふれない）');
 await open(page, base(5));
 await playDay(page, { picks: 2, touchBouquet: false });
 
@@ -204,7 +271,7 @@ await page.getByRole('button', { name: '扉を押す' }).click();
 await page.waitForTimeout(1600);
 await page.locator('.market__stall').nth(0).click({ force: true });
 await page.waitForTimeout(600);
-await page.getByRole('button', { name: 'この花を連れて帰る' }).click();
+await page.getByRole('button', { name: 'この花を店頭に飾る' }).click();
 await page.waitForTimeout(1800);
 await must(page, '開店前 → アルバム → 閉じる → 開店前', async () => {
   await page.getByRole('button', { name: 'アルバム' }).click({ timeout: 8000 });
@@ -217,23 +284,23 @@ await must(page, '開店前 → アルバム → 閉じる → 開店前', async
   if (!cls.includes('morning')) throw new Error(`戻り先が違う: ${cls}`);
 });
 
-// ── 7. 束ねる画面での取り消し・やり直し
-console.log('\n【7】束ねる画面の取り消し');
+// ── 7. 束ねる画面から棚へ戻れるか
+console.log('\n【7】束ねる画面から棚へ戻る');
 await open(page, base(2));
 await page.getByRole('button', { name: '扉を押す' }).click();
 await page.waitForTimeout(1600);
 await page.locator('.market__stall').nth(0).click({ force: true });
 await page.waitForTimeout(600);
-await page.getByRole('button', { name: 'この花を連れて帰る' }).click();
+await page.getByRole('button', { name: 'この花を店頭に飾る' }).click();
 await page.waitForTimeout(1800);
-await page.getByRole('button', { name: 'お店を開ける' }).click();
+await page.getByRole('button', { name: 'お店を開く' }).click();
 await page.waitForTimeout(1500);
 await page.getByRole('button', { name: 'わかりました' }).click();
 await page.waitForTimeout(900);
 for (const i of [0, 2]) {
   await page.locator('.shop-view .stand').nth(i).click({ force: true });
   await page.waitForTimeout(600);
-  await page.getByRole('button', { name: /この花を取る/ }).click();
+  await page.getByRole('button', { name: 'この花を選ぶ' }).click();
   await page.waitForTimeout(500);
 }
 await page.getByRole('button', { name: /束ねる/ }).click();

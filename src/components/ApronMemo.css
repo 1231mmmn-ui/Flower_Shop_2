@@ -31,11 +31,19 @@
 .apron__corner {
   position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
-  width: 84px;
-  height: 46px;
-  padding: 0 6px 0 10px;
+  gap: 2px;
+  /*
+   * 幅を広げました（84 → 148）。
+   * 「オーダー内容」と、お客さまが言った色みの一言が入ります。
+   * 色みの一言は、前まで**花の上に**浮いていました ──
+   * 花を隠すうえに、誰の言葉なのかも分かりませんでした。
+   */
+  width: 148px;
+  min-height: 46px;
+  padding: 6px 8px 6px 10px;
   border: 0;
   border-radius: 0 4px 4px 0;
   background:
@@ -62,16 +70,31 @@
   box-shadow: 1px 2px 3px rgba(74, 63, 53, 0.30);
 }
 
-/* 誰のご依頼か。名前だけ、手書きくらいの大きさで。 */
+/* 何の紙か。伝票の見出しくらいの大きさで。 */
 .apron__label {
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-xs);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.10em;
   line-height: 1.2;
-  color: var(--fs-color-ink-soft);
+  color: var(--fs-color-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/*
+ * お客さまが言った、色みの一言。
+ *
+ * ここは伝票の中なので、条件表に見えないよう**そのままの言葉**で。
+ * 「暖色系・明度高め」ではなく「明るい色のお花が好き」。
+ */
+.apron__tone {
+  font-family: var(--fs-font-family-base);
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: var(--fs-color-ink-soft);
   max-width: 100%;
 }
 

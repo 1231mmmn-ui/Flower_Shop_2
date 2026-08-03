@@ -116,15 +116,6 @@
   color: var(--fs-color-ink);
 }
 
-.deliver__advice {
-  margin: var(--fs-space-md) 0 0;
-  padding-top: var(--fs-space-md);
-  border-top: 1px solid var(--fs-color-line-soft);
-  font-size: var(--fs-font-sm);
-  line-height: var(--fs-font-line-base);
-  color: var(--fs-color-ink-soft);
-}
-
 .deliver__meaning {
   margin: var(--fs-space-sm) 0 0;
   font-size: var(--fs-font-xs);
@@ -161,8 +152,10 @@
  * 束と笑顔だけが残る時間。
  * まわりの言葉・しるし・ボタンが引いて、真ん中だけになる。
  *
- * いまは二案を日ごとに入れ替えて比べている（→ src/game/useLingerTrial.ts）。
- * 決まったら、比べるための仕組みだけ外す。
+ * **ふれたときだけ**にした。ひとりでに消える案もあったが、
+ * 一日に3〜5組いらっしゃるようになって、決まった ──
+ * 一度なら「間」でも、一日に何度も起きると**癖**になる。
+ * 立ち止まるかどうかは、こちらが決めることではない。
  */
 .deliver__moment {
   border: 0;

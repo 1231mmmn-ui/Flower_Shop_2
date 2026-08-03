@@ -164,6 +164,30 @@
   animation: market-in var(--fs-duration-slow) var(--fs-easing-soft) both;
 }
 
+/*
+ * まだ選んでいないときの一行。
+ *
+ * ── 「薄い」を、数で直しました ────────────────────────────
+ *
+ * `whisper`（--fs-color-ink-faint ＝ #6E645B）を、
+ * 市場の**木の台**の上に、下地なしで置いていました。
+ *
+ *   木の上 × ink-faint   1.64 : 1   前。ほぼ読めない
+ *   木の上 × ink         2.71 : 1   色を濃くしただけでは足りない
+ *   下地あり × ink       7.4  : 1   いま
+ *
+ * **木の上に文字を置くなら、必ず下地を敷くこと。**
+ * これはこのゲームで三度目に同じところで転んだ場所です
+ * （→ tokens.ts、ShopScreen.css の「いまが旬」）。
+ * 色をいじるより先に、下地があるかを見ること。
+ */
 .market__quiet {
   margin: 0;
+  padding: 5px var(--fs-space-lg);
+  border-radius: var(--fs-radius-pill);
+  background: rgba(255, 252, 244, 0.86);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: var(--fs-font-letter);
+  color: var(--fs-color-ink);
 }

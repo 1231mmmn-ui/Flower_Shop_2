@@ -13,7 +13,7 @@ import { flowerById } from '../data/flowers';
 import { useGame } from '../game/GameContext';
 
 export function GreetingScreen() {
-  const { customer, dispatch, season } = useGame();
+  const { customer, dispatch } = useGame();
   const loved = customer.wish.loved?.map((id) => flowerById(id).name).join('と');
 
   return (
@@ -58,8 +58,12 @@ export function GreetingScreen() {
         {loved && <p className="greet__note-aside">{loved}がお好きだそうです</p>}
       </div>
 
+      {/*
+        季節の一行（「窓の外で、桜がゆっくりほどけています」）は外しました。
+        **一日に3〜5回、一字一句おなじものが出ます。** 一年で80回。
+        窓の外は、絵にもう描いてあります。
+      */}
       <footer className="greet__foot">
-        <p className="greet__season">{season.window}</p>
         <button
           type="button"
           className="button"

@@ -18,37 +18,106 @@
   padding-top: var(--fs-space-md);
 }
 
+/*
+ * ── 花が、画面の外へ出ていました ────────────────────────
+ *
+ * 一本の絵の幅を束の 82% にしていました。結び目を軸に回すので、
+ * 端の花はこれだけ横へ出ます。
+ *
+ *   花の頭までの長さ  0.70 × 0.82 × 358px = 206px
+ *   52°倒すと         206 × sin52° = 162px
+ *   花の半径          45px
+ *   合計              207px   ── 束の半分（179px）を超えている
+ *
+ * だから右端のチューリップが切れていました。
+ * 一本を細くして、振れ幅ぶんの余白を作ります。
+ *
+ *   0.70 × 0.66 × 358 = 165px → 52°で 130px + 45 = 175px < 179px
+ */
 .arrange__stage .bouquet {
   width: min(100%, 370px);
   height: 100%;
   aspect-ratio: auto;
   /* 結び目を低くして、花が画面いっぱいに開くようにする */
-  --knot-bottom: 11%;
+  --knot-bottom: 12%;
+  --stem-width: 66%;
 }
 
-/* 道具の列。面は持たず、文字だけを並べる。 */
-.arrange__tools {
+/* --------------------------------------------------------------------------
+   束ね方を選ぶ
+   -------------------------------------------------------------------------- */
+
+/*
+ * 三つ。名前だけ並べます。
+ *
+ * **印も、星も、「おすすめ」も付けません。**
+ * どれかが良いことにした瞬間、選ぶことがなくなります。
+ * 選んでいるものだけ、下に線が一本引かれます ── それだけ。
+ */
+/*
+ * **一行に三つ。** 折り返して二行になると、三つのうち一つだけが
+ * 下の段に落ちて、仲間はずれのように見えます（実際そう見えていました）。
+ * 幅を三等分して、狭い端末では字を詰めます。
+ */
+.arrange__styles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  gap: var(--fs-space-xs);
+  padding: var(--fs-space-xs) var(--fs-space-sm) 0;
+}
+
+/* 二行になる名前があるので、三つとも二行ぶんの高さを取っておく。 */
+.arrange__style {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: var(--fs-space-md);
-  min-height: 34px;
-  padding: 0 var(--fs-space-sm);
+  min-height: 2.9em;
+  line-height: 1.35;
+  padding: 4px 2px;
+  font-family: var(--fs-font-family-base);
+  /*
+   * 11px。「高さを出してすっきり」は10字あり、12px だと
+   * 三等分した列（122px）に 1px 足りず、**「すっき／り」で折れて**いました。
+   * 一字ぶん詰めれば 110px で収まります。
+   */
+  font-size: 11px;
+  letter-spacing: 0;
+  color: var(--fs-color-ink-soft);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: color var(--fs-duration-quick) var(--fs-easing-soft),
+    border-color var(--fs-duration-quick) var(--fs-easing-soft);
 }
 
-.arrange__whisper,
-.arrange__holding {
-  font-size: var(--fs-font-sm);
-  letter-spacing: 0.1em;
+.arrange__style:hover {
+  color: var(--fs-color-ink);
+}
+
+.arrange__style.is-chosen {
+  color: var(--fs-color-ink);
+  border-bottom-color: var(--fs-color-sage-deep);
+}
+
+/* いま選んでいる形の、一行だけ。良し悪しは言わない。 */
+.arrange__style-note {
+  margin: 2px 0 0;
+  min-height: 1.4em;
+  text-align: center;
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
   color: var(--fs-color-ink-faint);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
+  animation: fade var(--fs-duration-base) var(--fs-easing-soft) both;
 }
 
-.arrange__holding {
-  color: var(--fs-color-sage-deep);
-}
-
+/* 下の帯に残った、面を持たない行き先 */
 .arrange__tool {
   padding: 4px 2px;
   font-family: var(--fs-font-family-base);
@@ -66,9 +135,36 @@
   border-color: var(--fs-color-sage-deep);
 }
 
-.arrange__tool:disabled {
-  opacity: 0.35;
-  cursor: default;
+/*
+ * オーダー票は、束ねる画面では**右**に置きます。
+ *
+ * 左下のままだと、資材の名前と「花を選ぶ」の上に重なっていました。
+ * 花選びの画面では左が空いていますが、この画面は下half が
+ * 束ね方・資材・下の帯で埋まっているので、置き場所が違います。
+ */
+/*
+ * 置き場所を、二度まちがえました。
+ *   左下 7%   資材の名前と「花を選ぶ」の上に重なった
+ *   右 30%    束の紙とリボンの上に重なった
+ *   右上      いま。窓の下、束の始まる前
+ *
+ * この画面は下半分が束ね方・資材・下の帯で埋まっているので、
+ * 花選びの画面と同じ場所には置けません。
+ */
+.arrange .apron {
+  left: auto;
+  right: 0;
+  top: 34px;
+  bottom: auto;
+}
+
+.arrange .apron__corner {
+  border-radius: 4px 0 0 4px;
+  transform: translateX(8px) rotate(1.4deg);
+}
+
+.arrange .apron__corner:hover {
+  transform: translateX(2px) rotate(1.4deg);
 }
 
 /* 資材の棚。現物を横に並べる。 */

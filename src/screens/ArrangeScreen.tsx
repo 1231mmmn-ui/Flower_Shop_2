@@ -1,31 +1,43 @@
 /**
  * 束ねて、包む。
  *
- * 画面のほとんどはブーケそのもの。
- * 道具は、花にふれたときだけそっと現れる。
- * 資材は名前の一覧ではなく、棚から取るように現物を並べる。
+ * ── 一本ずつ動かす方式を、やめました ──────────────────────
+ *
+ * 実機で触ってみると、あれは**画像を配置する操作**でした。
+ * うまく置けても嬉しくなく、置けないと自分が下手に思えます。
+ * 「自由度を高く」より「思ったとおりに気持ちよく動く」を優先しても、
+ * 直るのは操作の精度だけで、**その時間の意味は変わりません。**
+ *
+ * いまは、こちらが最後まで組んだ束を三つ出します。
+ *
+ *   丸くやわらかい      高さを出してすっきり      自然に広がる
+ *
+ * **三つとも成立しています。優劣も、正解も、点数もありません。**
+ * どれを選んでも、お客さまの受け取り方は変わりません（→ evaluation.ts）。
+ * ここでしてほしいのは「この人には、どんな束が似合うだろう」と
+ * 考えることで、うまく置けたかどうかではありません。
+ *
+ * 一日に3〜5組いらっしゃるようになったので、テンポの話でもあります。
+ * ただし**軽くしたのは操作だけで、考える時間は削っていません。**
  */
-
-import { useState } from 'react';
 
 import './ArrangeScreen.css';
 import { wrapMaterial } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
 import { ApronMemo } from '../components/ApronMemo';
 import { QuietBar } from '../components/QuietBar';
-import { flowerById } from '../data/flowers';
 import { RIBBONS, WRAPPINGS, ribbonById, wrappingById } from '../data/wrapping';
 import { bouquetPrice } from '../game/evaluation';
+import { BOUQUET_STYLES, styleById } from '../game/styles';
 import { useGame } from '../game/GameContext';
 
 export function ArrangeScreen() {
   const { state, dispatch, customer } = useGame();
-  const [selected, setSelected] = useState<string | null>(null);
 
   const total = bouquetPrice(state.bouquet);
-  const stem = state.bouquet.stems.find((item) => item.uid === selected);
   const wrap = wrappingById(state.bouquet.wrappingId);
   const ribbon = ribbonById(state.bouquet.ribbonId);
+  const style = styleById(state.bouquet.styleId);
 
   return (
     <div className="arrange">
@@ -37,61 +49,36 @@ export function ArrangeScreen() {
       <div className="arrange__stage">
         <Bouquet
           bouquet={state.bouquet}
-          interactive
-          selectedUid={selected}
-          onSelect={setSelected}
-          onMove={(uid, angle, reach) => dispatch({ type: 'move-stem', uid, angle, reach })}
           className={state.bouquet.stems.length === 0 ? 'bouquet--empty' : ''}
         />
       </div>
 
-      {/* 道具は、花を選んでいるときだけ現れる */}
-      <div className={`arrange__tools ${stem ? 'is-open' : ''}`}>
-        {stem ? (
-          <>
-            <span className="arrange__holding">{flowerById(stem.flowerId).name}</span>
-            <button
-              type="button"
-              className="arrange__tool"
-              onClick={() => dispatch({ type: 'bring-forward', uid: stem.uid })}
-            >
-              手前へ
-            </button>
-            <button
-              type="button"
-              className="arrange__tool"
-              onClick={() => {
-                dispatch({ type: 'remove-stem', uid: stem.uid });
-                setSelected(null);
-              }}
-            >
-              戻す
-            </button>
-            <button type="button" className="arrange__tool" onClick={() => setSelected(null)}>
-              手をはなす
-            </button>
-          </>
-        ) : (
-          <>
-            <span className="arrange__whisper">花にふれて動かせます</span>
-            <button
-              type="button"
-              className="arrange__tool"
-              onClick={() => dispatch({ type: 'rearrange' })}
-            >
-              整える
-            </button>
-            <button
-              type="button"
-              className="arrange__tool"
-              disabled={state.history.length === 0}
-              onClick={() => dispatch({ type: 'undo' })}
-            >
-              ひとつ前へ
-            </button>
-          </>
-        )}
+      {/*
+        束ね方。三つ。
+
+        名前だけ並べます。**印も、星も、「おすすめ」も付けません。**
+        どれかが良いことにした瞬間、選ぶことがなくなります。
+      */}
+      <div className="arrange__styles" role="group" aria-label="束ね方">
+        {BOUQUET_STYLES.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`arrange__style ${
+              state.bouquet.styleId === item.id ? 'is-chosen' : ''
+            }`}
+            aria-pressed={state.bouquet.styleId === item.id}
+            onClick={() => dispatch({ type: 'set-style', id: item.id })}
+          >
+            {item.name}
+          </button>
+        ))}
       </div>
+
+      {/* いま選んでいる形の、一行だけ。良し悪しは言わない。 */}
+      <p className="arrange__style-note" key={style.id}>
+        {style.note}
+      </p>
 
       {/* 棚から資材を取る。名前は選んだものだけ。 */}
       <div className="arrange__shelf">

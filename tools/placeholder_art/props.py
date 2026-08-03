@@ -73,45 +73,114 @@ CUSTOMER_SPECS = [
 # --------------------------------------------------------------------------
 
 def render_vase(seed: int = 0) -> Image.Image:
-    """花なしの、水が少し入ったガラスの花瓶。店頭では花をこの上に重ねる。"""
+    """花なしの、水が入ったガラスの花瓶。店頭では花をこの上に重ねる。
+
+    ── 「花瓶の前に茎が置かれている」ように見えていました ──────────
+
+    前の絵にも、口の輪と水面の線は描いてありました。**寸法が足りなかった**
+    のです。512px で描いたものを、棚では 90px ほどに縮めて出しています。
+
+        口の輪   26px  → 4.6px   ほとんど線一本
+        水面     3px   → 0.5px   消える
+        ガラス   平均α 79（31%）の、ただの角丸長方形
+
+    つまり縮めたあとは「半透明の四角」しか残っていませんでした。
+    茎はその後ろを素通りするので、**中に挿さっている手がかりがありません。**
+
+    ── 中に入って見せるために、要るもの ────────────────────
+
+    一．口が**穴**に見えること。輪ではなく、奥の縁と手前の縁が
+        別々に見える楕円。奥の縁は暗く、手前の縁は明るい。
+    二．**手前の縁が、茎の上に重なる**こと。これがいちばん効きます。
+        茎の絵はガラスの後ろにありますが、手前の縁だけは不透明にして
+        茎を隠します ── 縁で茎が切れることが「中」の証拠になります。
+    三．**水面**が面として見えること。線ではなく楕円の面。
+    四．水の中と外で、茎の見え方が変わること（水中は少し太く、淡く）。
+        ここでは水そのものを濃くして、後ろの茎を沈ませます。
+
+    縮めても残るように、どれも 512px で 3〜4倍の寸法にしてあります。
+    """
     w, h = PROP_SIZE
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+
+    # 器のかたち。まっすぐな筒ではなく、下がわずかにすぼまる。
+    top, bottom = int(h * 0.28), int(h * 0.94)
+    half_top = int(w * 0.235)
+    half_bot = int(w * 0.205)
+    cx = w // 2
+    # 口の楕円の高さ。**ここを厚くしないと、縮めたとき消えます。**
+    rim_ry = int(w * 0.062)
+
+    def half_at(y: float) -> float:
+        t = (y - top) / (bottom - top)
+        return half_top + (half_bot - half_top) * t
+
+    # ---- ガラスの胴（後ろの面）。淡く、下ほどわずかに濃い。
+    body = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(body)
+    for y in range(top, bottom):
+        t = (y - top) / (bottom - top)
+        hx = half_at(y)
+        a = int(30 + 34 * t ** 1.6)
+        bd.line([cx - hx, y, cx + hx, y], fill=(233, 242, 238, a))
+    bd.ellipse([cx - half_bot, bottom - rim_ry, cx + half_bot, bottom + rim_ry],
+               fill=(226, 236, 232, 78))
+    img = Image.alpha_composite(img, body)
+
+    # ---- 水。**面として見えること。**
+    water_top = top + int((bottom - top) * 0.40)
+    water = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    wd = ImageDraw.Draw(water)
+    for y in range(water_top, bottom):
+        t = (y - water_top) / (bottom - water_top)
+        hx = half_at(y) - 5
+        wd.line([cx - hx, y, cx + hx, y], fill=(186, 208, 198, int(52 + 40 * t)))
+    # 水面そのもの。線ではなく楕円の面。
+    hw = half_at(water_top) - 5
+    wd.ellipse([cx - hw, water_top - rim_ry * 0.72, cx + hw, water_top + rim_ry * 0.72],
+               fill=(214, 232, 224, 130))
+    wd.arc([cx - hw, water_top - rim_ry * 0.72, cx + hw, water_top + rim_ry * 0.72],
+           start=0, end=180, fill=(255, 255, 255, 210), width=6)
+    img = Image.alpha_composite(img, water.filter(ImageFilter.GaussianBlur(1.6)))
+
     d = ImageDraw.Draw(img)
 
-    top, bottom = int(h * 0.30), int(h * 0.95)
-    half = int(w * 0.21)
-    x0, x1 = w // 2 - half, w // 2 + half
+    # ---- 口。奥の縁（暗い）
+    d.arc([cx - half_top, top - rim_ry, cx + half_top, top + rim_ry],
+          start=180, end=360, fill=(150, 172, 166, 190), width=9)
 
-    # 水（下へいくほど濃く）
-    water_top = top + int((bottom - top) * 0.34)
-    for i in range(12):
-        d.rounded_rectangle([x0 + 4, water_top + (bottom - water_top) * i / 12,
-                             x1 - 4, bottom - 5],
-                            radius=18, fill=(198, 216, 204, 27))
-    d.line([x0 + 8, water_top, x1 - 8, water_top], fill=(255, 255, 255, 170), width=3)
+    # ---- ガラスの厚み。左右の縁。光は左上なので、左が明るく右が沈む。
+    for side, edge in ((-1, (255, 255, 255, 200)), (1, (206, 222, 216, 165))):
+        pts = [(cx + side * half_at(y), y) for y in range(top + 6, bottom - 4, 8)]
+        d.line(pts, fill=edge, width=7, joint="curve")
 
-    # ガラス本体
-    d.rounded_rectangle([x0, top, x1, bottom], radius=22,
-                        fill=(236, 244, 240, 64), outline=(255, 255, 255, 225), width=5)
-    d.rounded_rectangle([x0 + 6, top + 6, x1 - 6, bottom - 6], radius=17,
-                        outline=(255, 255, 255, 84), width=2)
-    # 口元
-    d.ellipse([x0 - 4, top - 12, x1 + 4, top + 14], outline=(255, 255, 255, 225), width=5)
-    d.ellipse([x0 + 7, top - 5, x1 - 7, top + 9], outline=(210, 226, 218, 140), width=2)
-    # 左上光源の映り込み
-    d.line([x0 + 15, top + 26, x0 + 15, bottom - 34], fill=(255, 255, 255, 205), width=10)
-    d.line([x0 + 29, top + 40, x0 + 29, bottom - 58], fill=(255, 255, 255, 90), width=4)
-    d.line([x1 - 17, top + 54, x1 - 17, bottom - 46], fill=(255, 255, 255, 100), width=5)
-    # 底の厚み
-    d.line([x0 + 18, bottom - 15, x1 - 18, bottom - 15], fill=(255, 255, 255, 150), width=7)
-    d.arc([x0 + 5, bottom - 34, x1 - 5, bottom + 6], start=0, end=180,
-          fill=(236, 244, 240, 175), width=4)
+    # ---- 映り込み。細い縦のハイライト二本。
+    d.line([cx - half_top + 26, top + 44, cx - half_bot + 24, bottom - 52],
+           fill=(255, 255, 255, 190), width=13)
+    d.line([cx + half_top - 34, top + 70, cx + half_bot - 30, bottom - 74],
+           fill=(255, 255, 255, 96), width=6)
 
-    img = img.filter(ImageFilter.GaussianBlur(1.1))
+    # ---- 底の厚み
+    d.arc([cx - half_bot, bottom - rim_ry * 2, cx + half_bot, bottom + rim_ry],
+          start=0, end=180, fill=(255, 255, 255, 175), width=9)
+
+    img = img.filter(ImageFilter.GaussianBlur(1.0))
+
+    # ---- 口の手前の縁。**ここだけは、ぼかしたあとに、不透明で描く。**
+    #
+    # 茎はこの絵の後ろにあるので、手前の縁が不透明なら、茎はここで切れます。
+    # **縁で茎が切れることが、「中に挿さっている」ということです。**
+    # ぼかす前に描くと、にじんで透け、茎が縁を素通りして見えます。
+    d2 = ImageDraw.Draw(img)
+    d2.arc([cx - half_top, top - rim_ry, cx + half_top, top + rim_ry],
+           start=0, end=180, fill=(246, 251, 249, 255), width=11)
+    d2.arc([cx - half_top + 9, top - rim_ry + 7, cx + half_top - 9, top + rim_ry - 4],
+           start=0, end=180, fill=(196, 214, 208, 140), width=4)
 
     # 台に落ちる影
     shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).ellipse([x0 - 26, bottom - 18, x1 + 40, bottom + 16],
+    ImageDraw.Draw(shadow).ellipse([cx - half_bot - 26, bottom - 18,
+                                    cx + half_bot + 40, bottom + 16],
                                    fill=(96, 76, 60, 70))
     return paper_texture(Image.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(14)), img),
                          seed=seed, strength=0.05)

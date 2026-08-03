@@ -29,10 +29,15 @@
   outline: none;
 }
 
+/*
+ * 茎の切り口は、**花瓶の口より下**へ入れます。
+ * 9% では口の高さとほぼ同じで、茎が縁の手前で終わって見えました。
+ * 4% まで沈めると、茎は縁に隠れて水の中へ続きます。
+ */
 .stand__flowers {
   position: absolute;
   left: 50%;
-  bottom: 9%;
+  bottom: 4%;
   /* 花の画像は正方形で、花冠はその4割ほど。大きく見せるため置き場所より広く取る。 */
   width: 190%;
   transform: translateX(-50%);
@@ -60,11 +65,23 @@
  * 実際の店頭のバケツ／花瓶は、花の広がりに対してもっと器がある。
  * 花より大きくしないまま、受けとして成立する太さへ（47% → 58%）。
  */
+/*
+ * ── 「花瓶の前に茎が置かれている」ように見えていた ────────────
+ *
+ * 絵のほうを描き直しました（口の楕円・水面・手前の縁 → props.py）。
+ * ここでは**大きさ**を直します。58% だと口の楕円が 8px しかなく、
+ * せっかく描いた「穴」が縮んで消えていました。
+ *
+ *   58%   幅 90px   口の楕円 8px
+ *   72%   幅 112px  口の楕円 14px
+ *
+ * 花より大きくはしません。器として成立する、いちばん小さい太さです。
+ */
 .stand__vase {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 58%;
+  width: 72%;
   transform: translateX(-50%);
   z-index: 5;
   filter: drop-shadow(5px 8px 11px rgba(96, 74, 54, 0.24));
@@ -75,7 +92,7 @@
   position: absolute;
   left: 50%;
   bottom: 1%;
-  width: 56%;
+  width: 66%;
   height: 10%;
   transform: translateX(-50%);
   border-radius: 50%;

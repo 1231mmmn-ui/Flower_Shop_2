@@ -2,22 +2,21 @@
  * 余韻。
  *
  * 朝（⓪-b 開店前）と対になる画面です。
- *   朝   札を裏返して、一日が始まる
- *   夜   札を裏返して、一日が閉じる
+ *   朝   「お店を開く」を押して、一日が始まる
+ *   夜   「今日のお店を閉める」を押して、一日が閉じる
  * **同じ手つき**で閉じます。数字でも、まとめ画面でもなく。
  *
- * だから見た目も朝の札と同じものを使います。違うのは向きだけ。
- *
- * `sign-flip` と `sign-sway` は OpeningScreen.css で定義しているものを
- * そのまま使います（同じ札なので、二つ持たない）。
+ * 札を裏返す仕組みは、朝と一緒にやめました。何が起きるのか、
+ * 押してみるまで分からない操作だったので（→ OpeningScreen.tsx）。
  */
 
 /*
  * 置きどころは、絵に合わせて決めています。
  *
  *   〜46%   窓と棚（絵にもう描かれている。ここには何も置かない）
- *   46〜58% 壁。ここに帰りぎわの一言
- *   58%〜   カウンターの木。ここに花びらと札
+ *   46〜56% 壁。ここに帰りぎわの一言
+ *   56〜72% 壁の下。今日いらした方の名前
+ *   72%〜   カウンターの木。ここに花びらとボタン
  *
  * はじめは上から縦に並べていたので、**一言が窓に重なりました。**
  * 窓の上に文字が乗ると、字幕になります。
@@ -33,7 +32,7 @@
  */
 .after__farewell {
   position: absolute;
-  top: 48%;
+  top: 46%;
   left: var(--fs-space-lg);
   right: var(--fs-space-lg);
   margin: 0;
@@ -62,8 +61,8 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 58%;
-  bottom: 18%;
+  top: 72%;
+  bottom: 16%;
 }
 
 /*
@@ -104,112 +103,83 @@
   }
 }
 
-/* ---- 札 ------------------------------------------------------------------ */
+/* ---- 今日、花をお渡しした方 ------------------------------------------------ */
 
 /*
- * 朝の札とまったく同じ作り（→ OpeningScreen.css）。
- * 一日の始めと終わりで別のものに見えてはいけないので、
- * 寸法・木目・影の向きは写しています。
+ * 名前だけ。**数も、点数も、束の写真も出さない。**
+ *
+ * 「3人接客しました」と書いた瞬間、それは今日のまとめになり、
+ * 明日は4人にしたくなります。何人だったかは、並んだ名前を見れば
+ * 分かります ── 分かるのと、数えさせるのは、違うことです。
+ *
+ * 木の上に出るので、下地を敷きます
+ * （木の上の文字は、どの色でもコントラストが足りない）。
  */
+.after__guests {
+  position: absolute;
+  left: var(--fs-space-lg);
+  right: var(--fs-space-lg);
+  top: 57%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-xs);
+  opacity: 0;
+  animation: after-word 1.6s var(--fs-easing-soft) 0.9s forwards;
+}
+
+.after__guests-lead {
+  margin: 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
+  color: var(--fs-color-ink-faint);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 14px rgba(255, 250, 238, 0.9);
+}
+
+.after__guests-names {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px var(--fs-space-md);
+  margin: 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 14px rgba(255, 250, 238, 0.9);
+}
+
+/* ---- 店を閉める ------------------------------------------------------------ */
+
 /* 中央寄せに transform は使わない（→ EndingScreen.css の注記）。 */
-.after__sign {
+.after__foot {
   position: absolute;
   left: 0;
   right: 0;
   bottom: var(--fs-space-xxl);
-  width: fit-content;
-  margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: 0;
-  padding: 0;
-  background: none;
-  cursor: pointer;
-  perspective: 620px;
+  justify-content: center;
   /* 静かになるまでの1.5秒は、まだふれられない */
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--fs-duration-slow) var(--fs-easing-soft);
 }
 
-.after.is-settled .after__sign {
+.after.is-settled .after__foot {
   opacity: 1;
   pointer-events: auto;
 }
 
-.after__sign:disabled {
-  cursor: default;
-}
-
-.after__sign-cord {
-  width: 1px;
-  height: 26px;
-  background: linear-gradient(
-    to bottom,
-    rgba(124, 95, 68, 0),
-    rgba(124, 95, 68, 0.55)
-  );
-}
-
-.after__sign-plate {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 148px;
-  height: 52px;
-  transform-style: preserve-3d;
-  animation: sign-sway 7.4s var(--fs-easing-soft) infinite;
-}
-
-.after__sign-face {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  backface-visibility: hidden;
-  border-radius: 3px;
-  background:
-    repeating-linear-gradient(
-      93deg,
-      rgba(124, 95, 68, 0.06) 0 1px,
-      rgba(124, 95, 68, 0) 1px 26px
-    ),
-    linear-gradient(168deg, #d9bb92, var(--fs-color-wood-light));
-  box-shadow: 4px 7px 16px rgba(74, 63, 53, 0.32);
-  font-family: var(--fs-font-family-ui);
-  font-size: var(--fs-font-md);
-  letter-spacing: 0.34em;
-  text-indent: 0.34em;
-  color: var(--fs-color-wood-dark);
-}
-
-/* 裏は「CLOSED」。夜は、こちらへ返る。 */
-.after__sign-face--closed {
-  transform: rotateY(180deg);
-  background:
-    repeating-linear-gradient(
-      93deg,
-      rgba(124, 95, 68, 0.06) 0 1px,
-      rgba(124, 95, 68, 0) 1px 26px
-    ),
-    linear-gradient(168deg, var(--fs-color-wood), var(--fs-color-wood-dark));
-  color: var(--fs-color-cream);
-}
-
-/*
- * 0.9秒かけて返る。朝と同じ長さ。
- *
- * ここは「プレイヤーに応えること」なので、**必ず**返ります
- * （→ ⑯静けさ 3章）。遅れて返ることはあっても、返らないことはない。
- */
-.after.is-closing .after__sign-plate {
-  animation: sign-flip 0.9s var(--fs-easing-soft) forwards;
-}
-
-/* 札を返したら、店の灯が落ちるように、画面ごと静かになる。 */
+/* 閉めたら、店の灯が落ちるように、画面ごと静かになる。 */
 .after.is-closing .after__farewell,
-.after.is-closing .after__petal {
+.after.is-closing .after__guests,
+.after.is-closing .after__petal,
+.after.is-closing .after__foot {
   transition: opacity 0.9s var(--fs-easing-soft);
   opacity: 0;
 }

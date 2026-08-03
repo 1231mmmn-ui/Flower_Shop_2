@@ -81,14 +81,14 @@ export function MarketScreen() {
         {holding ? (
           <>
             <p className="market__chosen">
-              {holding.name}を、入口に。
+              {holding.name}を、今日の店の花に。
             </p>
             <button
               type="button"
               className="button"
               onClick={() => dispatch({ type: 'set-front', flowerId: holding.id })}
             >
-              この花を連れて帰る
+              この花を店頭に飾る
             </button>
           </>
         ) : (
@@ -96,8 +96,12 @@ export function MarketScreen() {
             まだ選んでいないとき。
             「選んでください」とは言いません。急かす言葉も置きません。
             ここに何も無いことが、そのまま「まだ見ていていい」という意味になります。
+
+            ただし**読めないのは、静かとは言いません。**
+            `whisper`（薄い字）を外しました。木の台の上に薄い字を置くと、
+            どの色でもコントラストが足りません（最大 2.9 : 1）。
           */
-          <p className="market__quiet whisper">ひととおり、見てまわれます。</p>
+          <p className="market__quiet">ひととおり、見てまわれます。</p>
         )}
       </footer>
     </div>

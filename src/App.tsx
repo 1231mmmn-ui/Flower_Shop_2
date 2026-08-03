@@ -74,8 +74,12 @@ export function App() {
       {/*
         入口の一輪挿し。市場で選んだ花が、その日ずっとここにある。
         市場・アルバム・タイトルには出さない（店の中の話なので）。
+
+        **開店前にも出しません。** あの画面では、同じ花が
+        まんなかの一輪挿しに大きく立っています（→ OpeningScreen.tsx）。
+        両方に出すと、同じ花が二本あるように見えます。
       */}
-      {['opening', 'greeting', 'shop', 'arrange', 'after'].includes(state.phase) &&
+      {['greeting', 'shop', 'arrange', 'after'].includes(state.phase) &&
         !inspecting && <FrontVase />}
 
       <div className="stage">

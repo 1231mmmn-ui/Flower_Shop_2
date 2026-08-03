@@ -16,22 +16,14 @@
   pointer-events: none;
 }
 
-.shop-view__murmur {
-  align-self: center;
-  margin: var(--fs-space-sm) 0 0;
-  padding: 4px var(--fs-space-xl);
-  text-align: center;
-  font-size: var(--fs-font-sm);
-  letter-spacing: 0.14em;
-  color: var(--fs-color-ink-soft);
-  /* 面ではなく、光をまとわせて読ませる */
-  background: radial-gradient(
-    60% 120% at 50% 50%,
-    rgba(255, 251, 240, 0.9) 0%,
-    rgba(255, 251, 240, 0) 78%
-  );
-  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
-}
+/*
+ * `.shop-view__murmur` はもうありません。
+ *
+ * お客さまの望み（「明るい色のお花が好き」）を、花の上に一行浮かせていました。
+ * 花を隠すうえに、**誰の言葉なのかが分かりません**でした。
+ * いまはオーダー票の中にあります（→ ApronMemo.css）。
+ * 置き場所そのものが、誰が何を言ったのかを説明しています。
+ */
 
 /* 作業台。横に流して花を眺めていく。 */
 .shop-view__counter {

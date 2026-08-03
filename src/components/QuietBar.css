@@ -10,12 +10,32 @@
   animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
 }
 
+/*
+ * 今日が何日目か。
+ *
+ * **ただの情報ではありません。** 一年が20日しかないので、
+ * 「秋・14日目」は残りの日数そのものです。物語の現在地なので、
+ * アルバムや音のしるしより一段大きく、一段濃く置きます。
+ *
+ * 実測（紙の上でのコントラスト比）
+ *   ink-soft  4.6 : 1   前。しるしと同じ濃さで、同じ重さに見えていた
+ *   ink       7.4 : 1   いま
+ */
 .quiet__when {
-  font-size: var(--fs-font-sm);
+  font-size: var(--fs-font-md);
   letter-spacing: 0.18em;
-  color: var(--fs-color-ink-soft);
+  color: var(--fs-color-ink);
   /* 明るい窓の前でも読めるように、光をまとわせる */
-  text-shadow: 0 1px 10px rgba(255, 250, 238, 0.9), 0 0 2px rgba(255, 250, 238, 0.9);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 1px 10px rgba(255, 250, 238, 0.95),
+    0 0 2px rgba(255, 250, 238, 0.9);
+}
+
+/* 日にちだけ、ほんの少し大きく。 */
+.quiet__day {
+  font-size: var(--fs-font-lg);
+  letter-spacing: 0.1em;
 }
 
 .quiet__dot {

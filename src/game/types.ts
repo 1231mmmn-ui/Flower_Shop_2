@@ -35,7 +35,19 @@ export interface Bouquet {
   stems: BouquetStem[];
   wrappingId: string;
   ribbonId: string;
+  /**
+   * 束ね方（→ src/game/styles.ts）。
+   *
+   * **一本ずつ動かす方式をやめました。**
+   * あれは「画像を配置する操作」で、うまく置けたかどうかの話でした。
+   * ここでしたいのは「この人には、どんな束が似合うだろう」と考える時間です。
+   * 三つとも成立した束で、優劣も正解もありません。
+   */
+  styleId: BouquetStyleId;
 }
+
+/** 束ね方。優劣なし、正解なし。好みだけ。 */
+export type BouquetStyleId = 'round' | 'tall' | 'natural';
 
 /** 図鑑に集まった記録。 */
 export interface LibraryEntry {
@@ -70,8 +82,14 @@ export interface DeliveredMemory {
  * 押せると分からないものだけです。**遊び方の説明ではありません。**
  */
 export type HintId =
-  | 'sign'      // 「CLOSED」の札を裏返すと、一日が始まる／終わる
-  | 'inspect';  // 花にふれると、その花だけの紙が開く
+  /*
+   * 'sign' はもうありません。
+   *
+   * 「CLOSED」の札を裏返す仕組みをやめて、「お店を開く」ボタンにしました。
+   * **説明が要る操作は、たいてい操作のほうが間違っています。**
+   * 案内を書き足すより、案内が要らない形にするほうが静かです。
+   */
+  'inspect';  // 花にふれると、その花だけの紙が開く
 
 export interface GameState {
   phase: Phase;
@@ -79,11 +97,20 @@ export interface GameState {
   /** これまでのお店の記録。競うためのものではない。 */
   earnings: number;
   customerId: string;
+  /**
+   * 今日いらっしゃる方たち（来る順）。3〜5組（→ src/data/visits.ts）。
+   *
+   * 一日一組をやめたのは、**開けて・迎えて・渡して・閉める**が
+   * 花屋の一日に見えなかったからです。
+   * 一日の終わりに残ってほしいのは「今日は一人来た」ではなく、
+   * 「今日は、こんなお客さまたちに花を渡したな」です。
+   */
+  todayCustomerIds: string[];
+  /** いま何組目か（0始まり） */
+  visitIndex: number;
   /** 花瓶から取って、作業台に置いた花 */
   picked: BouquetStem[];
   bouquet: Bouquet;
-  /** 束ねる前の、取り消し用の履歴 */
-  history: Bouquet[];
   library: Record<string, LibraryEntry>;
   /**
    * ♡お気に入り。押した順に並ぶ。

@@ -26,8 +26,20 @@
   bottom: var(--knot-bottom);
   width: calc(var(--stem-width) * var(--bouquet-scale, 1));
   transform-origin: 50% 100%;
+  /*
+   * ── 伸びが、ほとんど効いていませんでした ─────────────────
+   *
+   * translateY の % は**自分の高さ**に対してなので、11% では
+   * 伸び 0.5 のとき 13px しか伸びません。花の直径が 90px あるので、
+   * 「伸びている」と分かる大きさではありませんでした。
+   * 結果、外側の花が紙の口と同じ高さに来て、
+   * **紙の横から花が生えている**ように見えていました。
+   *
+   *   11%   伸び0.5 で 13px   外側の花は結び目から 132px
+   *   24%   伸び0.5 で 28px   外側の花は結び目から 152px（紙の口 +50px）
+   */
   transform: translateX(-50%) rotate(var(--angle))
-    translateY(calc(var(--reach) * -11%)) scale(var(--scale));
+    translateY(calc(var(--reach) * -24%)) scale(var(--scale));
   filter: brightness(calc(0.9 + var(--depth) * 0.12))
     saturate(calc(0.88 + var(--depth) * 0.14))
     blur(calc((1 - var(--depth)) * 0.7px))
@@ -36,14 +48,8 @@
     filter var(--fs-duration-base) var(--fs-easing-soft);
   animation: stem-bloom var(--fs-duration-bloom) var(--fs-easing-rise) both;
   /*
-   * **一本ぶんの四角も、触れません。**
-   *
-   * 画像を pointer-events: none にしただけでは足りませんでした。
-   * 画像が透けていても、それを包んでいる `<div>` の四角は残るので、
-   * 手前の花の四角が、奥の花の「つかむところ」を覆い続けます。
-   * 実際、4本のうち動かせたのは1本だけでした。
-   *
-   * 触れてよいのは、花の頭に置いた丸だけです。
+   * 押せません。**この束は、眺めるためのものです。**
+   * 一本ずつ動かす仕組みは外しました（→ src/game/styles.ts）。
    */
   pointer-events: none;
 }
@@ -51,66 +57,13 @@
 .bouquet__stem img {
   width: 100%;
   height: auto;
-  /*
-   * **画像は触れません。**
-   * 1024×1024 の透過画像まるごとが当たり判定になっていたので、
-   * 手前の花の「透明なところ」が奥の花にかぶさっていました。
-   * 押したい花が反応しないのも、隣を掴んでしまうのも、これが原因です。
-   */
   pointer-events: none;
-}
-
-/*
- * つかむところ。花の頭のあたりに、指のとどく大きさで置きます。
- *
- * 見た目は出しません（枠も点も影も無し）。
- * 花に印が付くと、束ではなく操作盤に見えるので。
- */
-.bouquet__grab {
-  position: absolute;
-  left: 50%;
-  /* 花の頭は、画像の上から3割あたり（assetSize.flower.headY と同じ） */
-  top: 30%;
-  transform: translate(-50%, -50%);
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  cursor: grab;
-  touch-action: none;
-  z-index: 2;
-  /* 触れてよいのは、ここだけ。 */
-  pointer-events: auto;
-}
-
-.bouquet__grab:active {
-  cursor: grabbing;
-}
-
-/*
- * 選んでいる花は、つかめる範囲を少し広げます。
- * 「いま動かしている花」に指が戻りやすいように。
- */
-.bouquet__stem.is-selected .bouquet__grab {
-  transform: translate(-50%, -50%) scale(1.35);
-}
-
-/* 束ねている最中だけ、花に触れられる */
-/* 動かしている最中は、追従を止めない（transition が遅れて見える） */
-.bouquet--live .bouquet__stem:has(.bouquet__grab:active) {
-  transition: none;
-}
-
-.bouquet--live .bouquet__stem.is-selected {
-  filter: brightness(calc(0.98 + var(--depth) * 0.10)) saturate(1.04)
-    drop-shadow(0 0 14px rgba(255, 244, 218, 0.9))
-    drop-shadow(6px 12px 16px rgba(96, 74, 54, 0.28));
 }
 
 @keyframes stem-bloom {
   from {
     opacity: 0;
-    transform: translateX(-50%) rotate(var(--angle)) translateY(calc(var(--reach) * -4%))
+    transform: translateX(-50%) rotate(var(--angle)) translateY(calc(var(--reach) * -8%))
       scale(calc(var(--scale) * 0.86));
   }
   to {

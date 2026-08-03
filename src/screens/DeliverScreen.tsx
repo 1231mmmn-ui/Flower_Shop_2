@@ -5,40 +5,43 @@
  * 言葉は少なく、責める言葉はひとつも置かない。
  */
 
+import { useState } from 'react';
+
 import './DeliverScreen.css';
 import { customer as customerImage } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
 import { QuietBar } from '../components/QuietBar';
 import { useGame } from '../game/GameContext';
-import { lingerModeForDay, useLingerTrial } from '../game/useLingerTrial';
 
 export function DeliverScreen() {
-  const { state, dispatch, customer, result } = useGame();
-  // 眺める間。いまは二案を日ごとに入れ替えて比べている（→ useLingerTrial）。
-  const mode = lingerModeForDay(state.day);
-  const linger = useLingerTrial(mode, state.day);
+  const { state, dispatch, customer, result, visit } = useGame();
+  /**
+   * 束だけを眺める時間。
+   *
+   * ── 自動で消える案は、やめました ──────────────────────
+   *
+   * 3秒たつと画面のまわりがひとりでに消える案と、ふれたときだけ
+   * 消える案を、4日ずつ入れ替えて比べていました。
+   * **一日に3〜5組いらっしゃるようにしたことで、決まりました。**
+   * 自動で消える案は、一日に3〜5回ひとりでに起きます。
+   * 一度なら「間」ですが、繰り返すと**癖**になります。
+   * 立ち止まるかどうかは、こちらが決めることではありません。
+   *
+   * 比べるための仕組み（useLingerTrial）は、決まったので外しました。
+   */
+  const [alone, setAlone] = useState(false);
   if (!result) return null;
 
   return (
-    <div className={`deliver ${linger.hidden ? 'is-lingering' : ''}`}>
+    <div className={`deliver ${alone ? 'is-lingering' : ''}`}>
       <QuietBar />
 
-      {/*
-        束と笑顔だけになる時間。
-        自動版は3秒後にひとりでに、手動版はふれたときに、まわりが消える。
-      */}
-      {/*
-        束にふれると、まわりが下がる／戻る。
-
-        **どちらの案でも、必ず戻せること。**
-        自動版で戻せなかったころは、3秒後に下の帯が触れなくなり、
-        お渡しの画面から出られなくなっていた。
-      */}
+      {/* 束にふれると、まわりが下がる。もう一度ふれると戻る。 */}
       <button
         type="button"
         className="deliver__moment"
-        onClick={linger.toggle}
-        aria-label={linger.hidden ? '言葉を見る' : '束だけを眺める'}
+        onClick={() => setAlone((was) => !was)}
+        aria-label={alone ? '言葉を見る' : '束だけを眺める'}
       >
         <img
           className="deliver__person"
@@ -70,9 +73,14 @@ export function DeliverScreen() {
         ))}
       </div>
 
+      {/*
+        二行だけ。**助言はやめました**（→ evaluation.ts）。
+        一日に3〜5組いらっしゃるので、一年で80回読むことになります。
+        「直したほうがいい点」を80回読む一年は、
+        花を好きになる一年とは、別のものです。
+      */}
       <div className="deliver__note">
         <p className="deliver__praise">{result.praise}</p>
-        <p className="deliver__advice">{result.advice}</p>
         {result.meaningNote && <p className="deliver__meaning">{result.meaningNote}</p>}
       </div>
 
@@ -81,16 +89,17 @@ export function DeliverScreen() {
           帰りぎわの一言は、ここから余韻の画面へ移した。
           お客さまがまだ目の前にいるうちに読ませると、
           「帰りぎわ」ではなく「受け取ったときの言葉」になってしまう。
+
+          **文言を変えました。** ただの「お見送りする」だと、
+          誰を見送るのか、押したら何が終わるのかが曖昧でした。
+          いまは一日に何組もいらっしゃるので、なおさらです。
+
+          残り人数は出しません（「あと2人」と書いた瞬間、
+          残りを数える一日になります）。最後の方のときだけ、
+          文言が静かに変わります。
         */}
-        <button
-          type="button"
-          className="button"
-          onClick={() => {
-            linger.finish();
-            dispatch({ type: 'close-shop' });
-          }}
-        >
-          お見送りする
+        <button type="button" className="button" onClick={() => dispatch({ type: 'see-off' })}>
+          {visit.last ? 'お客様をお見送りして、店を片づける' : 'お客様をお見送りする'}
         </button>
       </footer>
     </div>

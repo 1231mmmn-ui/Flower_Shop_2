@@ -77,16 +77,23 @@ export function useWindowRect(ref: RefObject<HTMLElement | null>): Rect | null {
 }
 
 /**
- * 市場の台の面が、いま画面のどこにあるか（上端の y、px）。
+ * 絵の中の台の面が、いま画面のどこにあるか（上端の y、px）。
  *
- * 花を「台の上に置く」ために要ります。
+ * ものを「台の上に置く」ために要ります。
  * はじめは画面の高さの比で置いていましたが、背景は cover で切られるので、
- * **画面の縦横比が変わると花が宙に浮きました。**
- * 絵の中の台の位置（`scene.py` の 0.72）から逆算します。
+ * **画面の縦横比が変わると宙に浮きました。**
+ * 絵の中の台の位置から逆算します。
+ *
+ *   市場の台     0.72（scene.py の render_market）
+ *   店の作業台   0.60（scene.py の render_shop の table_y）
  */
 export const MARKET_BENCH_Y = 0.72;
+export const SHOP_COUNTER_Y = 0.60;
 
-export function useBenchTop(ref: RefObject<HTMLElement | null>): number | null {
+export function useSceneY(
+  ref: RefObject<HTMLElement | null>,
+  ratio: number,
+): number | null {
   const [top, setTop] = useState<number | null>(null);
 
   useEffect(() => {
@@ -96,19 +103,19 @@ export function useBenchTop(ref: RefObject<HTMLElement | null>): number | null {
     const measure = (): void => {
       const { width, height } = node.getBoundingClientRect();
       if (width === 0 || height === 0) return;
-      const rect = project(
-        { x0: 0, y0: MARKET_BENCH_Y, x1: 1, y1: MARKET_BENCH_Y },
-        width,
-        height,
-      );
-      setTop(rect.top);
+      setTop(project({ x0: 0, y0: ratio, x1: 1, y1: ratio }, width, height).top);
     };
 
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [ref]);
+  }, [ref, ratio]);
 
   return top;
+}
+
+/** 市場の台。`useSceneY(ref, MARKET_BENCH_Y)` の言い換え。 */
+export function useBenchTop(ref: RefObject<HTMLElement | null>): number | null {
+  return useSceneY(ref, MARKET_BENCH_Y);
 }

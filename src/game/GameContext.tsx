@@ -16,10 +16,11 @@ import {
 import { CUSTOMERS, customerById, type Customer } from '../data/customers';
 import { flowerById } from '../data/flowers';
 import { SEASONS, seasonForDay, type Season } from '../data/seasons';
+import { customersForDay } from '../data/visits';
 import { RIBBONS, WRAPPINGS } from '../data/wrapping';
-import { arrange, bringForward, makeStem } from './arrange';
+import { arrange, makeStem } from './arrange';
 import { evaluate, bouquetPrice, type Evaluation } from './evaluation';
-import type { Bouquet, GameState, HintId } from './types';
+import type { Bouquet, BouquetStyleId, GameState, HintId } from './types';
 
 const STORAGE_KEY = 'flower-shop-hanasaku:v1';
 
@@ -27,6 +28,7 @@ const emptyBouquet = (): Bouquet => ({
   stems: [],
   wrappingId: WRAPPINGS[0].id,
   ribbonId: RIBBONS[0].id,
+  styleId: 'round',
 });
 
 const initialState: GameState = {
@@ -34,9 +36,10 @@ const initialState: GameState = {
   day: 1,
   earnings: 0,
   customerId: CUSTOMERS[0].id,
+  todayCustomerIds: [],
+  visitIndex: 0,
   picked: [],
   bouquet: emptyBouquet(),
-  history: [],
   library: {},
   favorites: [],
   memories: [],
@@ -58,16 +61,12 @@ export type Action =
   | { type: 'unpick'; uid: string }
   | { type: 'go-arrange' }
   | { type: 'back-to-shop' }
-  | { type: 'move-stem'; uid: string; angle: number; reach: number }
-  | { type: 'bring-forward'; uid: string }
+  | { type: 'set-style'; id: BouquetStyleId }
   | { type: 'remove-stem'; uid: string }
-  | { type: 'rearrange' }
-  | { type: 'undo' }
-  | { type: 'reset-bouquet' }
   | { type: 'set-wrapping'; id: string }
   | { type: 'set-ribbon'; id: string }
   | { type: 'deliver' }
-  | { type: 'close-shop' }
+  | { type: 'see-off' }
   | { type: 'next-day' }
   | { type: 'open-library' }
   | { type: 'close-library' }
@@ -87,9 +86,27 @@ function reducer(state: GameState, action: Action): GameState {
     case 'set-front':
       return { ...state, frontFlowerId: action.flowerId, phase: 'opening' };
 
-    // 「CLOSED」の札を裏返した。ここから一日が始まる。
-    case 'open-shop':
-      return { ...state, phase: 'greeting', customerId: pickCustomer(state) };
+    /**
+     * 「お店を開く」。ここから一日が始まる。
+     *
+     * 今日いらっしゃる方たちを、**この一箇所で**決める。
+     * 3〜5組（→ src/data/visits.ts）。同じ日なら必ず同じ顔ぶれ。
+     */
+    case 'open-shop': {
+      const ids = customersForDay(
+        state.day,
+        seasonForDay(state.day).id,
+        yesterdayGuests(state),
+      );
+      return {
+        ...state,
+        phase: 'greeting',
+        todayCustomerIds: ids,
+        visitIndex: 0,
+        customerId: ids[0],
+        ...freshHands(),
+      };
+    }
 
     case 'accept-request':
       return { ...state, phase: 'shop' };
@@ -110,71 +127,49 @@ function reducer(state: GameState, action: Action): GameState {
     case 'unpick':
       return { ...state, picked: state.picked.filter((stem) => stem.uid !== action.uid) };
 
-    case 'go-arrange': {
-      const stems = arrange(state.picked);
+    case 'go-arrange':
       return {
         ...state,
         phase: 'arrange',
-        bouquet: { ...state.bouquet, stems },
-        history: [],
+        bouquet: {
+          ...state.bouquet,
+          stems: arrange(state.picked, state.bouquet.styleId),
+        },
       };
-    }
 
     case 'back-to-shop':
       return { ...state, phase: 'shop' };
 
-    case 'move-stem':
-      return withHistory(state, {
-        ...state.bouquet,
-        stems: state.bouquet.stems.map((stem) =>
-          stem.uid === action.uid
-            ? { ...stem, angle: action.angle, reach: action.reach }
-            : stem,
-        ),
-      });
-
-    case 'bring-forward':
-      return withHistory(state, {
-        ...state.bouquet,
-        stems: bringForward(state.bouquet.stems, action.uid),
-      });
-
-    case 'remove-stem':
-      return {
-        ...withHistory(state, {
-          ...state.bouquet,
-          stems: state.bouquet.stems.filter((stem) => stem.uid !== action.uid),
-        }),
-        picked: state.picked.filter((stem) => stem.uid !== action.uid),
-      };
-
-    case 'rearrange':
-      return withHistory(state, {
-        ...state.bouquet,
-        stems: arrange(state.bouquet.stems),
-      });
-
-    case 'undo': {
-      if (state.history.length === 0) return state;
-      const previous = state.history[state.history.length - 1];
+    /**
+     * 束ね方を変える。三つとも成立した束で、優劣はない。
+     *
+     * **組み直しではなく、選び直しです。** 同じ花が、違う形になるだけ。
+     * 花を失わないので「戻す」も「ひとつ前へ」も要りません。
+     */
+    case 'set-style':
       return {
         ...state,
-        bouquet: previous,
-        history: state.history.slice(0, -1),
-        picked: state.picked.filter((stem) =>
-          previous.stems.some((s) => s.uid === stem.uid),
-        ),
+        bouquet: {
+          ...state.bouquet,
+          styleId: action.id,
+          stems: arrange(state.picked, action.id),
+        },
+      };
+
+    case 'remove-stem': {
+      const picked = state.picked.filter((stem) => stem.uid !== action.uid);
+      return {
+        ...state,
+        picked,
+        bouquet: { ...state.bouquet, stems: arrange(picked, state.bouquet.styleId) },
       };
     }
 
-    case 'reset-bouquet':
-      return withHistory(state, { ...state.bouquet, stems: arrange(state.picked) });
-
     case 'set-wrapping':
-      return withHistory(state, { ...state.bouquet, wrappingId: action.id });
+      return { ...state, bouquet: { ...state.bouquet, wrappingId: action.id } };
 
     case 'set-ribbon':
-      return withHistory(state, { ...state.bouquet, ribbonId: action.id });
+      return { ...state, bouquet: { ...state.bouquet, ribbonId: action.id } };
 
     case 'deliver': {
       const customer = customerById(state.customerId);
@@ -201,25 +196,42 @@ function reducer(state: GameState, action: Action): GameState {
       };
     }
 
-    // お客さまが帰った。まだ日は変えない ── 静かになった店が残る。
-    case 'close-shop':
-      return { ...state, phase: 'after' };
+    /**
+     * お見送りする。
+     *
+     * **ここが一日の分かれ道です。**
+     * まだいらっしゃる方がいれば、次の方へ。
+     * 最後の方だったときだけ、静かになった店（余韻）へ。
+     *
+     * 日はまだ変えません。閉めるのはプレイヤーです。
+     */
+    case 'see-off': {
+      const next = state.visitIndex + 1;
+      if (next >= state.todayCustomerIds.length) {
+        return { ...state, phase: 'after', ...freshHands(state.bouquet) };
+      }
+      return {
+        ...state,
+        phase: 'greeting',
+        visitIndex: next,
+        customerId: state.todayCustomerIds[next],
+        ...freshHands(state.bouquet),
+      };
+    }
 
     case 'next-day': {
       const day = state.day + 1;
-      const next = { ...state, day };
       return {
-        ...next,
+        ...state,
+        day,
         // 季節がひと巡りした日は、店を開ける前に一度だけ問いが出る。
-        // それ以外の朝は、いつもどおり開店前から始まる。
+        // それ以外の朝は、いつもどおり市場から始まる。
         phase: isTurnOfTheYear(state.day) ? 'ending' : 'market',
         // 入口の花は、日をまたがない。毎朝また決める。
         frontFlowerId: null,
-        customerId: pickCustomer(next),
-        picked: [],
-        bouquet: emptyBouquet(),
-        history: [],
-        inspectingFlowerId: null,
+        todayCustomerIds: [],
+        visitIndex: 0,
+        ...freshHands(),
       };
     }
 
@@ -255,11 +267,22 @@ function reducer(state: GameState, action: Action): GameState {
   }
 }
 
-function withHistory(state: GameState, bouquet: Bouquet): GameState {
+/**
+ * 手ぶらに戻す。次の方を迎えるための、いちばん短い所作。
+ *
+ * 束ね方（styleId）と資材は**持ち越します。** 一日のうちに
+ * 何度も同じ好みを選び直させるのは、丁寧ではなく手間なので。
+ */
+function freshHands(
+  keep?: Bouquet,
+): Pick<GameState, 'picked' | 'bouquet' | 'inspectingFlowerId'> {
+  const empty = emptyBouquet();
   return {
-    ...state,
-    bouquet,
-    history: [...state.history, state.bouquet].slice(-20),
+    picked: [],
+    bouquet: keep
+      ? { ...empty, styleId: keep.styleId, wrappingId: keep.wrappingId, ribbonId: keep.ribbonId }
+      : empty,
+    inspectingFlowerId: null,
   };
 }
 
@@ -298,16 +321,16 @@ function isTurnOfTheYear(day: number): boolean {
   return day % (SEASONS.length * 5) === 0;
 }
 
-/** 同じ人が続けて来ないように、そっと選ぶ。 */
-function pickCustomer(state: GameState): string {
-  const season = seasonForDay(state.day).id;
-  const recent = new Set(state.memories.slice(-3).map((memory) => memory.customerId));
-  const suited = CUSTOMERS.filter(
-    (customer) => !customer.seasons || customer.seasons.includes(season),
-  );
-  const fresh = suited.filter((customer) => !recent.has(customer.id));
-  const pool = fresh.length > 0 ? fresh : suited;
-  return pool[(state.day - 1 + pool.length) % pool.length].id;
+/**
+ * 昨日いらした方たち。
+ *
+ * 続けて同じ人が来ると、せっかくの再会が「また来た」になるので、
+ * 今日の並びでは後ろへ回します（→ src/data/visits.ts）。
+ */
+function yesterdayGuests(state: GameState): string[] {
+  return state.memories
+    .filter((memory) => memory.day === state.day - 1)
+    .map((memory) => memory.customerId);
 }
 
 // --------------------------------------------------------------------------
@@ -319,6 +342,16 @@ interface GameValue {
   season: Season;
   result: Evaluation | null;
   pickedTotal: number;
+  /**
+   * 今日の何組目か。
+   *
+   * **画面には「3人中2人目」とは出しません。** 出した瞬間、
+   * 残り人数を数える一日になります。使うのは
+   * 「この方が最後だったか」を知るためだけです。
+   */
+  visit: { index: number; total: number; last: boolean };
+  /** 今日、花をお渡しした方たち（余韻の画面で使う）。 */
+  todayGuests: Customer[];
 }
 
 const GameContext = createContext<GameValue | null>(null);
@@ -379,6 +412,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
         (sum, stem) => sum + flowerById(stem.flowerId).price,
         0,
       ),
+      visit: {
+        index: state.visitIndex,
+        total: state.todayCustomerIds.length,
+        last: state.visitIndex >= state.todayCustomerIds.length - 1,
+      },
+      todayGuests: state.memories
+        .filter((memory) => memory.day === state.day)
+        .map((memory) => customerById(memory.customerId)),
     };
   }, [state]);
 

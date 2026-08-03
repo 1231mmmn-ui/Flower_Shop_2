@@ -9,7 +9,6 @@
 
 import type { Customer } from '../data/customers';
 import {
-  FLOWERS,
   flowerById,
   IMPRESSION_LABEL,
   TONE_LABEL,
@@ -27,8 +26,6 @@ export interface Evaluation {
   words: string[];
   /** ブーケの、いちばん良かったところ */
   praise: string;
-  /** 「こんな感じだと、もっと嬉しいかも」 */
-  advice: string;
   /** 花言葉から拾った、そっと添える一行 */
   meaningNote: string;
   /** 内訳（画面には数字ではなく、言葉として出す） */
@@ -130,7 +127,6 @@ export function evaluate(bouquet: Bouquet, customer: Customer): Evaluation {
     smile: Math.min(5, smile),
     words: customer.reactions[tier],
     praise: buildPraise({ impression, tone, loved, volume, balance }, bouquet, customer),
-    advice: buildAdvice({ impression, tone, loved, volume, balance }, bouquet, customer),
     meaningNote: buildMeaningNote(flowers),
     detail: { impression, tone, loved, volume, balance },
     total,
@@ -171,66 +167,26 @@ function buildPraise(
   }
 }
 
-/** 助言は、足りないところではなく「もっと嬉しくなる方向」を書く。 */
-function buildAdvice(
-  detail: Evaluation['detail'],
-  bouquet: Bouquet,
-  customer: Customer,
-): string {
-  const flowers = bouquetFlowers(bouquet);
-  const entries = Object.entries(detail) as [keyof Evaluation['detail'], number][];
-  entries.sort((a, b) => a[1] - b[1]);
-  const [weakest] = entries;
-  const wish = customer.wish;
-
-  if (flowers.length === 0) {
-    return '花瓶から、気になった花を一本だけ取ってみるところから始めてみましょう。';
-  }
-
-  switch (weakest[0]) {
-    case 'impression': {
-      const key = wish.impressions[0];
-      const hint = suggestFlowerFor((flower) => flower.impressions.includes(key), flowers);
-      return `もう少し${IMPRESSION_LABEL[key]}印象にするなら、${hint}を足してみると近づきそうです。`;
-    }
-    case 'tone': {
-      const toneKey = wish.tones[0];
-      const hint = suggestFlowerFor((flower) => flower.tone === toneKey, flowers);
-      return `${TONE_LABEL[toneKey]}をもう少し増やすと、より望みに近い表情になりそうです。${hint}などいかがでしょう。`;
-    }
-    case 'loved': {
-      const missing = (wish.loved ?? []).find(
-        (id) => !flowers.some((flower) => flower.id === id),
-      );
-      return missing
-        ? `${flowerById(missing).name}を一本そえると、想いがまっすぐ届きそうです。`
-        : 'このままでも十分に伝わります。次はもう一種類だけ、冒険してみても。';
-    }
-    case 'volume': {
-      const target = VOLUME_TARGET[wish.volume];
-      return flowers.length < target
-        ? `あと${target - flowers.length}本ほど足すと、${VOLUME_LABEL[wish.volume]}になって見映えします。`
-        : `少し本数を減らすと、一本ずつの表情がもっと見えるようになります。`;
-    }
-    case 'balance': {
-      const roles = new Set(flowers.map((flower) => flower.role));
-      if (!roles.has('main')) return '主役になる大きな花を一本決めると、束がぐっとまとまります。';
-      if (!roles.has('green')) return 'ユーカリのような葉ものを一本足すと、束が落ち着きます。';
-      return 'かすみ草のような小さな花ですきまを埋めると、ふんわり見えます。';
-    }
-    default:
-      return 'いまのままでも素敵です。次は包み紙を変えて、印象の違いを楽しんでみましょう。';
-  }
-}
-
-function suggestFlowerFor(
-  predicate: (flower: Flower) => boolean,
-  already: Flower[],
-): string {
-  const owned = new Set(already.map((flower) => flower.id));
-  const candidate = FLOWERS.find((flower) => predicate(flower) && !owned.has(flower.id));
-  return (candidate ?? FLOWERS.find(predicate) ?? already[0]).name;
-}
+/*
+ * ── 助言を、やめました ──────────────────────────────────
+ *
+ * 「あと2本ほど足すと、ほどよい大きさの束になって見映えします。」
+ * 「ユーカリのような葉ものを一本足すと、束が落ち着きます。」
+ *
+ * 責めない言い方に気をつけて書いたつもりでしたが、
+ * **これは指導です。** 上手・下手のある行為にしてしまいます。
+ * このゲームは「うまく組めたか」ではなく
+ * 「この人に、この花を」で作られています。
+ *
+ * 数でも効いていました。一日に3〜5組いらっしゃるので、
+ * 一年（20日）で **80回**読むことになります。
+ *
+ *   助言ひとつ  約40字
+ *   80回で      3,200字  ── 文庫本で6ページぶんの「直したほうがいい点」
+ *
+ * `buildAdvice` と、それだけが使っていた `suggestFlowerFor` を消しました。
+ * 残したのは、褒めるところ（praise）と、花言葉の一行（meaningNote）です。
+ */
 
 /** 束に入った花言葉から、そっと一行を選ぶ。 */
 function buildMeaningNote(flowers: Flower[]): string {

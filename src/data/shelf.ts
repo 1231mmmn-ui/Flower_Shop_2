@@ -57,20 +57,31 @@ import type { SeasonId } from './seasons';
 /**
  * 今日の棚の並び。
  *
- * 中身は「今日の仕入れ」そのもの（→ `marketForDay`）。
- * ここでやるのは**並べ方**だけです ── 旬のものを手前に。
+ * 中身は「今日の仕入れ」から、**入口に飾った一輪を抜いたもの**
+ * （→ `marketForDay`）。ここでやるのは並べ方だけです ── 旬のものを手前に。
  *
- * 入口に飾った花も、棚から抜きません。
- * **市場で買うのは「その花」であって「一本」ではない**からです。
- * 一本を入口の一輪挿しに挿して、残りは棚に並びます。
+ * ── 入口の花を、棚から抜くようにしました ──────────────────
  *
- * 抜いてしまうと、入口の花を選ぶことに**代償**が生まれます
- * （「バラを飾ると、バラで束が組めなくなる」）。
- * 入口の花は、得も損もしないから成立しています。
+ * 前は抜いていませんでした。「市場で買うのは『その花』であって
+ * 『一本』ではない」という理屈で、一本を入口に挿して残りを棚に並べる、
+ * と考えていたからです。
+ *
+ * 実際に遊ぶと、**同じ花が入口と棚の両方にいました。**
+ * 店頭に飾った花なのか、売り物なのかが混ざり、
+ * 「今日の店の顔」という意味が薄くなっていました。
+ *
+ * 抜くと、ふつうは**代償**が生まれます
+ * （「ユーカリを飾ると、今日は締まった束が組めない」）。
+ * それは避けたいので、**市場の仕入れを10輪から11輪に増やし、
+ * 葉ものを2本買うようにしました**（→ src/data/market.ts）。
+ * 棚に並ぶのは前と同じ10輪、葉ものも必ず残ります。
+ * 入口の花は、得も損もしないままです。
  */
-export function shelfFor(season: SeasonId, day: number): Flower[] {
-  return [...marketForDay(day, season)].sort((a, b) => {
-    const near = (f: Flower): number => (f.seasons.includes(season) ? 1 : 0);
-    return near(b) - near(a);
-  });
+export function shelfFor(season: SeasonId, day: number, frontId?: string | null): Flower[] {
+  return marketForDay(day, season)
+    .filter((flower) => flower.id !== frontId)
+    .sort((a, b) => {
+      const near = (f: Flower): number => (f.seasons.includes(season) ? 1 : 0);
+      return near(b) - near(a);
+    });
 }
