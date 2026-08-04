@@ -63,8 +63,12 @@
   left: 0;
   right: 0;
   margin: 0 auto;
-  bottom: 18%;
-  width: min(112%, 420px);
+  bottom: 7%;
+  /*
+   * 顔が枠の 47% を占めるようになったので、枠のほうを少し詰めます。
+   * ここは肖像画ではなく、**束を見る画面**です。
+   */
+  width: min(102%, 386px);
   aspect-ratio: 1 / 1;
 }
 
@@ -120,9 +124,9 @@
  */
 .deliver__bouquet {
   position: absolute;
-  left: 16%;
-  right: 16%;
-  bottom: -19%;
+  left: 22%;
+  right: 22%;
+  bottom: -4%;
   z-index: 2;
   filter: drop-shadow(0 14px 22px rgba(96, 74, 54, 0.22));
   animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
