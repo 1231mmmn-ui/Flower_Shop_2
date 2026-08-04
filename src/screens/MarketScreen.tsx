@@ -68,7 +68,17 @@ export function MarketScreen() {
               onClick={() => setHeld(flower.id)}
               aria-label={flower.name}
             >
-              <img src={flowerImage(flower.id)} alt="" aria-hidden draggable={false} />
+              {/*
+                花の高さは、そろえません。背丈差はそのまま出します。
+                そろえるのは**茎の下端の位置だけ**。ここが同じ台に
+                並んでいるという印は、絵の外（この影）で作ります。
+                絵の中で見えている茎の太さや長さは花ごとに違うので、
+                絵だけでは「同じ線に立っている」ことが伝わりません。
+              */}
+              <span className="market__flower">
+                <img src={flowerImage(flower.id)} alt="" aria-hidden draggable={false} />
+                <span className="market__contact" aria-hidden />
+              </span>
               <span className="market__name">{flower.name}</span>
               {/* ひとことは、三輪に一輪くらい。全部に付くと仕様欄になる。 */}
               {remark && <span className="market__remark">{remark}</span>}

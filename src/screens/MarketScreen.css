@@ -99,13 +99,59 @@
   transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
 }
 
+/*
+ * 一輪の絵と、その足もとの影。
+ *
+ * **`market__stall img` は `object-fit: contain` + `object-position:
+ * center bottom` で、どの花も同じ 214px の箱の底に揃えて置いています。**
+ * 絵そのものの茎の下端は、実測するとどの花も画像の最下端で揃っています
+ * （tools/placeholder_art/flowers.py の render_flower は、種にかかわらず
+ * 必ず画像の下端で茎を切る）。
+ *
+ * それでも「3枚を横に置いた」ように見えていたのは、**そこに何も
+ * 印が無かったから**です。チューリップは葉が画像の途中で終わり、
+ * 下端まではただの細い茎の線だけが続くので、遠目にはその茎が
+ * 見えず、葉の先端が「花の終わり」に見えます。紫陽花は葉が
+ * 下端近くまであるので、同じ下端でも重みがそこにあるように見えます。
+ * 種によって「絵の中で目に付く終わり方」がばらばらなので、
+ * 同じ線に立っていても揃って見えませんでした。
+ *
+ * 絵の中を直すのではなく、**箱の底、全部の花で同じ位置**に
+ * 影を一つ置きます。これでどの花も「ここが売り場の面」という
+ * 同じ印の上に立ちます。
+ */
+.market__flower {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
 .market__stall img {
+  display: block;
   width: 100%;
   height: 214px;
   object-fit: contain;
   object-position: center bottom;
+  filter: drop-shadow(3px 7px 8px rgba(96, 74, 54, 0.16));
   /* 手に取った花だけ、ほんの少し起き上がる。持ち上げすぎない。 */
   transition: transform var(--fs-duration-slow) var(--fs-easing-rise);
+}
+
+.market__contact {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 46%;
+  height: 9px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(74, 63, 53, 0.32) 0%,
+    rgba(74, 63, 53, 0.13) 60%,
+    rgba(74, 63, 53, 0) 100%
+  );
+  pointer-events: none;
 }
 
 /*
