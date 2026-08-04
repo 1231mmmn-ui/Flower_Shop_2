@@ -1,5 +1,5 @@
 /**
- * 余韻。お客さまが帰ったあとの、静かな店。
+ * 余韻。最後のお客さまが帰ったあとの、静かな店。
  *
  * ⓪感情設計書の【余韻】をそのまま画面にしたものです。
  *
@@ -15,10 +15,20 @@
  * **置くもの**
  *   ・静かになった店（人はもういない。気配だけ）
  *   ・カウンターの花びら一枚。ただし**三日に二日**（→ src/data/afterglow.ts）
- *   ・「CLOSED」の札。裏返すのはプレイヤー
+ *   ・今日いらしたのが誰だったか
  *
- * 朝と対になっています。朝は札を裏返して始まり、夜は札を裏返して終わる。
- * 数字ではなく、**同じ手つき**で一日が閉じます。
+ * ── 名前を並べることについて ──────────────────────────
+ *
+ * 一日に3〜5組いらっしゃるようにしたとき、いちばん大事なのは
+ * 組数ではなく、一日の終わりに
+ *
+ *   「今日は、こんなお客さまたちに花を渡したな」
+ *
+ * と思えることでした。だから名前だけ並べます。
+ * **数字は書きません。** 「3人接客しました」と書いた瞬間、
+ * それは今日のまとめになり、明日は4人にしたくなります。
+ * 何人だったかは、並んだ名前を見れば分かります。
+ * ── 分かるのと、数えさせるのは、違うことです。
  */
 
 import { useEffect, useState } from 'react';
@@ -28,9 +38,9 @@ import { petalOnCounter, petalPlacement } from '../data/afterglow';
 import { useGame } from '../game/GameContext';
 
 export function AfterScreen() {
-  const { state, dispatch, customer } = useGame();
+  const { state, dispatch, customer, todayGuests } = useGame();
 
-  // 店が静かになる1.5秒。ここが過ぎてから、札にふれられるようになる。
+  // 店が静かになる1.5秒。ここが過ぎてから、店を閉められるようになる。
   // 急かさないための待ちではなく、**人がいなくなったことに気づくため**の待ち。
   const [settled, setSettled] = useState(false);
   useEffect(() => {
@@ -38,7 +48,7 @@ export function AfterScreen() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  // 札を裏返してから、日が変わるまでの間。朝と同じ 0.9 秒。
+  // 閉めてから、日が変わるまでの間。
   const [closing, setClosing] = useState(false);
   const close = () => {
     if (closing) return;
@@ -52,7 +62,7 @@ export function AfterScreen() {
   return (
     <div className={`after ${settled ? 'is-settled' : ''} ${closing ? 'is-closing' : ''}`}>
       {/*
-        帰りぎわの一言。引き止める言葉はひとつも置かない。
+        最後の方の、帰りぎわの一言。引き止める言葉はひとつも置かない。
         「また明日」ではなく「また来月、寄らせてもらいますね」。
       */}
       <p className="after__farewell">{customer.farewell}</p>
@@ -73,22 +83,40 @@ export function AfterScreen() {
       </div>
 
       {/*
-        札を裏返して、一日を閉じる。
-        自動では進まない。押すまで、ずっとこの静けさのまま。
+        今日、花をお渡しした方たち。名前だけ。
+        点数も、束の写真も、どれが良かったかも出さない。
       */}
-      <button
-        type="button"
-        className="after__sign"
-        onClick={close}
-        disabled={!settled || closing}
-        aria-label="お店を閉める"
-      >
-        <span className="after__sign-cord" aria-hidden />
-        <span className="after__sign-plate">
-          <span className="after__sign-face after__sign-face--open">OPEN</span>
-          <span className="after__sign-face after__sign-face--closed">CLOSED</span>
-        </span>
-      </button>
+      {todayGuests.length > 0 && (
+        <div className="after__guests">
+          <p className="after__guests-lead">今日、花をお渡しした方</p>
+          <p className="after__guests-names">
+            {todayGuests.map((guest, index) => (
+              <span key={`${guest.id}-${index}`} className="after__guest">
+                {guest.name}
+              </span>
+            ))}
+          </p>
+        </div>
+      )}
+
+      {/*
+        一日を閉じる。
+        自動では進まない。押すまで、ずっとこの静けさのまま。
+
+        **札を裏返す仕組みはやめました。** 何が起きるのか、
+        押してみるまで分からない操作でした。案内を書き足すより、
+        案内が要らない形にするほうが静かです。
+      */}
+      <div className="after__foot">
+        <button
+          type="button"
+          className="button"
+          onClick={close}
+          disabled={!settled || closing}
+        >
+          今日のお店を閉める
+        </button>
+      </div>
     </div>
   );
 }

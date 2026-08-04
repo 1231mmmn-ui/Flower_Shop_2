@@ -1,0 +1,106 @@
+/*
+ * 初めての人にだけ、一言。
+ *
+ * **説明書に見せないこと。** 枠を光らせたり、矢印を出したり、
+ * 画面を暗くして一箇所だけ照らしたりはしません。
+ * 店の中に、小さな貼り紙が一枚あるだけ、くらいの強さにします。
+ *
+ * 木の上に出ることがあるので、**下地は必ず敷きます**
+ * （木の上の文字は、どの色でもコントラストが足りないため）。
+ */
+
+.first-time {
+  position: absolute;
+  left: 50%;
+  /*
+   * ── 置き場所を、三度まちがえました ─────────────────────
+   *
+   *   bottom 15%   花の名前を隠していた
+   *   bottom 27%   紙は素通りにしたのに、紙の中の「今後は表示しない」が
+   *                **花のまん中に重なっていた**（花が取れなくなった）
+   *   top 13%      いま。窓のあたり。花にも名前にも触れない
+   *
+   * 決めごとにします。**案内は「花の帯」に入れないこと。**
+   * 花が並ぶのは画面の 17%〜45%（下から）で、名前の札はその下です。
+   * ここに何かを置くと、必ず花か名前のどちらかを覆います。
+   *
+   * 「素通りさせる」だけでは足りません。**押せるものが一つでも
+   * 混じっていれば、そこは通れなくなります。**
+   */
+  top: 13%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-xs);
+  width: max-content;
+  max-width: min(86%, 320px);
+  padding: var(--fs-space-md) var(--fs-space-lg);
+  border-radius: var(--fs-radius-md);
+  background: rgba(255, 252, 244, 0.94);
+  box-shadow: var(--fs-shadow-soft);
+  /*
+   * **案内は、指を遮りません。**
+   *
+   * 「花にふれると見られます」と書いた紙が、**その花の上に乗っていました。**
+   * 案内のとおりにしようとした人が、案内に阻まれる ──
+   * いちばん間抜けな作りです。実際、通し確認で花が取れなくなっていました。
+   *
+   * 触れてよいのは「今後は表示しない」だけ。紙そのものは素通りさせます。
+   * （名前を隠していたのを直したのに続いて、これで二度目です。
+   *   **案内は、置いた場所と、遮るものの両方を確かめること。**）
+   */
+  pointer-events: none;
+  /* すぐには出さない。画面を見てからにする。 */
+  animation: first-time-in 1.2s var(--fs-easing-soft) 1.6s both;
+}
+
+@keyframes first-time-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.first-time__text {
+  margin: 0;
+  text-align: center;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink);
+}
+
+/*
+ * 消す判断は、プレイヤーがします。
+ * 「わかった」ではなく「今後は表示しない」── 分かったかどうかを
+ * こちらが聞くと、試されている感じになるので。
+ */
+.first-time__hide {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  letter-spacing: var(--fs-font-letter);
+  color: var(--fs-color-ink-faint);
+  border-bottom: 1px solid var(--fs-color-line);
+  cursor: pointer;
+  /* 紙は素通りだが、ここだけは押せる。 */
+  pointer-events: auto;
+}
+
+.first-time__hide:hover {
+  color: var(--fs-color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .first-time {
+    animation: none;
+  }
+}

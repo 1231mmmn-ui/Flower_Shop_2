@@ -16,7 +16,7 @@ export function QuietBar() {
       <span className="quiet__when">
         {season.name}
         <span className="quiet__dot">・</span>
-        {state.day}日目
+        <span className="quiet__day">{state.day}</span>日目
       </span>
 
       <span className="quiet__marks">

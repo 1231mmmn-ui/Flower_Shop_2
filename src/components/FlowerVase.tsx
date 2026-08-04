@@ -60,12 +60,11 @@ export function FlowerVase({ flower, depth, inSeason, picked, onSelect }: Flower
                 '--stem-scale': stem.scale,
                 zIndex: stem.depth,
               } as CSSProperties
-            }
-          />
+            } draggable={false} />
         ))}
       </span>
 
-      <img className="vase__glass" src={vase()} alt={`${flower.name}の花瓶`} />
+      <img className="vase__glass" src={vase()} alt={`${flower.name}の花瓶`} draggable={false} />
       <span className="vase__glow" style={{ background: flower.swatch }} aria-hidden />
 
       <span className="vase__plate">

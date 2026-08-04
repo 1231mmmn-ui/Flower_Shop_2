@@ -11,10 +11,33 @@
   text-align: center;
 }
 
+/*
+ * コピーとカゴを積む柱。
+ *
+ * 下端は、絵の中の作業台の面（TitleScreen.tsx が px で入れます）。
+ * 下から順に、カゴ、コピー。**同じ柱なので、重なりません。**
+ * 収まらない画面では、すきま（gap）ではなく上へ伸びていきます。
+ */
+.title-screen__stack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  /* 絵が測れるまでの、ひと呼吸ぶんの控え */
+  bottom: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2%;
+  padding: 0 var(--fs-space-md);
+  pointer-events: none;
+}
+
 /* 窓の下、壁のいちばん静かなところに置く */
 .title-screen__center {
-  margin-top: 34%;
-  padding: var(--fs-space-lg) var(--fs-space-xxl);
+  flex: 0 0 auto;
+  padding: var(--fs-space-lg) var(--fs-space-xl);
   /* 面ではなく、光がにじんだところに文字を置く */
   background: radial-gradient(
     68% 84% at 50% 48%,
@@ -33,43 +56,82 @@
   color: var(--fs-color-ink-faint);
 }
 
+/*
+ * 店の名前は、**折り返させません。**
+ * 「花咲く時／間」で切れると、看板ではなく本文になります。
+ *
+ *   5字 × (字の大きさ + 字間 0.22em) ≤ 使える幅
+ *   360px の画面   使える幅 264px → 43px まで
+ *   40px（既定）    5 × 1.22 × 40 = 244px  収まるはずが……
+ *
+ * ── 収まらなかったのは、余白のほうでした。
+ * 柱の左右（8px×2）と、この箱の左右（32px×2）で 80px 取られていて、
+ * 使える幅は 280px ではなく 264px。字間を入れた 244px に
+ * 最後の一字の字下げ（0.22em = 8.8px）が足されて、ぎりぎり超えます。
+ * 箱の余白を xxl から xl に詰め、狭い画面では字も一段だけ小さくします。
+ */
 .title-screen__name {
   margin: var(--fs-space-sm) 0 0;
-  font-size: var(--fs-font-display);
+  font-size: min(var(--fs-font-display), 11vw);
+  white-space: nowrap;
   font-weight: 500;
   letter-spacing: 0.22em;
   text-indent: 0.22em;
   line-height: var(--fs-font-line-tight);
 }
 
+/*
+ * この一行は、**折り返させません。**
+ * 二行に割れると「誰かを想いながら、」で切れて、
+ * 標語ではなく説明文に見えます。
+ * 幅の狭い端末では、字間と文字を少しだけ詰めて一行に収めます。
+ */
 .title-screen__lead {
   margin: var(--fs-space-md) 0 0;
   font-size: var(--fs-font-md);
   letter-spacing: 0.08em;
   color: var(--fs-color-ink-soft);
+  white-space: nowrap;
 }
 
-/* 作業台に置かれたカゴ */
+@media (max-width: 400px) {
+  .title-screen__lead {
+    font-size: var(--fs-font-sm);
+    letter-spacing: 0.02em;
+  }
+}
+
+/*
+ * 作業台に置かれたカゴ。柱のいちばん下 ── つまり台の上に立つ。
+ *
+ * 狭い画面では、コピーに場所を譲って小さくなります
+ * （min-height: 0 と flex-shrink で、絵のほうが縮む）。
+ */
 .title-screen__basket {
-  position: absolute;
-  left: 50%;
-  bottom: 30%;
+  flex: 0 1 auto;
+  min-height: 0;
   width: 46%;
   max-width: 230px;
-  transform: translateX(-50%);
+  object-fit: contain;
+  object-position: bottom center;
   filter: drop-shadow(6px 12px 16px rgba(96, 74, 54, 0.24));
-  /* appear は transform を上書きして中央寄せが外れる。opacity だけで現す。 */
   animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
   animation-delay: var(--fs-duration-base);
 }
 
+/*
+ * 下の帯。柱とは別に、画面の下に置く。
+ * 柱の下端（作業台）より下なので、ぶつかりません。
+ */
 .title-screen__foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--fs-space-sm);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--fs-space-md);
-  margin-top: auto;
-  padding-bottom: var(--fs-space-sm);
   animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
   animation-delay: var(--fs-duration-slow);
 }
@@ -80,8 +142,15 @@
   margin: 0;
   font-size: var(--fs-font-sm);
   line-height: var(--fs-font-line-base);
-  color: var(--fs-color-ink-faint);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  color: var(--fs-color-ink-soft);
+  /*
+   * 店内の絵の上に、下地なしで置く文字。
+   * 影ひとつでは背景の濃いところで沈むので、白いにじみを二重にする。
+   * 面（パネル）を敷かずに読めるようにするための、いちばん静かな方法。
+   */
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .title-screen__memo {
@@ -103,9 +172,11 @@
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-sm);
   letter-spacing: 0.12em;
-  color: var(--fs-color-ink-soft);
+  color: var(--fs-color-ink);
   border-bottom: 1px solid var(--fs-color-line);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
   transition: color var(--fs-duration-quick) var(--fs-easing-soft),
     border-color var(--fs-duration-quick) var(--fs-easing-soft);
 }

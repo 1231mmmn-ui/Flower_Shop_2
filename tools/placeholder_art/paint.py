@@ -565,6 +565,58 @@ def drop_shadow(layer: Image.Image, blur: float = 13, offset: tuple[int, int] = 
     return Image.alpha_composite(sh, layer)
 
 
+def wc_layer(size, shape_fn, color: RGB, seed: int, softness: float = 3.0,
+        bleed: float = 0.22) -> Image.Image:
+    """
+    水彩の一筆。
+
+    花とまったく同じ描き方です。かたちを塗ってから、
+    輪郭をにじませ、顔料のムラを乗せます。
+
+    人物だけが浮いて見えていた原因は、ここでした。
+    人物は `ellipse` を塗って `GaussianBlur` を掛けていただけで、
+    **`watercolor_mask` を一度も通していませんでした。**
+    ぼかしと、にじみは、別のものです。
+    ぼかした縁はなめらかで均一 ── つまり「印刷」に見えます。
+
+    ただし **にじみの量は、かたちの大きさで変えること。**
+    花びらと同じ 0.22 を顔に掛けたら、頬いちめんが粒立って
+    **汚れて**見えました。花びらでは顔料に見えるムラが、
+    広い面では砂に見えます。広い面ほど、うんと弱く。
+    """
+    mask = Image.new("L", size, 0)
+    shape_fn(ImageDraw.Draw(mask))
+    return paint_mask(size, watercolor_mask(mask, seed=seed, softness=softness,
+                                        bleed=bleed), color)
+
+
+def paint_mask(size, mask: Image.Image, color: RGB) -> Image.Image:
+    layer = Image.new("RGBA", size, (0, 0, 0, 0))
+    layer.paste(Image.new("RGB", size, color), (0, 0), mask)
+    return layer
+
+
+def shade_side(size, mask_fn, color: RGB, seed: int, amount: float = 0.22):
+    """
+    左上の光に対する、影の側。
+
+    店内も花も光源は左上ひとつ。人物だけ全体が均一に明るいと、
+    **同じ部屋にいるように見えません。**
+    かたちの右下側だけを、うすく落とします。
+    """
+    mask = Image.new("L", size, 0)
+    mask_fn(ImageDraw.Draw(mask))
+    soft = watercolor_mask(mask, seed=seed + 7, softness=6.0, bleed=0.1)
+    # 光と反対（右下）へずらしたものだけを残す＝陰になる側
+    dx = int(round(math.sin(math.radians(LIGHT_ANGLE + 180)) * max(size) * 0.06))
+    dy = int(round(-math.cos(math.radians(LIGHT_ANGLE + 180)) * max(size) * 0.06))
+    moved = Image.new("L", size, 0)
+    moved.paste(soft, (dx, dy))
+    from PIL import ImageChops
+    only = ImageChops.subtract(soft, moved)
+    return paint_mask(size, only.point(lambda v: int(v * amount)), shade(color, -0.55))
+
+
 def paper_texture(layer: Image.Image, seed: int, strength: float = 0.08) -> Image.Image:
     """仕上げに紙の粒子をうっすら乗せる。"""
     tex = grain(layer.size, seed=seed, scale=3).point(

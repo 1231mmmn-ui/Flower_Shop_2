@@ -20,37 +20,89 @@
  * 紙の角。エプロンの胸ポケットから、少しだけ出ている。
  * ボタンの形（丸・枠・影の縁）を作らないこと。
  */
+/*
+ * 伝票。花屋のカウンターに、ピンで留めた一枚。
+ *
+ * もとは無地の紙の角（30×40）だけが出ていて、
+ * 「今どのご依頼なのか分からない」という指摘のとおりでした。
+ * **名前だけ**出します。用向きも予算も出しません ──
+ * そこまで出すと、開く意味も、覚えておく意味もなくなるので。
+ */
 .apron__corner {
-  display: block;
-  width: 30px;
-  height: 40px;
-  padding: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  /*
+   * 「オーダー内容」の一語ぶん。**中身は出しません。**
+   * 一度は色みの一言を添えていましたが、ずっと見えていると
+   * それは伝票ではなく条件表です。開いたときにだけ出します。
+   */
+  width: 106px;
+  min-height: 44px;
+  padding: 6px 8px 6px 10px;
   border: 0;
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(112deg, var(--fs-color-ivory), var(--fs-color-sand));
+  border-radius: 0 4px 4px 0;
+  background:
+    linear-gradient(104deg, var(--fs-color-cream), var(--fs-color-ivory) 62%,
+      var(--fs-color-sand));
   /* 光は左上の窓ひとつ。影は右下。 */
-  box-shadow: 3px 4px 10px rgba(74, 63, 53, 0.18);
+  box-shadow: 3px 5px 12px rgba(74, 63, 53, 0.20);
   cursor: pointer;
-  /* 角が少し折れている */
-  clip-path: polygon(0 0, 100% 6%, 100% 100%, 0 94%);
-  transform: translateX(-9px) rotate(-2deg);
+  /* 紙の下端が、わずかに波打っている（切りっぱなしの紙） */
+  clip-path: polygon(0 0, 100% 4%, 100% 96%, 0 100%);
+  transform: translateX(-8px) rotate(-1.6deg);
   transition: transform var(--fs-duration-base) var(--fs-easing-rise);
 }
 
-.apron__corner::after {
-  /* 手書きの行が、うっすら透けている */
-  content: '';
+/* 上をとめている、細いピン。花屋の伝票らしさはここで出す。 */
+.apron__pin {
   position: absolute;
-  left: 12px;
-  top: 13px;
-  width: 15px;
-  height: 1px;
-  background: rgba(124, 95, 68, 0.26);
-  box-shadow: 0 7px 0 rgba(124, 95, 68, 0.2), 0 14px 0 rgba(124, 95, 68, 0.14);
+  top: 5px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 32%, #C9A97E, var(--fs-color-wood-dark));
+  box-shadow: 1px 2px 3px rgba(74, 63, 53, 0.30);
+}
+
+/* 何の紙か。伝票の見出しくらいの大きさで。 */
+.apron__label {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  letter-spacing: 0.10em;
+  line-height: 1.2;
+  color: var(--fs-color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/*
+ * 開いた紙の中の、聞いたこと。
+ *
+ * 条件表に見えないよう**そのままの言葉**で。
+ * 「暖色系・明度高め」ではなく「明るい色のお花が好き」。
+ */
+.apron__ask {
+  margin: var(--fs-space-sm) 0 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-soft);
+}
+
+.apron__ask--tone {
+  margin-top: 2px;
+  color: var(--fs-color-ink-faint);
 }
 
 .apron__corner:hover {
-  transform: translateX(-3px) rotate(-2deg);
+  transform: translateX(-2px) rotate(-1.6deg);
 }
 
 .apron.is-open .apron__corner {

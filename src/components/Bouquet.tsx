@@ -4,111 +4,85 @@
  * IMAGE_ASSETS.md §2 の通り、「1本の花」の画像を扇状に重ねて束にする。
  * 花の画像は下端中央が切り口なので、そこを軸に回す。
  * 包み紙とリボンは資材の色を借りて BouquetWrap で描く。
+ *
+ * ── つかんで動かす仕組みは、外しました ──────────────────
+ *
+ * 当たり判定を花の頭だけにして、掴んだときのずれも覚えて、
+ * 「思ったとおりに動く」ところまでは持っていけました。
+ * それでも、あれは**画像を配置する操作**でした。
+ * いまは三つの形から選びます（→ src/game/styles.ts）。
+ *
+ * この部品は、もう**眺めるためだけ**のものです。
+ * 押せるところは一つもありません。
  */
 
-import { useRef, type CSSProperties, type PointerEvent } from 'react';
+import type { CSSProperties } from 'react';
 
 import './Bouquet.css';
 import { flower as flowerImage } from '../assets/paths';
 import { RibbonBow, WrapCone } from './BouquetWrap';
 import { flowerById } from '../data/flowers';
 import { ribbonById, wrappingById } from '../data/wrapping';
-import { byDepth } from '../game/arrange';
+import { bunch } from '../game/bunch';
+import { styleById } from '../game/styles';
 import type { Bouquet as BouquetModel } from '../game/types';
 
 interface BouquetProps {
   bouquet: BouquetModel;
-  /** 花を動かせるか */
-  interactive?: boolean;
-  selectedUid?: string | null;
-  onSelect?: (uid: string) => void;
-  onMove?: (uid: string, angle: number, reach: number) => void;
   /** 束の大きさ（親の幅に対する割合） */
   scale?: number;
   className?: string;
 }
 
-const MAX_ANGLE = 46;
-const MIN_REACH = 0.24;
-const MAX_REACH = 1.0;
-
-export function Bouquet({
-  bouquet,
-  interactive = false,
-  selectedUid = null,
-  onSelect,
-  onMove,
-  scale = 1,
-  className = '',
-}: BouquetProps) {
-  const knotRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef<string | null>(null);
-
-  const handlePointerDown = (uid: string) => (event: PointerEvent<HTMLDivElement>) => {
-    onSelect?.(uid);
-    if (!interactive) return;
-    dragging.current = uid;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const uid = dragging.current;
-    const knot = knotRef.current;
-    if (!uid || !knot || !onMove) return;
-
-    const box = knot.getBoundingClientRect();
-    const dx = event.clientX - (box.left + box.width / 2);
-    const dy = event.clientY - (box.top + box.height / 2);
-    // 真上を 0 度として、時計回りに測る
-    const angle = clamp((Math.atan2(dx, -dy) * 180) / Math.PI, -MAX_ANGLE, MAX_ANGLE);
-    const distance = Math.hypot(dx, dy) / (box.height * 0.62 || 1);
-    onMove(uid, angle, clamp(distance, MIN_REACH, MAX_REACH));
-  };
-
-  const endDrag = (event: PointerEvent<HTMLDivElement>) => {
-    if (dragging.current) event.currentTarget.releasePointerCapture?.(event.pointerId);
-    dragging.current = null;
-  };
+export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
+  const style = styleById(bouquet.styleId);
+  /*
+   * **取った本数と、描く本数は違います。**
+   * 3〜5本を扇状に開いただけでは「紙の前に花を三つ置いた絵」になります。
+   * 花屋の束は20〜40本あって、だから重なり、前後ができ、
+   * 輪郭がかたまりになります（→ src/game/bunch.ts）。
+   * 値段も記録も、取った本数のまま変わりません。
+   */
+  const drawn = bunch(bouquet.stems, bouquet.styleId);
 
   return (
     <div
-      className={`bouquet ${interactive ? 'bouquet--live' : ''} ${className}`}
+      className={`bouquet ${className}`}
       style={{ '--bouquet-scale': scale } as CSSProperties}
-      onPointerMove={handlePointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
     >
-      <div className="bouquet__knot" ref={knotRef} aria-hidden />
-
-      {byDepth(bouquet.stems).map((stem) => {
+      {drawn.map((stem) => {
         const flower = flowerById(stem.flowerId);
-        const selected = stem.uid === selectedUid;
         return (
           <div
-            key={stem.uid}
-            className={`bouquet__stem ${selected ? 'is-selected' : ''}`}
+            key={stem.key}
+            className="bouquet__stem"
             style={
               {
-                '--angle': `${stem.angle + stem.sway * 0.3}deg`,
+                '--angle': `${stem.angle}deg`,
                 '--reach': stem.reach,
                 '--depth': stem.depth,
                 '--scale': stem.scale,
                 zIndex: 10 + Math.round(stem.depth * 40),
               } as CSSProperties
             }
-            onPointerDown={handlePointerDown(stem.uid)}
           >
             <img src={flowerImage(flower.id)} alt={flower.name} draggable={false} />
           </div>
         );
       })}
 
-      <WrapCone wrapping={wrappingById(bouquet.wrappingId)} />
+      {/*
+        紙は、束ね方に合わせて形が変わります。
+        高さを出した束には細くて高い紙、広がった束には広い紙。
+        絵は色ごとに一枚のままで、伸ばし方だけを変えています ──
+        水彩の描き込みを守りながら、束に応えるいちばん静かな方法です。
+      */}
+      <WrapCone
+        wrapping={wrappingById(bouquet.wrappingId)}
+        stems={drawn.length}
+        paper={style.paper}
+      />
       <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />
     </div>
   );
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
 }

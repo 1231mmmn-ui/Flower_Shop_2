@@ -1,0 +1,193 @@
+/*
+ * ⓪-a 市場。
+ *
+ * 店内ではないので、紙も面も敷きません。
+ * 花が横に並んでいて、そのあいだを歩くだけの場所です。
+ *
+ * 値段の札も、数字も、★も、ひとつも置きません。
+ */
+
+.market {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--fs-space-xxl) 0 var(--fs-space-xl);
+}
+
+.market__head {
+  flex: 0 0 auto;
+  padding: 0 var(--fs-space-lg);
+  text-align: center;
+  animation: market-in 1.6s var(--fs-easing-soft) both;
+}
+
+@keyframes market-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.market__where {
+  margin: 0 0 var(--fs-space-xs);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: var(--fs-color-ink-faint);
+}
+
+.market__lead {
+  margin: 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
+  line-height: var(--fs-font-line-base);
+  color: var(--fs-color-ink-soft);
+}
+
+/* ---- 並んでいる花 -------------------------------------------------------- */
+
+/*
+ * 8輪。ひと画面には収まりませんが、**指ふた巻き**で端まで行けます。
+ * 棚（17画面ぶん）と違って、市場は「今日の入荷」なので短くていい。
+ */
+.market__row {
+  /*
+   * **台の上に立たせる。**
+   * top は絵の中の台の位置から逆算した px（TSX側）。
+   * 画面の高さの比で置くと、背景が cover で切られたときに花が宙に浮く。
+   * 花の切り口が台の縁に来るよう、行の下端を台の線に合わせる。
+   */
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--fs-space-sm);
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  padding: 0 var(--fs-space-lg);
+  scroll-snap-type: x proximity;
+  transform: translateY(-100%);
+}
+
+.market__row::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * 一輪ぶん。面も枠も持たせません ── 値札の付いた商品に見えるので。
+ * あるのは、花と、名前と、ときどきのひとことだけ。
+ */
+.market__stall {
+  flex: 0 0 auto;
+  width: 132px;
+  border: 0;
+  background: none;
+  padding: var(--fs-space-sm) 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-xs);
+  scroll-snap-align: center;
+  opacity: 0.86;
+  transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
+}
+
+.market__stall img {
+  width: 100%;
+  height: 214px;
+  object-fit: contain;
+  object-position: center bottom;
+  /* 手に取った花だけ、ほんの少し起き上がる。持ち上げすぎない。 */
+  transition: transform var(--fs-duration-slow) var(--fs-easing-rise);
+}
+
+/*
+ * 選んでいる花。
+ * 光らせず、囲まず、印も付けません。**ほかが少し下がるだけ。**
+ */
+.market__row:has(.is-held) .market__stall:not(.is-held) {
+  opacity: 0.5;
+}
+
+.market__stall.is-held {
+  opacity: 1;
+}
+
+.market__stall.is-held img {
+  transform: translateY(-10px);
+}
+
+.market__name {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  color: var(--fs-color-ink);
+}
+
+/*
+ * ひとこと。状態と、その日のできごとだけ。
+ * 良し悪しは書きません。「今日いちばん」とも書きません。
+ */
+.market__remark {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-xs);
+  line-height: 1.7;
+  color: var(--fs-color-ink-faint);
+  text-align: center;
+}
+
+/* ---- 足もと -------------------------------------------------------------- */
+
+.market__foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--fs-space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--fs-space-md);
+  padding: 0 var(--fs-space-lg);
+}
+
+.market__chosen {
+  margin: 0;
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-md);
+  color: var(--fs-color-ink);
+  animation: market-in var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+/*
+ * まだ選んでいないときの一行。
+ *
+ * ── 「薄い」を、数で直しました ────────────────────────────
+ *
+ * `whisper`（--fs-color-ink-faint ＝ #6E645B）を、
+ * 市場の**木の台**の上に、下地なしで置いていました。
+ *
+ *   木の上 × ink-faint   1.64 : 1   前。ほぼ読めない
+ *   木の上 × ink         2.71 : 1   色を濃くしただけでは足りない
+ *   下地あり × ink       7.4  : 1   いま
+ *
+ * **木の上に文字を置くなら、必ず下地を敷くこと。**
+ * これはこのゲームで三度目に同じところで転んだ場所です
+ * （→ tokens.ts、ShopScreen.css の「いまが旬」）。
+ * 色をいじるより先に、下地があるかを見ること。
+ */
+.market__quiet {
+  margin: 0;
+  padding: 5px var(--fs-space-lg);
+  border-radius: var(--fs-radius-pill);
+  background: rgba(255, 252, 244, 0.86);
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: var(--fs-font-letter);
+  color: var(--fs-color-ink);
+}

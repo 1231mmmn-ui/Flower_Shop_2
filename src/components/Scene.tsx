@@ -8,14 +8,14 @@
 
 import { useMemo, type CSSProperties } from 'react';
 
-import { shopScene, titleScene } from '../assets/paths';
+import { marketScene, shopScene, titleScene } from '../assets/paths';
 import type { Morning } from '../data/mornings';
 import type { SeasonId } from '../data/seasons';
 
 interface SceneProps {
   season: SeasonId;
-  /** タイトル用の、下中央を空けた構図を使う */
-  title?: boolean;
+  /** どの場所を描くか。市場だけは店内ではない。 */
+  place?: 'shop' | 'title' | 'market';
   /** 花を見せたいときは、店内を奥へ下げる */
   blurred?: boolean;
   /** 花をタップしたときは、少しだけ暗くする */
@@ -31,7 +31,7 @@ const DEFAULT_MORNING: Pick<Morning, 'light' | 'warmth' | 'contrast' | 'motes'> 
   motes: 14,
 };
 
-export function Scene({ season, title, blurred, dimmed, morning }: SceneProps) {
+export function Scene({ season, place = 'shop', blurred, dimmed, morning }: SceneProps) {
   const air = morning ?? DEFAULT_MORNING;
 
   // 埃の粒は毎回同じ場所でいい。動きだけがゆっくり流れる。
@@ -65,7 +65,13 @@ export function Scene({ season, title, blurred, dimmed, morning }: SceneProps) {
         // 位置から解かれてしまう（本番ビルドで assets/assets/… になる）。
         // background-image を直に書けば、基準は必ずドキュメントになる。
         style={{
-          backgroundImage: `url(${title ? titleScene() : shopScene(season)})`,
+          backgroundImage: `url(${
+            place === 'title'
+              ? titleScene()
+              : place === 'market'
+                ? marketScene(season)
+                : shopScene(season)
+          })`,
           // 朝日が強い日は影がくっきり、曇った日はやわらかい。
           filter: `contrast(${air.contrast.toFixed(3)}) saturate(${(
             1 + air.warmth * 0.6
@@ -74,12 +80,19 @@ export function Scene({ season, title, blurred, dimmed, morning }: SceneProps) {
         aria-hidden
       />
 
-      {/* 光の強さと色みは、その日の朝で少しだけ変わる。 */}
-      <div
-        className="sunbeam"
-        style={{ '--light': air.light, '--warmth': air.warmth } as CSSProperties}
-        aria-hidden
-      />
+      {/*
+        窓から差し込む光の帯。
+        **店の中だけ。** 市場は外なので出さない ── 窓が無いのに窓の光が
+        あると、平らな空の上に**四角い明るい板**が乗って見える。
+        （実際に市場で、画面の中ほどに継ぎ目のような矩形が出ていた）
+      */}
+      {place !== 'market' && (
+        <div
+          className="sunbeam"
+          style={{ '--light': air.light, '--warmth': air.warmth } as CSSProperties}
+          aria-hidden
+        />
+      )}
       <div
         className="daylight"
         style={{ '--light': air.light, '--warmth': air.warmth } as CSSProperties}

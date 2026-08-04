@@ -4,84 +4,64 @@
  * ここはゲームではありません。一日の始まりを感じる時間です。
  * （→ design/15-build-order.md 3章、design/02-wireframes.md ⓪-b）
  *
- *   ある     鳥・風・窓からの光・花の揺れ
+ *   ある     市場で選んだ今日の一輪・鳥・風・窓からの光
  *   ない     注文・メモ・予算・おすすめ・進捗・BGM・目的・日付
  *
- * 押せるものは「CLOSED」の札ひとつだけ。裏返すのはプレイヤーではなく、店員です。
+ * ── 売り物を、片づけました ────────────────────────────
  *
- *   ×  「ゲームを始める」
- *   ○  「今日も、花屋を開けよう」
+ * 前は④花選びとまったく同じ棚を並べていました。実際に触ってみると、
+ * **市場でアジサイを選んだのに、中央にはチューリップが立っていました。**
+ * 選んだ花は左すみの一輪挿しにいて、画面の主役は売り物の棚。
+ * 何を選んだのか分からない、という指摘のとおりです。
  *
- * 滞在0秒でも成立します。それでも置くのは、素通りしない人のためです。
+ * いまは、市場で選んだ一輪だけが、まんなかにあります。
+ * 売り物はまだ出しません ── 店を開けてからの話なので。
+ *
+ * ── 札を、やめました ──────────────────────────────────
+ *
+ * 「CLOSED」の札を裏返す仕組みは、押してみるまで何が起きるか
+ * 分からない操作でした。だから「札を裏返すと、お店が開きます」という
+ * 案内が要りました。**説明が要る操作は、たいてい操作のほうが
+ * 間違っています。** いまはただの「お店を開く」ボタンです。
+ * 案内も一緒に消しました。
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import './OpeningScreen.css';
 import { FlowerDetail } from '../components/FlowerDetail';
-import { FlowerStand } from '../components/FlowerStand';
 import { ambience } from '../audio/ambience';
+import { flowerSmall as flowerImage, vase } from '../assets/paths';
 import { flowerById } from '../data/flowers';
-import { shelfFor } from '../data/shelf';
 import { useGame } from '../game/GameContext';
 import { useBreeze } from '../game/useBreeze';
 
-/** 札が裏返りきるまで。急いで押せるが、急いでは進まない。 */
-const SIGN_FLIP_MS = 900;
+/** 店を開けるまでの、ひと呼吸。ベルが鳴ってから画面が変わる。 */
+const OPEN_MS = 700;
 
 export function OpeningScreen() {
   const { state, dispatch, season } = useGame();
-  const shelfRef = useRef<HTMLDivElement>(null);
-  // ④花選択とまったく同じ棚。並びも同じ。
-  const shelf = useMemo(() => shelfFor(season.id, state.day), [season.id, state.day]);
-  const [center, setCenter] = useState(0);
-  const [flipping, setFlipping] = useState(false);
+  const [opening, setOpening] = useState(false);
   const breeze = useBreeze();
 
-  /** いま画面の中央にある花を見つける。④花選択とまったく同じ見え方にする。 */
-  const findCenter = useCallback(() => {
-    const shelf = shelfRef.current;
-    if (!shelf) return;
-    const middle = shelf.scrollLeft + shelf.clientWidth / 2;
-    let nearest = 0;
-    let best = Infinity;
-    shelf.querySelectorAll<HTMLElement>('.stand').forEach((stand, index) => {
-      const distance = Math.abs(stand.offsetLeft + stand.offsetWidth / 2 - middle);
-      if (distance < best) {
-        best = distance;
-        nearest = index;
-      }
-    });
-    setCenter(nearest);
-  }, []);
-
-  useEffect(() => {
-    findCenter();
-    const shelf = shelfRef.current;
-    if (!shelf) return;
-    shelf.addEventListener('scroll', findCenter, { passive: true });
-    return () => shelf.removeEventListener('scroll', findCenter);
-  }, [findCenter]);
-
-  // この時間だけは、鳥と風だけ。ピアノは札を裏返してから入る。
+  // この時間だけは、鳥と風だけ。ピアノは店を開けてから入る。
   useEffect(() => {
     if (state.soundOn) ambience.setMode('morning');
   }, [state.soundOn]);
 
+  const front = state.frontFlowerId ? flowerById(state.frontFlowerId) : null;
   const inspecting = state.inspectingFlowerId
     ? flowerById(state.inspectingFlowerId)
     : null;
-  const front = shelf[Math.min(center, shelf.length - 1)];
 
-  /** 札を裏返す。ゆっくり返って、揺れて止まり、そこでベルが鳴る。 */
-  const flipSign = () => {
-    if (flipping) return;
-    setFlipping(true);
+  const open = () => {
+    if (opening) return;
+    setOpening(true);
     window.setTimeout(() => {
       ambience.ringBell();
       ambience.setMode('shop'); // 店の音は、ここで初めて入ってくる
       dispatch({ type: 'open-shop' });
-    }, SIGN_FLIP_MS);
+    }, OPEN_MS);
   };
 
   return (
@@ -90,7 +70,7 @@ export function OpeningScreen() {
         'morning',
         inspecting ? 'is-inspecting' : '',
         breeze ? 'is-breezy' : '',
-        flipping ? 'is-opening' : '',
+        opening ? 'is-opening' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -114,43 +94,50 @@ export function OpeningScreen() {
         </button>
       </div>
 
-      {/* ④花選択と同じ棚、同じ見え方。別の画面に見せない。 */}
-      <div className="morning__shelf" ref={shelfRef}>
-        {shelf.map((flower, index) => (
-          <FlowerStand
-            key={flower.id}
-            flower={flower}
-            focused={index === center}
-            distance={Math.abs(index - center)}
-            picked={0}
-            onSelect={() => dispatch({ type: 'inspect', flowerId: flower.id })}
-          />
-        ))}
+      {/*
+        今日の一輪。市場で選んだ花が、まんなかの一輪挿しに。
+        ふれると、その花のことが読めます（値段は出しません ──
+        これは商品ではなく、今日の店の顔なので）。
+      */}
+      {front && (
+        <button
+          type="button"
+          className="morning__front"
+          onClick={() => dispatch({ type: 'inspect', flowerId: front.id })}
+          aria-label={`${front.name}を見る`}
+        >
+          <span className="morning__front-flower">
+            <img src={flowerImage(front.id)} alt="" aria-hidden draggable={false} />
+          </span>
+          <img className="morning__front-vase" src={vase()} alt="" aria-hidden draggable={false} />
+          <span className="morning__front-glow" style={{ background: front.swatch }} aria-hidden />
+        </button>
+      )}
+
+      {/* 名前だけ。値段も、望みも、ここには出さない。 */}
+      {front && (
+        <p className="morning__name">
+          {front.name}
+          <span className="morning__today">今日のお店のお花</span>
+        </p>
+      )}
+
+      <div className="morning__foot">
+        <button type="button" className="button" onClick={open} disabled={opening}>
+          お店を開く
+        </button>
       </div>
 
-      {/* 正面の花の名前だけ。値段も、望みも、ここには出さない。 */}
-      <p className="morning__name">{front.name}</p>
-
-      {/* 札。ボタンに見せない。 */}
-      <button
-        type="button"
-        className="morning__sign"
-        onClick={flipSign}
-        aria-label="お店を開ける"
-      >
-        <span className="morning__sign-cord" aria-hidden />
-        <span className="morning__sign-plate">
-          <span className="morning__sign-face morning__sign-face--closed">CLOSED</span>
-          <span className="morning__sign-face morning__sign-face--open">OPEN</span>
-        </span>
-      </button>
-
-      {/* 花にふれれば詳細は開ける。でも、まだ取れない ── 開店前だから。 */}
+      {/*
+        店頭の花の紙。値段は出さず、取ることもできません。
+        名前・花言葉・旬・その花のこと ── それだけ。
+      */}
       {inspecting && (
         <FlowerDetail
           flower={inspecting}
           inSeason={inspecting.seasons.includes(season.id)}
           canPick={false}
+          showPrice={false}
           onClose={() => dispatch({ type: 'inspect', flowerId: null })}
         />
       )}

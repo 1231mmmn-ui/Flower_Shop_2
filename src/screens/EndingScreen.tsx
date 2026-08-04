@@ -61,7 +61,7 @@ export function EndingScreen() {
           <div className="ending__loved">
             {loved.map((item) => (
               <span key={item.id} className="ending__flower">
-                <img src={flowerImage(item.id)} alt="" aria-hidden />
+                <img src={flowerImage(item.id)} alt="" aria-hidden draggable={false} />
                 <span>{item.name}</span>
               </span>
             ))}

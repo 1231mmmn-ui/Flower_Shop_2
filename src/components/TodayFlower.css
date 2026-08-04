@@ -1,0 +1,50 @@
+/*
+ * 今日のお店のお花。
+ *
+ * 主要なボタンのとなりに置きますが、**ボタンには見せません。**
+ * 面も、枠も、押した感じも作らない。花が一輪あって、
+ * その下に小さく名札があるだけ。
+ */
+
+.today-flower {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  /* 押せません。指はここを素通りします。 */
+  pointer-events: none;
+  animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+/*
+ * 花の絵は正方形で、咲いているのは上の4割ほど。
+ * そのまま小さくすると、下半分の茎ばかりが目立ちます。
+ * 上のほうだけを見せて、**花の顔**が出るようにします。
+ */
+.today-flower img {
+  width: 34px;
+  height: 30px;
+  object-fit: cover;
+  object-position: 50% 22%;
+  filter: drop-shadow(2px 3px 4px rgba(96, 74, 54, 0.22));
+}
+
+/*
+ * 一行だけ。
+ *
+ * これが無いと、ただ花の絵が置いてあるだけで、
+ * 市場で自分が選んだものだと気づけません（実機での指摘）。
+ * 木や店内の上に出るので、にじみで浮かせます。
+ */
+.today-flower__label {
+  font-family: var(--fs-font-family-base);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--fs-color-ink-faint);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 12px rgba(255, 250, 238, 0.9);
+}

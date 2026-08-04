@@ -23,8 +23,7 @@ export function CustomerFigure({
       <img
         className="figure__person appear"
         src={customerImage(customer.id, mood)}
-        alt={customer.name}
-      />
+        alt={customer.name} draggable={false} />
 
       <div className="figure__balloon panel">
         {showName && (
