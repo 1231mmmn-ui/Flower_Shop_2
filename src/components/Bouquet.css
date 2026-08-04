@@ -40,10 +40,17 @@
    */
   transform: translateX(-50%) rotate(var(--angle))
     translateY(calc(var(--reach) * -24%)) scale(var(--scale));
-  filter: brightness(calc(0.9 + var(--depth) * 0.12))
-    saturate(calc(0.88 + var(--depth) * 0.14))
-    blur(calc((1 - var(--depth)) * 0.7px))
-    drop-shadow(4px 8px 10px rgba(96, 74, 54, calc(0.10 + var(--depth) * 0.12)));
+  /*
+   * ── 奥行きの効きを、もう一段強くしました ──────────────────
+   *
+   * 前は明暗14%・彩度14%の範囲でしか変わらず、奥の花も手前の花も
+   * ほとんど同じ濃さに見えていました（「配置しただけ」に見える一因）。
+   * 奥の花を、はっきり**退かせます**。
+   */
+  filter: brightness(calc(0.84 + var(--depth) * 0.18))
+    saturate(calc(0.76 + var(--depth) * 0.26))
+    blur(calc((1 - var(--depth)) * 1.1px))
+    drop-shadow(4px 8px 10px rgba(96, 74, 54, calc(0.08 + var(--depth) * 0.14)));
   transition: transform var(--fs-duration-base) var(--fs-easing-soft),
     filter var(--fs-duration-base) var(--fs-easing-soft);
   animation: stem-bloom var(--fs-duration-bloom) var(--fs-easing-rise) both;
@@ -54,10 +61,22 @@
   pointer-events: none;
 }
 
+/*
+ * ── 花の向き ──────────────────────────────────────────
+ *
+ * 同じ一枚の絵（正面から見た花）を、束の外側へ回るほど**すこし細く**
+ * 見せます。写真そのものを差し替えるのではなく、横幅だけを詰めるので、
+ * 正面・半身・横向きが混じって見えます。回す軸は花の頭のあたり
+ * （画像の上から3割＝ IMAGE_ASSETS.md の headY）に置きます。
+ * 茎の付け根（画像の下端）ではなく、ここを軸にしないと、
+ * 花が回った拍子に茎の刺さる位置までずれてしまいます。
+ */
 .bouquet__stem img {
   width: 100%;
   height: auto;
   pointer-events: none;
+  transform-origin: 50% 30%;
+  transform: scaleX(var(--face-x, 1)) rotate(var(--face-rot, 0deg));
 }
 
 @keyframes stem-bloom {

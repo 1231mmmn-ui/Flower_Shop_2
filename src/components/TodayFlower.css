@@ -1,9 +1,14 @@
 /*
  * 今日のお店のお花。
  *
- * 主要なボタンのとなりに置きますが、**ボタンには見せません。**
- * 面も、枠も、押した感じも作らない。花が一輪あって、
- * その下に小さく名札があるだけ。
+ * 主要なボタンのとなりに置きます。以前は面も枠も押した感じも
+ * 作らない飾りでしたが、それでは「効果のない飾り」と
+ * 見分けがつかず、誰にも押されませんでした。
+ *
+ * いまは**押せます。** 押すと、店頭の一輪と同じ紙で、
+ * 名前・花言葉・その花のひとことが読めます（→ TodayFlower.tsx）。
+ * ボタンだと分かるよう、面と枠をうっすら足しました。
+ * 主張しすぎないよう、色は木や紙と同じ側でまとめています。
  */
 
 .today-flower {
@@ -11,23 +16,38 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  /* 押せません。指はここを素通りします。 */
-  pointer-events: none;
+  gap: 2px;
+  border: 0;
+  border-radius: var(--fs-radius-lg);
+  background: rgba(255, 252, 244, 0.55);
+  padding: 3px var(--fs-space-xs) 2px;
+  cursor: pointer;
+  transition: background var(--fs-duration-base) var(--fs-easing-soft),
+    transform var(--fs-duration-quick) var(--fs-easing-rise);
   animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
+}
+
+.today-flower:active {
+  background: rgba(255, 252, 244, 0.86);
+  transform: translateY(1px);
 }
 
 /*
  * 花の絵は正方形で、咲いているのは上の4割ほど。
  * そのまま小さくすると、下半分の茎ばかりが目立ちます。
  * 上のほうだけを見せて、**花の顔**が出るようにします。
+ *
+ * ── 小さすぎました ────────────────────────────────────
+ * 34×30px は、飾りと見分けがつかない大きさでした。
+ * 2.2倍（75×66px）にして、ここに「自分が選んだ花」が
+ * 見えていると、ひと目で分かるようにします。
  */
 .today-flower img {
-  width: 34px;
-  height: 30px;
+  width: 75px;
+  height: 66px;
   object-fit: cover;
   object-position: 50% 22%;
-  filter: drop-shadow(2px 3px 4px rgba(96, 74, 54, 0.22));
+  filter: drop-shadow(3px 5px 6px rgba(96, 74, 54, 0.24));
 }
 
 /*
@@ -39,7 +59,7 @@
  */
 .today-flower__label {
   font-family: var(--fs-font-family-base);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.04em;
   line-height: 1.2;
   white-space: nowrap;

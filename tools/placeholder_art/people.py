@@ -20,15 +20,24 @@
 
 水彩は最後の一手であって、作り方ではありません。
 
-── 直したもの ────────────────────────────────────────────
+── そして、全員が「同じ顔の着せ替え」でした ──────────────────
 
-    顔    真円をやめた。額 → こめかみ → 頬骨 → 顎 とすぼまる輪郭
-    目    まぶた・虹彩・瞳・ハイライト・下まぶた・まつげ
-    鼻    輪郭線は描かない。鼻筋の右に影、小鼻、鼻先の下の影
-    口    一本線をやめた。上唇（濃い）と下唇（明るい）の二枚
-    髪    一枚の面をやめた。毛束を何本も重ね、流れと分け目を作る
-    首肩  顎の下の影・鎖骨・なで肩の傾き。腕までひと続き
-    個体差 首の傾き・視線・肩の傾き・髪型を、人ごとに変える
+髪型と服の色だけを変えていたので、8人が並ぶと**同じ顔が8つ**でした。
+実機で「人物同士がまだ同じ顔」と指摘されたのは、そのとおりです。
+
+顔型・目の形と間隔・眉・鼻・口・頬・顎・年齢・体格・首の太さ・
+肩幅・姿勢まで、**すべて `spec` の数値から作る**ようにしました。
+写実にはしません。目標は「同じ絵柄で描かれた、本当に別の人たち」です。
+
+    顔型   forehead_w / cheek_w / jaw_w / chin_taper で輪郭そのものを変える
+    目     eye_gap（間隔）・eye_h（開き）・eye_tilt（目尻の向き）
+    眉     brow_arch（弧の強さ）・brow_thick・brow_gap（目からの距離）
+    鼻     nose_w（幅）・nose_len（長さ）
+    口     mouth_w（幅）・lip_full（ふくらみ）
+    頬     cheek_full（ふっくら〜こけて見える、を陰影だけで作る）
+    年齢   age="elder" で、額の二本・ほうれい線・目の下の影を淡く足す
+    体格   build（全身の太さ）・shoulder_width（肩幅）・neck_width（首）
+    姿勢   tilt（首の傾き）・shoulder（左右差）・stoop（前かがみ）
 
 **避けるもの**（参考画のNG例より）
     ・顔や目が大きすぎる（キャラクター感が強くなる）
@@ -54,8 +63,6 @@ CUSTOMER_SIZE = (800, 800)
 
 # ── 枠の中の、頭の位置と大きさ ──────────────────────────────
 #
-# **頭を、一回り大きく取り直しました。**
-#
 # 前は顔の高さが枠の 35%（280px）しかなく、目は 20px ほどでした。
 # その大きさでは、まぶたも虹彩も鼻の影も、描いても潰れます。
 # 造形を半写実まで上げるには、まず**描く場所**が要ります。
@@ -73,9 +80,16 @@ HEAD_TOP = 0.088
 #
 # **真円ではありません。** こめかみでいちばん広く、
 # 頬骨から下はゆるやかにすぼまり、顎で丸くとじます。
+# 各点がどの部位に属するかは REGION_OF_POINT で、
+# `face_outline()` が spec の倍率（forehead_w / cheek_w / jaw_w）を
+# 部位ごとに掛けて、**人ごとに違う輪郭**を作ります。
 FACE_PROFILE = (
     (-150, 58), (-128, 87), (-104, 103), (-72, 112), (-36, 115),
     (0, 114), (36, 106), (68, 92), (96, 70), (116, 45), (128, 0),
+)
+REGION_OF_POINT = (
+    "forehead", "forehead", "forehead", "cheek", "cheek",
+    "cheek", "jaw", "jaw", "jaw", "chin", "chin",
 )
 
 
@@ -96,10 +110,35 @@ def _over(base: Image.Image, mask: Image.Image, color: RGB, strength: float = 1.
     base.alpha_composite(paint_mask(base.size, mask, color))
 
 
-def face_outline(cx: float, cy: float, w: float, h: float) -> list[tuple[float, float]]:
-    """顔の輪郭を、左半分 → 右半分の順に閉じた形で返す。"""
-    left = [(cx - hw * w, cy + dy * h) for dy, hw in FACE_PROFILE]
-    right = [(cx + hw * w, cy + dy * h) for dy, hw in reversed(FACE_PROFILE)]
+def face_outline(cx: float, cy: float, w: float, h: float, spec: dict) -> list[tuple[float, float]]:
+    """
+    顔の輪郭を、左半分 → 右半分の順に閉じた形で返す。
+
+    **部位ごとに幅を変えられること。** `face_w` を一つだけ持っていたころは、
+    額と顎がいつも同じ比率で拡大縮小され、丸顔と面長は作れても
+    「額は広いのに顎が細い」「額は狭いのに顎はしっかりしている」は
+    作れませんでした。人の顔の個性は、たいてい**部位ごとの違い**です。
+    """
+    fh_w = spec.get("forehead_w", 1.0)
+    ck_w = spec.get("cheek_w", 1.0)
+    jw_w = spec.get("jaw_w", 1.0)
+    chin_taper = spec.get("chin_taper", 0.0)  # 0=尖った顎 / 1=丸く、少し広く残る顎
+    region_mult = {"forehead": fh_w, "cheek": ck_w, "jaw": jw_w, "chin": jw_w}
+
+    pts = []
+    for i, (dy, hw) in enumerate(FACE_PROFILE):
+        mult = region_mult[REGION_OF_POINT[i]]
+        if i == len(FACE_PROFILE) - 1:
+            # 顎の先端。chin_taper が高いほど、点で閉じず少し幅を残す
+            # （四角い・丸い顎）。低いほどまっすぐ尖る（面長・シャープ）。
+            hw = chin_taper * 16
+            dy = dy * (1 - chin_taper * 0.10)
+        else:
+            hw = hw * mult
+        pts.append((dy, hw))
+
+    left = [(cx - hw * w, cy + dy * h) for dy, hw in pts]
+    right = [(cx + hw * w, cy + dy * h) for dy, hw in reversed(pts)]
     return left + right
 
 
@@ -125,21 +164,24 @@ def _eye(img: Image.Image, cx: float, cy: float, side: int, spec: dict,
         六．まつげ        目尻だけ、わずかに伸ばす
 
     **大きくしないこと。** 参考画のNG例の筆頭が「目が大きすぎる」です。
+
+    `eye_h`（開き）・`eye_tilt`（目尻が上がる／下がる）は spec から。
+    同じ寸法の目を8人ぶん描いていたのを、ここで崩します。
     """
     ink = hex_rgb(spec.get("eye", "#4A3A31"))
+    eye_h_mult = spec.get("eye_h", 1.0)
+    tilt = spec.get("eye_tilt", 0.0)  # 正で目尻が上がる（つり目寄り）
     # **顔の大きさに連れて変わること。**
-    # 一度、頭だけ 1.34 倍にして目を絶対値のままにしたら、
-    # 目が顔の中で小さくなり、まぶたも虹彩も潰れて黒い豆になりました。
     w = 25.0 * k
-    h = 12.5 * k * (1 - narrow * 0.45)
+    h = 12.5 * k * eye_h_mult * (1 - narrow * 0.45)
+    outer_y = cy + 1.0 - tilt * h * 0.5
 
-    # 上まぶた。目頭は細く、目尻に向かって太く。
-    lid = bezier((cx - w, cy + 2.5), (cx + side * 2, cy - h * 1.35), (cx + w, cy + 1.0), 26)
+    # 上まぶた。目頭は細く、目尻に向かって太く。目尻の高さは tilt で動く。
+    lid = bezier((cx - w, cy + 2.5), (cx + side * 2, cy - h * 1.35), (cx + side * w, outer_y), 26)
     band = tapered_band(lid, 2.4 * k, 5.0 * k)
     _over(img, _soft(_mask(img.size, lambda d: d.polygon(band, fill=255)), 1.0 * k), ink, 0.92)
 
     # 白目。**ここが見えないと、目は黒い豆になります。**
-    # 真っ白にはしません（浮きます）が、肌よりはっきり明るく。
     white = _mask(img.size, lambda d: d.ellipse(
         [cx - w * 0.88, cy - h * 0.80, cx + w * 0.88, cy + h * 0.95], fill=255))
     _over(img, _soft(white, 1.6 * k), mix(skin, (255, 255, 255), 0.90), 0.92)
@@ -166,45 +208,64 @@ def _eye(img: Image.Image, cx: float, cy: float, side: int, spec: dict,
         [hx - hr, hy - hr, hx + hr, hy + hr], fill=255)), 0.6), (255, 253, 248), 0.85)
 
     # 下まぶた。**ごく淡く。** 濃くすると隈になる。
-    low = bezier((cx - w * 0.8, cy + h * 0.5), (cx, cy + h * 1.25), (cx + w * 0.86, cy + h * 0.3), 18)
+    low = bezier((cx - w * 0.8, cy + h * 0.5), (cx, cy + h * 1.25),
+                 (cx + side * w * 0.86, outer_y + h * 0.3), 18)
     _over(img, _soft(_mask(img.size, lambda d: d.line(low, fill=255, width=int(2 * k) or 1)), 1.4 * k),
           mix(ink, skin, 0.55), 0.4)
 
-    # まつげ。目尻だけ、わずかに。
-    tip = [(cx + side * w * 0.86, cy + 1.0), (cx + side * (w + 7 * k), cy - 3.5 * k)]
+    # まつげ。目尻だけ、わずかに。tilt に沿って伸びる向きも変える。
+    tip = [(cx + side * w * 0.86, outer_y), (cx + side * (w + 7 * k), outer_y - (3.5 + tilt * 6) * k)]
     _over(img, _soft(_mask(img.size, lambda d: d.line(tip, fill=255, width=int(3 * k) or 1)), 1.0 * k),
           ink, 0.7)
 
-    # 眉。髪より淡く、目のうえ。
-    brow_y = cy - 32 * k
-    brow = bezier((cx - w * 1.05, brow_y + 6 * k), (cx + side * 3, brow_y - 9 * k),
-                  (cx + w * 1.0, brow_y + 3 * k), 22)
-    bb = tapered_band(brow, 5.6 * k, 2.4 * k)
+
+def _brow(img: Image.Image, cx: float, cy: float, side: int, spec: dict, k: float) -> None:
+    """
+    眉。**目からの距離と、弧の強さで、表情も年齢も変わります。**
+
+    brow_gap が狭いと近づいた眉（きつめ・力強い）、広いと離れた眉（やわらかい）。
+    brow_arch が高いとアーチの効いた眉（女性的・驚いた印象）、
+    低いとまっすぐな眉（男性的・落ち着いた印象）。
+    """
+    hair_mix = spec.get("brow_color_mix", 0.30)
+    arch = spec.get("brow_arch", 8.0)
+    thick = spec.get("brow_thick", 1.0)
+    gap = spec.get("brow_gap", 30.0)
+    w = 25.0 * k
+
+    brow_y = cy - gap * k
+    brow = bezier((cx - w * 1.05, brow_y + 6 * k), (cx + side * 3, brow_y - arch * k),
+                  (cx + side * w * 1.0, brow_y + 3 * k), 22)
+    bb = tapered_band(brow, 5.6 * k * thick, 2.4 * k * thick)
     _over(img, _soft(_mask(img.size, lambda d: d.polygon(bb, fill=255)), 2.2),
-          mix(hex_rgb(spec["hair"]), skin, 0.30), 0.55)
+          mix(hex_rgb(spec["hair"]), spec["_skin_rgb"], hair_mix), 0.55)
 
 
 def _nose(img: Image.Image, cx: float, cy: float, skin: RGB, nose_h: float,
-          k: float = 1.0) -> None:
+          k: float = 1.0, spec: dict | None = None) -> None:
     """
     鼻。**輪郭線は描きません。**
 
     描くのは影だけです。線で描いた鼻は、どんなに細くても記号になります。
     光は左上ひとつなので、鼻筋の**右側**に影が落ちます。
+    `nose_w`（幅）・`nose_len`（長さ）で、人ごとに違う鼻にします。
     """
+    spec = spec or {}
+    nw = spec.get("nose_w", 1.0)
+    nose_h = nose_h * spec.get("nose_len", 1.0)
     dark = shade(skin, -0.40)
     # 鼻筋の右の影。眉間から鼻先へ、細く。
     ridge = bezier((cx + 5 * k, cy - nose_h * 0.95), (cx + 9 * k, cy - nose_h * 0.3),
                    (cx + 7 * k, cy), 20)
-    band = tapered_band(ridge, 3.4 * k, 11.0 * k)
+    band = tapered_band(ridge, 3.4 * k, 11.0 * k * nw)
     _over(img, _soft(_mask(img.size, lambda d: d.polygon(band, fill=255)), 5.0 * k), dark, 0.46)
     # 鼻先の下の影。**ここが鼻の位置を決めます。**
     _over(img, _soft(_mask(img.size, lambda d: d.ellipse(
-        [cx - 13 * k, cy - 2 * k, cx + 14 * k, cy + 8 * k], fill=255)), 4.0 * k), dark, 0.42)
+        [cx - 13 * k * nw, cy - 2 * k, cx + 14 * k * nw, cy + 8 * k], fill=255)), 4.0 * k), dark, 0.42)
     # 小鼻。ごく小さく、ふたつ。
     for s in (-1, 1):
         _over(img, _soft(_mask(img.size, lambda d: d.ellipse(
-            [cx + s * 14 * k - 5 * k, cy - 6 * k, cx + s * 14 * k + 5 * k, cy + 2 * k],
+            [cx + s * 14 * k * nw - 5 * k, cy - 6 * k, cx + s * 14 * k * nw + 5 * k, cy + 2 * k],
             fill=255)), 2.4 * k), dark, 0.36)
     # 鼻筋の左に、うすい光
     lit = bezier((cx - 4 * k, cy - nose_h * 0.9), (cx - 6 * k, cy - nose_h * 0.3),
@@ -214,12 +275,13 @@ def _nose(img: Image.Image, cx: float, cy: float, skin: RGB, nose_h: float,
 
 
 def _mouth(img: Image.Image, cx: float, cy: float, skin: RGB, smile: float,
-           width: float = 21.0, k: float = 1.0) -> None:
+           width: float = 21.0, k: float = 1.0, lip_full: float = 1.0) -> None:
     """
     口。**一本線の笑顔をやめました。**
 
     上唇は光を受けにくいので少し濃く、下唇は明るくてつやがあります。
     その二枚の合わせ目が、線に見えるだけです。
+    `lip_full` で下唇のふくらみを人ごとに変えます。
     """
     # **濃くしすぎないこと。** 唇は肌の延長で、貼り付けた色ではありません。
     lip = mix(skin, hex_rgb("#C88F86"), 0.46)
@@ -233,7 +295,7 @@ def _mouth(img: Image.Image, cx: float, cy: float, skin: RGB, smile: float,
           shade(lip, -0.16), 0.58)
 
     # 下唇。上唇より広く、明るい。
-    low = bezier((cx - width * 0.92, cy + 1.5 * k), (cx, cy + (10.5 + smile * 1.5) * k),
+    low = bezier((cx - width * 0.92, cy + 1.5 * k), (cx, cy + (10.5 + smile * 1.5) * k * lip_full),
                  (cx + width * 0.92, cy + 1.5 * k), 22)
     lower = low + [(cx + width * 0.92, cy + 0.5 * k), (cx, cy + 3.0 * k), (cx - width * 0.92, cy + 0.5 * k)]
     _over(img, _soft(_mask(img.size, lambda d: d.polygon(lower, fill=255)), 2.2),
@@ -254,6 +316,63 @@ def _mouth(img: Image.Image, cx: float, cy: float, skin: RGB, smile: float,
             [cx + s * width * 0.96 - 3 * k, cy - rise * 0.6 - 3 * k,
              cx + s * width * 0.96 + 3 * k, cy - rise * 0.6 + 3 * k], fill=255)), 1.6 * k),
               shade(lip, -0.42), 0.55 * (0.5 + smile))
+
+
+def _cheek_and_jaw(head: Image.Image, cx: float, cy: float, fw: float, fh: float,
+                   chin: float, skin: RGB, spec: dict) -> None:
+    """
+    頬とあご先の、量感。
+
+    輪郭線だけでは「丸顔」「面長」は作れても「ふっくら」「こけている」は
+    作れません。それは**陰影の量**の話だからです。
+
+    `cheek_full` が高いほど、頬からあごにかけて丸みのある明るい面を足し
+    （ふっくら）、低い（負）ほど頬骨の下に影を足します（こけて見える）。
+    """
+    full = spec.get("cheek_full", 0.0)
+    if full > 0:
+        for s in (-1, 1):
+            _over(head, _soft(_mask(head.size, lambda d: d.ellipse(
+                [cx + s * 52 * fw - 34, cy + 30 * fh, cx + s * 52 * fw + 34,
+                 chin - 6], fill=255)), 18),
+                mix(skin, (255, 250, 240), 0.5), 0.18 * full)
+    elif full < 0:
+        for s in (-1, 1):
+            _over(head, _soft(_mask(head.size, lambda d: d.ellipse(
+                [cx + s * 66 * fw - 24, cy + 18 * fh, cx + s * 66 * fw + 24,
+                 cy + 62 * fh], fill=255)), 14),
+                shade(skin, -0.30), -0.22 * full)
+
+
+def _age_marks(head: Image.Image, cx: float, cy: float, fw: float, fh: float,
+               chin: float, skin: RGB, spec: dict) -> None:
+    """
+    年齢のしるし。**淡く。** 描き込みではなく、あることに気づく程度で。
+
+    `age="elder"` のときだけ、額の二本・ほうれい線・目の下のふくらみを足す。
+    若い人には何も足さない ── 皺を「無くす」努力より、要らない人に
+    足さないほうが確実です。
+    """
+    if spec.get("age") != "elder":
+        return
+    dark = shade(skin, -0.30)
+    # 額の横線、二本。ごく淡く。
+    for t in (0.5, 0.72):
+        y = cy - 118 * fh + 118 * fh * t * 0.5
+        line = bezier((cx - 60 * fw, y + 4), (cx, y - 4), (cx + 60 * fw, y + 4), 16)
+        _over(head, _soft(_mask(head.size, lambda d, p=line: d.line(p, fill=255, width=2)), 2.6),
+              dark, 0.16)
+    # ほうれい線。鼻の脇から口の外へ、ごく淡く弧を描く。
+    for s in (-1, 1):
+        fold = bezier((cx + s * 16 * fw, cy + 52 * fh), (cx + s * 30 * fw, cy + 68 * fh),
+                      (cx + s * 26 * fw, cy + 84 * fh), 16)
+        _over(head, _soft(_mask(head.size, lambda d, p=fold: d.line(p, fill=255, width=2)), 2.2),
+              dark, 0.20)
+    # 目の下の、ごくわずかなふくらみ。
+    for s in (-1, 1):
+        _over(head, _soft(_mask(head.size, lambda d: d.ellipse(
+            [cx + s * 46 * fw - 20, cy - 4 * fh, cx + s * 46 * fw + 20, cy + 12 * fh], fill=255)),
+            4.0), dark, 0.14)
 
 
 # --------------------------------------------------------------------------
@@ -334,11 +453,24 @@ def _hair_back(img: Image.Image, spec: dict, cx: float, cy: float, fw: float,
              cy + fh * (52 + drop * (0.35 + spread * 0.55))),
             30)
         band = tapered_band(path, w0, w1)
-    # つや。左上に、ゆるい弧が一本。**光は左上ひとつ。**
-    gl = bezier((cx - fw * 88, cy - fh * 92), (cx - fw * 24, cy - fh * 132),
-                (cx + fw * 44, cy - fh * 96), 22)
-    _over(img, _soft(_mask(size, lambda d: d.line(gl, fill=255, width=15)), 9.0),
-          mix(hair, (255, 246, 226), 0.55), 0.32)
+        tone = mix(hair, light, 0.10 + 0.6 * rng.random())
+        img.alpha_composite(wc_layer(size, lambda d, b=band: d.polygon(b, fill=255),
+                                     tone, rng.randint(0, 9999), 2.6, 0.10))
+
+    # ── つや ─────────────────────────────────────────
+    #
+    # **一本線ではなく、淡い面。** 線で入れると、髪に針金が
+    # 一本乗っているように見えます。光は面で当たります。
+    # 頭の丸みに沿った、横長の楕円をうすく置くだけ。
+    halo = _mask(size, lambda d: d.ellipse(
+        [cx - fw * 96, cy - fh * 136, cx + fw * 52, cy - fh * 74], fill=255))
+    _over(img, _soft(halo, 26), mix(hair, (255, 246, 226), 0.55), 0.30)
+    for k in range(3):
+        hx = cx - fw * (72 - k * 40) + rng.uniform(-8, 8)
+        hy = cy - fh * (116 - k * 8)
+        _over(img, _soft(_mask(size, lambda d, hx=hx, hy=hy: d.ellipse(
+            [hx - fw * 26, hy - fh * 13, hx + fw * 26, hy + fh * 13], fill=255)), 13),
+            mix(hair, (255, 250, 234), 0.7), 0.22)
 
 
 def _hair_front(img: Image.Image, spec: dict, cx: float, cy: float, fw: float,
@@ -356,8 +488,16 @@ def _hair_front(img: Image.Image, spec: dict, cx: float, cy: float, fw: float,
     dark = shade(hair, -0.22)
     top = cy - fh * 150
     part = cx + fw * rng.uniform(-26, 26)
-    # 前髪の下端。眉（cy - 42*fh）より上で止める。
+    # 前髪の下端。眉より上で止める。
     stop = cy - fh * 58
+
+    # ── 短い髪は、前髪も短くする ──────────────────────────
+    #
+    # ここが style を見ていなかったので、後ろ髪をどれだけ変えても
+    # 正面から見ると全員同じ前髪＝**同じ人**に見えていました。
+    # 長い髪を耳の下まで払うのと、刈り上げた前髪がひたいで止まるのとは、
+    # 束の伸び方も、はみ出す後れ毛の長さも違います。
+    short = spec.get("hair_style", "long") == "short"
 
     # ── 頭のてっぺんを、覆う ──────────────────────────────
     #
@@ -379,16 +519,20 @@ def _hair_front(img: Image.Image, spec: dict, cx: float, cy: float, fw: float,
     img.alpha_composite(wc_layer(size, lambda d: d.polygon(crown, fill=255),
                                  dark, rng.randint(0, 9999), 3.4, 0.11))
 
+    # 短い髪は、束の届く先を耳の手前で止める。長い髪と同じ届き方だと
+    # 「前髪が長いだけの同じ髪型」になってしまう。
+    reach = 0.62 if short else 1.0
+    stop_eff = stop + fh * 30 if short else stop
     for i in range(6):
         t = i / 5
         side = -1 if t < 0.5 else 1
-        spread = 0.3 + abs(t - 0.5) * 1.4
+        spread = (0.3 + abs(t - 0.5) * 1.4) * reach
         path = bezier(
             (part + side * fw * 6, top + fh * 8),
             (part + side * fw * (46 + spread * 40), top + fh * (44 + spread * 16)),
-            (cx + side * fw * (72 + spread * 34), stop + fh * rng.uniform(-14, 16)),
+            (cx + side * fw * (72 + spread * 34) * reach, stop_eff + fh * rng.uniform(-14, 16)),
             26)
-        band = tapered_band(path, 17 + rng.uniform(0, 7), 4 + rng.uniform(0, 4))
+        band = tapered_band(path, (13 if short else 17) + rng.uniform(0, 7), 4 + rng.uniform(0, 4))
         tone = mix(hair, light, 0.10 + 0.45 * rng.random())
         img.alpha_composite(wc_layer(size, lambda d, b=band: d.polygon(b, fill=255),
                                      tone, rng.randint(0, 9999), 2.4, 0.10))
@@ -409,14 +553,19 @@ def _hair_front(img: Image.Image, spec: dict, cx: float, cy: float, fw: float,
     # **輪郭からはみ出す毛が、髪をやわらかく見せます。**
     # 二本では足りませんでした（きれいに整いすぎて、かつらに見える）。
     # 太さも長さも散らして、五、六本。
-    for i in range(rng.randint(5, 6)):
+    #
+    # 短い髪は、頬や顎まで垂れる後れ毛を持ちません（そこまで髪がない）。
+    # 本数を減らし、こめかみのあたりで止めます。
+    strand_n = rng.randint(2, 3) if short else rng.randint(5, 6)
+    for i in range(strand_n):
         sd = rng.choice((-1, 1))
         y0 = cy - fh * rng.uniform(70, 130)
+        end_y = (cy - fh * rng.uniform(10, 50)) if short else (cy + fh * rng.uniform(14, 76))
         strand = bezier(
             (cx + sd * fw * rng.uniform(50, 84), y0),
             (cx + sd * fw * rng.uniform(92, 124), cy - fh * rng.uniform(-6, 44)),
-            (cx + sd * fw * rng.uniform(76, 112) + rng.uniform(-10, 10),
-             cy + fh * rng.uniform(14, 76)),
+            (cx + sd * fw * (rng.uniform(72, 100) if short else rng.uniform(76, 112))
+             + rng.uniform(-10, 10), end_y),
             22)
         wid = rng.choice((2, 2, 3, 4))
         _over(img, _soft(_mask(size, lambda d, q=strand, ww=wid: d.line(q, fill=255, width=ww)),
@@ -443,6 +592,7 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
     img = Image.new("RGBA", size, (0, 0, 0, 0))
 
     skin = hex_rgb(spec.get("skin", "#F2D9C4"))
+    spec = {**spec, "_skin_rgb": skin}  # _brow が髪色と混ぜるのに使う
     # 服の色は、そのままだと強すぎます。
     # **主張しすぎない色味で、花が主役になるように**（参考画のポイント）。
     # 生成りへ寄せて、彩度を落とします。
@@ -455,14 +605,11 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
     fw = spec.get("face_w", 1.0) * (chin - cy) / 128.0
     fh = (chin - cy) / 128.0 * spec.get("face_h", 1.0)
 
-    tilt = spec.get("tilt", 0.0) + (2.5 if mood == "happy" else 0.0)
+    tilt = spec.get("tilt", 0.0) + spec.get("stoop", 0.0) * 3.0 + (2.5 if mood == "happy" else 0.0)
     shoulder = spec.get("shoulder", 0.0)
     neck_y = chin + 76
 
     # ── 1. 体 ────────────────────────────────────────────
-    # なで肩。参考画のNG例「ポーズが硬い」を避けるため、
-    # 左右の高さをわずかに変え、肩先を丸くする。
-    # ── 体 ────────────────────────────────────────────
     #
     # **一枚の面をやめました。**
     #
@@ -476,19 +623,31 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
     #
     # **左右をそろえないこと。** 完全対称は、人ではなく紋章です。
     # 肩の高さ・腕の太さ・落ちる角度を、左右で少しずつ変えます。
-    sway = spec.get("shoulder", 0.0)
-    arm_l = 1.0 + sway * 0.10
-    arm_r = 1.0 - sway * 0.08
-    sh_y_l = h * 0.815 + sway * 14
-    sh_y_r = h * 0.815 - sway * 11
+    #
+    # **体格そのものも人ごとに変えます。** `build` は全身の太さ、
+    # `shoulder_width` は肩の張り出し、`neck_width` は首の太さ。
+    # 同じ骨格に髪型と服の色を替えているだけでは、シルエットで
+    # 別人と分かりません。
+    build = spec.get("build", 1.0)
+    sh_wid = spec.get("shoulder_width", 1.0)
+    neck_wid = spec.get("neck_width", 1.0)
+    sway = shoulder
+    arm_l = (1.0 + sway * 0.10) * build
+    arm_r = (1.0 - sway * 0.08) * build
+    stoop = spec.get("stoop", 0.0)
+    # 前かがみは、肩が持ち上がって見える（すくめた形）ぶんで表す。
+    sh_y_l = h * 0.815 + sway * 14 - stoop * 16
+    sh_y_r = h * 0.815 - sway * 11 - stoop * 16
 
     def torso(d):
-        pts = (bezier((cx - 68, neck_y - 8), (cx - 132, h * 0.775), (cx - 176, sh_y_l), 24)
-               + bezier((cx - 176, sh_y_l), (cx - 198, h * 0.92), (cx - 206, h), 18)
-               + [(cx + 206, h)]
+        tw = 68 * neck_wid
+        sw = 176 * sh_wid
+        pts = (bezier((cx - tw, neck_y - 8), (cx - 132 * build, h * 0.775), (cx - sw, sh_y_l), 24)
+               + bezier((cx - sw, sh_y_l), (cx - 198 * build, h * 0.92), (cx - 206 * build, h), 18)
+               + [(cx + 206 * build, h)]
                + list(reversed(
-                   bezier((cx + 68, neck_y - 8), (cx + 132, h * 0.775), (cx + 176, sh_y_r), 24)
-                   + bezier((cx + 176, sh_y_r), (cx + 198, h * 0.92), (cx + 206, h), 18))))
+                   bezier((cx + tw, neck_y - 8), (cx + 132 * build, h * 0.775), (cx + sw, sh_y_r), 24)
+                   + bezier((cx + sw, sh_y_r), (cx + 198 * build, h * 0.92), (cx + 206 * build, h), 18))))
         d.polygon(pts, fill=255)
 
     def arms(d):
@@ -498,18 +657,14 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
         # 胴とのあいだに**穴**が空きました（肩の上に白い切れ込みが出た）。
         # 腕は胴から生えているので、付け根は胴の中にあります。
         for s2, k2, sh_y in ((-1, arm_l, sh_y_l), (1, arm_r, sh_y_r)):
-            path = bezier((cx + s2 * 110, sh_y - 66),
+            path = bezier((cx + s2 * 110 * sh_wid, sh_y - 66),
                           (cx + s2 * 222 * k2, sh_y + 24),
                           (cx + s2 * 240 * k2, h + 20), 26)
             d.polygon(tapered_band(path, 150 * k2, 106 * k2), fill=255)
             # 肩のまるみ。**付け根は胴の中へ。**
-            #
-            # 中心を外へ置くと、丸みの上端が胴の輪郭より外に出て、
-            # そこに**背景が抜けます**（肩の上に白い切れ込みが出た）。
-            # 実測：y=566 で胴の半幅103に対し、丸みの上端が150 → 47px の穴。
-            # 中心を 128 まで内へ寄せると、上端でも 57 まで届いて重なります。
-            d.ellipse([cx + s2 * 128 * k2 - 96, sh_y - 120,
-                       cx + s2 * 128 * k2 + 96, sh_y + 52], fill=255)
+            # 実測：中心を128まで内へ寄せると、上端でも胴の輪郭に届く。
+            d.ellipse([cx + s2 * 128 * k2 * sh_wid - 96 * k2, sh_y - 120,
+                       cx + s2 * 128 * k2 * sh_wid + 96 * k2, sh_y + 52], fill=255)
 
     def body(d):
         torso(d)
@@ -519,13 +674,14 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
         # 首は**見えていること。** 髪と服のあいだが詰まっていると、
         # 頭が体に直接載っているように見えます。
         # ただし**箱にしないこと。** 上は細く、肩へ向かって広がります。
-        # **裾は、服より細いこと。**
-        # 一度、首の裾（±72）を服の襟もと（±60）より広くしたら、
-        # 肩の付け根に**肌の三角**がのぞきました。穴に見えます。
-        side = (bezier((cx - 40, chin - 34), (cx - 42, neck_y - 20), (cx - 52, neck_y + 30), 20)
-                + [(cx + 52, neck_y + 30)]
-                + list(reversed(bezier((cx + 40, chin - 34), (cx + 42, neck_y - 20),
-                                       (cx + 52, neck_y + 30), 20))))
+        # **裾は、服より細いこと。**（首の裾を服の襟もとより広くすると、
+        # 肩の付け根に肌の三角がのぞきます。）
+        nw = 40 * neck_wid
+        side = (bezier((cx - nw, chin - 34), (cx - nw * 1.05, neck_y - 20),
+                       (cx - nw * 1.3, neck_y + 30), 20)
+                + [(cx + nw * 1.3, neck_y + 30)]
+                + list(reversed(bezier((cx + nw, chin - 34), (cx + nw * 1.05, neck_y - 20),
+                                       (cx + nw * 1.3, neck_y + 30), 20))))
         d.polygon(side, fill=255)
 
     img.alpha_composite(wc_layer(size, neck, skin, rng.randint(0, 9999), 3.0, 0.05))
@@ -536,48 +692,43 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
     #
     # **ごく弱く。** 服はいちばん広い面なので、少し濃くしただけで
     # 影が主張します（参考画のNG例「影が濃すぎる」）。
-    #
-    #   腕と胴の境目   ここが無いと、腕が胴に溶ける
-    #   胸の丸み       左上の光に対して、右下がわずかに落ちる
-    #   肩の上         光が乗る。ここだけ明るい
     for s2, k2, sh_y in ((-1, arm_l, sh_y_l), (1, arm_r, sh_y_r)):
-        seam = bezier((cx + s2 * 138, sh_y - 20), (cx + s2 * 162, sh_y + 60),
-                      (cx + s2 * 172, h), 20)
+        seam = bezier((cx + s2 * 138 * sh_wid, sh_y - 20), (cx + s2 * 162 * k2, sh_y + 60),
+                      (cx + s2 * 172 * k2, h), 20)
         _over(img, _soft(_mask(size, lambda d, q=seam: d.line(q, fill=255, width=16)), 13),
               shade(cloth, -0.34), 0.24)
-    # 胸の丸み（右下が落ちる）
     _over(img, _soft(_mask(size, lambda d: d.ellipse(
-        [cx + 6, neck_y + 40, cx + 168, h], fill=255)), 34), shade(cloth, -0.26), 0.20)
-    # 肩の上の光
+        [cx + 6, neck_y + 40, cx + 168 * build, h], fill=255)), 34), shade(cloth, -0.26), 0.20)
     _over(img, _soft(_mask(size, lambda d: d.ellipse(
-        [cx - 214, sh_y_l - 86, cx - 44, sh_y_l - 4], fill=255)), 26),
+        [cx - 214 * sh_wid, sh_y_l - 86, cx - 44, sh_y_l - 4], fill=255)), 26),
         mix(cloth, (255, 252, 242), 0.55), 0.26)
 
     # あごが首に落とす影。**ここが無いと、頭が首に貼り付いて見えます。**
     _over(img, _soft(_mask(size, lambda d: d.ellipse(
-        [cx - 62, chin - 26, cx + 62, chin + 42], fill=255)), 16), shade(skin, -0.46), 0.42)
+        [cx - 62 * neck_wid, chin - 26, cx + 62 * neck_wid, chin + 42], fill=255)), 16),
+        shade(skin, -0.46), 0.42)
 
-    # 襟もと。服の面をそのまま首まで上げると、着ているように見えない。
-    # 丸首。**Vにすると衣装に見えます。** 線ではなく、影の帯として置きます。
+    # 襟もと。丸首。**Vにすると衣装に見えます。** 線ではなく、影の帯として置きます。
     collar = _mask(size, lambda d: d.arc(
-        [cx - 86, neck_y - 26, cx + 86, neck_y + 78], start=0, end=180, fill=255, width=9))
+        [cx - 86 * neck_wid, neck_y - 26, cx + 86 * neck_wid, neck_y + 78],
+        start=0, end=180, fill=255, width=9))
     _over(img, _soft(collar, 5.0), shade(cloth, -0.26), 0.42)
 
     # 鎖骨。ごく淡く二本。**濃くすると痩せて見えます。**
     for s in (-1, 1):
-        bone = bezier((cx + s * 16, neck_y + 34), (cx + s * 74, neck_y + 44),
-                      (cx + s * 122, neck_y + 30), 18)
+        bone = bezier((cx + s * 16, neck_y + 34), (cx + s * 74 * neck_wid, neck_y + 44),
+                      (cx + s * 122 * neck_wid, neck_y + 30), 18)
         _over(img, _soft(_mask(size, lambda d, p=bone: d.line(p, fill=255, width=4)), 3.2),
               shade(skin, -0.30), 0.18)
 
     # ── 2. 頭（別の層に描いて、最後に首を軸として傾ける）──────
     #
     # **順番が命です。** 一度、髪を全部あとから描いたら顔が隠れました。
-    #   後ろ髪 → 顔 → 目鼻口 → 前髪
+    #   後ろ髪 → 顔 → 頬とあご → 眉 → 目鼻口 → 年齢のしるし → 前髪
     head = Image.new("RGBA", size, (0, 0, 0, 0))
     _hair_back(head, spec, cx, cy, fw, fh, rng)
 
-    outline = face_outline(cx, cy, fw, fh)
+    outline = face_outline(cx, cy, fw, fh, spec)
     head.alpha_composite(wc_layer(size, lambda d: d.polygon(outline, fill=255),
                                   skin, rng.randint(0, 9999), 3.0, 0.05))
     head.alpha_composite(shade_side(size, lambda d: d.polygon(outline, fill=255),
@@ -596,22 +747,28 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
     _over(head, _soft(_mask(size, lambda d: d.ellipse(
         [cx - 60, chin - 16, cx + 60, chin + 30], fill=255)), 14), shade(skin, -0.42), 0.30)
 
+    _cheek_and_jaw(head, cx, cy, fw, fh, chin, skin, spec)
+
     # ── 3. 顔のつくり ─────────────────────────────────
     eye_y = cy - 16 * fh
     narrow = 0.52 if mood == "happy" else 0.0
+    eye_gap = spec.get("eye_gap", 1.0)
     # 受け取ったところでは、視線は花束へ（下）。
     gaze = spec.get("gaze", (0.0, 0.0))
     if mood == "happy":
         # **視線は花束へ。** 3.2 では下を見ているように読めませんでした。
-        # 虹彩を下まぶたに寄せ、上まぶたも少し伏せます（narrow）。
         gaze = (gaze[0] * 0.3, 6.4)
     # 顔の大きさ。目鼻口の寸法は、すべてこれに連れて変わる。
     k = fh
     for s in (-1, 1):
-        _eye(head, cx + s * 46 * fw, eye_y, s, spec,
+        _brow(head, cx + s * 46 * fw * eye_gap, eye_y, s, spec, k)
+        _eye(head, cx + s * 46 * fw * eye_gap, eye_y, s, spec,
              (gaze[0] * k, gaze[1] * k), narrow, skin, k)
-    _nose(head, cx, cy + 46 * fh, skin, 46 * fh, k)
-    _mouth(head, cx, cy + 80 * fh, skin, 0.85 if mood == "happy" else 0.45, 22 * fw, k)
+    _nose(head, cx, cy + 46 * fh, skin, 46 * fh, k, spec)
+    _mouth(head, cx, cy + 80 * fh, skin, 0.85 if mood == "happy" else 0.45,
+          22 * fw * spec.get("mouth_w", 1.0), k, spec.get("lip_full", 1.0))
+
+    _age_marks(head, cx, cy, fw, fh, chin, skin, spec)
 
     # 耳は描きません。**髪に隠れる位置**なのに、輪郭の内側に置いていたので、
     # 頬の上に灰色の楕円がふたつ乗っているだけになっていました。
@@ -640,15 +797,12 @@ def render_customer_arms(spec: dict, seed: int = 0) -> Image.Image:
     **手を描き足すだけでは何も変わりません**（手が束の後ろに隠れます）。
     これは絵の話ではなく、**重ねる順番**の話です。
 
-    ── 手を、描き直しました ──────────────────────────────
+    ── 左右非対称に持つ ──────────────────────────────────
 
-    前は肌色の楕円がふたつ、束の横に浮いているだけでした。
-    参考画の「自然に抱える」は、こうなっています。
-
-        ・前腕が、体の外から内へ、斜めに上がってくる
-        ・手首から先が束のほうへ折れる
-        ・**指が見える。** 束の紙に、四本の指がかかっている
-        ・親指だけ、他の指と逆向きに回り込む
+    両手で紙を左右対称に掴む姿は、まだ「支えている」というより
+    「掲げている」ように見えました。実際に抱えるときは、
+    片手（利き手でないほう）が束の下から支え、もう片手が
+    包み紙のあたりを軽く添えます。左右で高さも角度も変えます。
     """
     rng = random.Random(seed + hash(spec["id"] + "arms") % 9000)
     w, h = CUSTOMER_SIZE
@@ -662,36 +816,53 @@ def render_customer_arms(spec: dict, seed: int = 0) -> Image.Image:
 
     # 束を受ける高さ。**胸より下。** 胸の高さで抱えると、赤ちゃんを抱く形になる。
     hold_y = chin + 190
+    # 支える手（下側・低め・束の下端を包む）と、添える手（高め・紙を軽く支える）
+    low_side = -1 if spec.get("hold_hand", "left") == "left" else 1
+    high_side = -low_side
+    low_y = hold_y + 34
+    high_y = hold_y - 24
 
     def sleeve(d):
-        for s in (-1, 1):
+        for s, y_off in ((low_side, low_y - hold_y), (high_side, high_y - hold_y)):
             root = (cx + s * 250, h - 8 + s * shoulder * 12)
-            elbow = (cx + s * 214, hold_y + 104)
-            wrist = (cx + s * 122, hold_y + 20)
+            elbow = (cx + s * 210, hold_y + 100 + y_off * 0.4)
+            wrist = (cx + s * 116, hold_y + 14 + y_off)
             path = bezier(root, elbow, wrist, 30)
-            d.polygon(tapered_band(path, 118, 62), fill=255)
+            d.polygon(tapered_band(path, 118, 60), fill=255)
 
     def hand(d):
-        for s in (-1, 1):
-            hx = cx + s * 96
-            # 手のひら。手首から束へ、わずかに内へ折れる。
+        # 支える手。束の下から、包み込むように。
+        hx = cx + low_side * 92
+        d.polygon(tapered_band(
+            bezier((hx + low_side * 30, low_y + 44), (hx + low_side * 4, low_y + 8),
+                   (hx - low_side * 16, low_y - 14), 16), 66, 52), fill=255)
+        for k in range(4):
+            t = k / 3
+            fx0 = hx - low_side * (0 + t * 8)
+            fy0 = low_y - 14 + t * 24
+            fx1 = hx - low_side * (32 + t * 10)
+            fy1 = low_y - 20 + t * 26
             d.polygon(tapered_band(
-                bezier((hx + s * 26, hold_y + 40), (hx + s * 6, hold_y + 10),
-                       (hx - s * 12, hold_y - 6), 16), 62, 50), fill=255)
-            # 指。四本。**束の紙にかかっていること。**
-            for k in range(4):
-                t = k / 3
-                fx0 = hx - s * (2 + t * 6)
-                fy0 = hold_y - 10 + t * 26
-                fx1 = hx - s * (30 + t * 8)
-                fy1 = hold_y - 16 + t * 28
-                d.polygon(tapered_band(
-                    bezier((fx0, fy0), ((fx0 + fx1) / 2, fy0 - 6), (fx1, fy1), 12),
-                    13, 10), fill=255)
-            # 親指。他の指と逆向きに回り込む。
+                bezier((fx0, fy0), ((fx0 + fx1) / 2, fy0 - 6), (fx1, fy1), 12),
+                13, 10), fill=255)
+        d.polygon(tapered_band(
+            bezier((hx + low_side * 24, low_y + 26), (hx + low_side * 34, low_y + 2),
+                   (hx + low_side * 18, low_y - 18), 14), 16, 12), fill=255)
+
+        # 添える手。紙のあたりを、軽く。指を深く見せない（触れているだけ）。
+        hx2 = cx + high_side * 78
+        d.polygon(tapered_band(
+            bezier((hx2 + high_side * 22, high_y + 30), (hx2 + high_side * 2, high_y + 4),
+                   (hx2 - high_side * 10, high_y - 10), 14), 54, 44), fill=255)
+        for k in range(3):
+            t = k / 2
+            fx0 = hx2 - high_side * (4 + t * 8)
+            fy0 = high_y - 8 + t * 20
+            fx1 = hx2 - high_side * (26 + t * 10)
+            fy1 = high_y - 12 + t * 22
             d.polygon(tapered_band(
-                bezier((hx + s * 20, hold_y + 22), (hx + s * 30, hold_y - 2),
-                       (hx + s * 16, hold_y - 22), 14), 16, 12), fill=255)
+                bezier((fx0, fy0), ((fx0 + fx1) / 2, fy0 - 4), (fx1, fy1), 10),
+                11, 8), fill=255)
 
     # 袖。**体より少し濃く。** 同じ色だと、体と溶けて腕に見えない。
     img.alpha_composite(wc_layer(size, sleeve, shade(cloth, -0.09),
@@ -704,19 +875,19 @@ def render_customer_arms(spec: dict, seed: int = 0) -> Image.Image:
     # 指の間。線は引かず、影だけ。線を引くと手袋に見える。
     gaps = Image.new("L", size, 0)
     gd = ImageDraw.Draw(gaps)
-    for s in (-1, 1):
-        hx = cx + s * 96
-        for k in range(3):
-            t = (k + 0.5) / 3
-            gd.line([(hx - s * (4 + t * 6), hold_y - 10 + t * 26),
-                     (hx - s * (30 + t * 8), hold_y - 16 + t * 28)], fill=90, width=3)
+    hx = cx + low_side * 92
+    for k in range(3):
+        t = (k + 0.5) / 3
+        gd.line([(hx - low_side * (2 + t * 8), low_y - 14 + t * 24),
+                 (hx - low_side * (32 + t * 10), low_y - 20 + t * 26)], fill=90, width=3)
     _over(img, _soft(gaps, 2.6), shade(skin, -0.40), 1.0)
 
     # 袖口が手に落とす影。重なりの厚みは、ここで出る。
     cuff = Image.new("L", size, 0)
     cd = ImageDraw.Draw(cuff)
-    for s in (-1, 1):
-        cd.ellipse([cx + s * 96 - 52, hold_y + 26, cx + s * 96 + 52, hold_y + 72], fill=76)
+    cd.ellipse([hx - 52, low_y + 20, hx + 52, low_y + 66], fill=76)
+    hx2 = cx + high_side * 78
+    cd.ellipse([hx2 - 44, high_y + 16, hx2 + 44, high_y + 54], fill=70)
     _over(img, _soft(cuff, 18), shade(skin, -0.38), 1.0)
 
     return paper_texture(img, seed=seed, strength=0.05)

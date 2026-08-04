@@ -70,37 +70,86 @@ RIBBONS: dict[str, dict] = {
 #   hair_style       long / wave / pony / bun / short
 #   eye              目の色。黒一色にしない
 CUSTOMER_SPECS = [
+    # はるかさん・20代・同僚。よく笑う。丸め、頬にふくらみ、明るい目尻。
     dict(id="customer-01", hair="#5A4436", cloth="#E8C06A", skin="#F3DCC6",
          hair_len=170, hair_style="wave", face_w=1.0, face_h=0.97,
          tilt=-3.0, shoulder=0.4, gaze=(1.5, 0.0), eye="#4A3A31",
+         forehead_w=1.0, cheek_w=1.05, jaw_w=0.92, chin_taper=0.15,
+         eye_gap=1.02, eye_h=1.06, eye_tilt=0.12,
+         brow_arch=10, brow_thick=0.9, brow_gap=30,
+         nose_w=0.95, nose_len=0.98, mouth_w=1.05, lip_full=1.08, cheek_full=0.5,
+         build=0.94, shoulder_width=0.92, neck_width=0.92, hold_hand="right",
          note="よく笑う同僚。ビタミンカラーの服"),
+    # なおきさん・20代・落ち着いた男性。面長、角ばった顎、まっすぐな眉。
     dict(id="customer-02", hair="#3B3029", cloth="#7E8C9A", skin="#EFD6BE",
-         hair_len=54, hair_style="short", face_w=1.06, face_h=1.04,
+         hair_len=54, hair_style="short", face_w=1.02, face_h=1.08,
          tilt=1.5, shoulder=-0.3, gaze=(-1.0, 0.0), eye="#3E3229",
+         forehead_w=0.95, cheek_w=0.92, jaw_w=1.08, chin_taper=0.05,
+         eye_gap=0.95, eye_h=0.92, eye_tilt=-0.05,
+         brow_arch=4, brow_thick=1.15, brow_gap=27,
+         nose_w=1.08, nose_len=1.05, mouth_w=0.92, lip_full=0.85, cheek_full=-0.15,
+         build=1.08, shoulder_width=1.14, neck_width=1.12, hold_hand="left",
          note="落ち着いた雰囲気の男性"),
+    # さとみさん・40代・母。丸顔でふっくら、やわらかい眉。
     dict(id="customer-03", hair="#54443A", cloth="#C9B79C", skin="#F2DAC4",
-         hair_len=120, hair_style="bun", face_w=1.02, face_h=1.0,
+         hair_len=120, hair_style="bun", face_w=1.08, face_h=0.96,
          tilt=2.5, shoulder=0.2, gaze=(2.0, 0.5), eye="#4C3B31",
+         forehead_w=1.0, cheek_w=1.10, jaw_w=0.85, chin_taper=0.4,
+         eye_gap=1.0, eye_h=0.98, eye_tilt=0.02,
+         brow_arch=7, brow_thick=1.0, brow_gap=29,
+         nose_w=1.0, nose_len=1.0, mouth_w=1.0, lip_full=1.05, cheek_full=0.9,
+         build=1.02, shoulder_width=0.98, neck_width=1.0, hold_hand="right",
          note="家族の世話を焼くのが好きな母"),
+    # よしこさん・70代・年配の女性。輪郭が縮み、頬がこけ、少し前かがみ。
     dict(id="customer-04", hair="#9E9A93", cloth="#A8B4A2", skin="#F0DAC6",
-         hair_len=70, hair_style="bun", face_w=1.0, face_h=1.02,
+         hair_len=70, hair_style="bun", face_w=0.96, face_h=0.90,
          tilt=-2.0, shoulder=-0.5, gaze=(-1.5, 0.5), eye="#544539",
+         forehead_w=0.92, cheek_w=0.88, jaw_w=0.80, chin_taper=0.1,
+         eye_gap=0.94, eye_h=0.82, eye_tilt=-0.18,
+         brow_arch=3, brow_thick=0.85, brow_gap=24,
+         nose_w=0.95, nose_len=0.95, mouth_w=0.88, lip_full=0.75, cheek_full=-0.5,
+         build=0.84, shoulder_width=0.78, neck_width=0.80, stoop=0.55, age="elder",
+         hold_hand="left",
          note="和の趣味がある年配の女性"),
+    # めいさん・高校生。顔が小さく丸く、若い目つき、細い体。
     dict(id="customer-05", hair="#4B3A30", cloth="#8FA0B8", skin="#F5DFCB",
-         hair_len=210, hair_style="long", face_w=0.95, face_h=0.96,
+         hair_len=210, hair_style="long", face_w=0.90, face_h=0.90,
          tilt=4.0, shoulder=0.6, gaze=(2.5, -0.5), eye="#463629",
+         forehead_w=1.0, cheek_w=1.05, jaw_w=0.75, chin_taper=0.55,
+         eye_gap=1.05, eye_h=1.12, eye_tilt=0.15,
+         brow_arch=9, brow_thick=0.75, brow_gap=32,
+         nose_w=0.85, nose_len=0.88, mouth_w=0.90, lip_full=1.1, cheek_full=0.65,
+         build=0.82, shoulder_width=0.78, neck_width=0.80, hold_hand="right",
          note="春から進学する高校生"),
+    # りんさん・30代・ひとり暮らしの男性。面長で角ばり、肩幅が広い。
     dict(id="customer-06", hair="#6A5240", cloth="#B7AEC4", skin="#F2DAC4",
-         hair_len=140, hair_style="pony", face_w=0.98, face_h=1.0,
+         hair_len=54, hair_style="short", face_w=1.0, face_h=1.04,
          tilt=-1.0, shoulder=0.1, gaze=(0.0, 0.0), eye="#4F3E32",
+         forehead_w=0.96, cheek_w=0.90, jaw_w=1.15, chin_taper=0.0,
+         eye_gap=0.92, eye_h=0.90, eye_tilt=-0.08,
+         brow_arch=3, brow_thick=1.2, brow_gap=26,
+         nose_w=1.12, nose_len=1.08, mouth_w=0.95, lip_full=0.80, cheek_full=-0.35,
+         build=1.10, shoulder_width=1.18, neck_width=1.15, hold_hand="left",
          note="ひとり暮らしの人"),
+    # かおるさん・40代・夫婦の一方。ふつうの体格、やわらかい輪郭。
     dict(id="customer-07", hair="#4A3B33", cloth="#AFBBA8", skin="#F1DAC5",
-         hair_len=110, hair_style="wave", face_w=1.03, face_h=0.99,
+         hair_len=110, hair_style="wave", face_w=1.04, face_h=1.0,
          tilt=3.0, shoulder=-0.2, gaze=(1.0, 0.5), eye="#453529",
+         forehead_w=1.0, cheek_w=1.0, jaw_w=0.95, chin_taper=0.3,
+         eye_gap=1.0, eye_h=1.0, eye_tilt=0.05,
+         brow_arch=7, brow_thick=0.95, brow_gap=29,
+         nose_w=1.0, nose_len=1.0, mouth_w=1.0, lip_full=1.0, cheek_full=0.35,
+         build=0.98, shoulder_width=0.96, neck_width=0.96, hold_hand="right",
          note="家族で新居に引っ越した夫婦の一方"),
+    # そうたさん・20代。友を案じる、少し細く、目尻が下がる。
     dict(id="customer-08", hair="#42352C", cloth="#93A88E", skin="#EDD4BB",
-         hair_len=58, hair_style="short", face_w=1.05, face_h=1.03,
+         hair_len=58, hair_style="short", face_w=0.98, face_h=1.05,
          tilt=-3.5, shoulder=0.3, gaze=(-2.0, 0.0), eye="#3C3027",
+         forehead_w=0.98, cheek_w=0.90, jaw_w=1.0, chin_taper=0.15,
+         eye_gap=0.96, eye_h=0.95, eye_tilt=-0.10,
+         brow_arch=5, brow_thick=1.0, brow_gap=28,
+         nose_w=1.0, nose_len=1.02, mouth_w=0.92, lip_full=0.85, cheek_full=-0.1,
+         build=0.96, shoulder_width=1.02, neck_width=1.0, hold_hand="left",
          note="入院中の親友のお見舞いに"),
 ]
 
@@ -236,11 +285,38 @@ def render_vase(seed: int = 0) -> Image.Image:
     # 茎はこの絵の後ろにあるので、手前の縁が不透明なら、茎はここで切れます。
     # **縁で茎が切れることが、「中に挿さっている」ということです。**
     # ぼかす前に描くと、にじんで透け、茎が縁を素通りして見えます。
+    #
+    # ── 太さを、実機の大きさで測り直しました ──────────────────
+    #
+    # 幅11px（512px中）で描いていました。この花瓶は棚で 90〜160px に
+    # 縮めて出すので、実際には **2〜3px** しか残っていませんでした。
+    # 「手前の縁が茎を隠す」はずが、ほぼ隠していませんでした。
+    #
+    #   前   幅11px → 実機で 2.1px
+    #   いま 幅34px → 実機で 6.7px
+    #
+    # 線を太くするだけでなく、**縁の下に「衿（えり）」を足しました。**
+    # 線一本だと、茎の交差点がその1点からわずかにずれただけで
+    # 素通りしてしまいます。衿は縁から下へ不透明度を落としながら
+    # 続く帯で、縁の高さがぶれても確実に茎を隠します。
+    collar = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    cd = ImageDraw.Draw(collar)
+    collar_h = int(rim_ry * 2.6)
+    for i in range(collar_h):
+        yy = top + i
+        t = i / collar_h
+        a = int(255 * (1 - t) ** 1.8)
+        if a <= 0:
+            continue
+        hx = half_at(yy) * (0.94 - t * 0.10)
+        cd.line([cx - hx, yy, cx + hx, yy], fill=(238, 246, 243, a))
+    img.alpha_composite(collar.filter(ImageFilter.GaussianBlur(2.2)))
+
     d2 = ImageDraw.Draw(img)
     d2.arc([cx - half_top, top - rim_ry, cx + half_top, top + rim_ry],
-           start=0, end=180, fill=(246, 251, 249, 255), width=11)
-    d2.arc([cx - half_top + 9, top - rim_ry + 7, cx + half_top - 9, top + rim_ry - 4],
-           start=0, end=180, fill=(196, 214, 208, 140), width=4)
+           start=0, end=180, fill=(246, 251, 249, 255), width=34)
+    d2.arc([cx - half_top + 14, top - rim_ry + 10, cx + half_top - 14, top + rim_ry - 7],
+           start=0, end=180, fill=(196, 214, 208, 150), width=6)
 
     # 台に落ちる影
     shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -884,7 +960,13 @@ def render_wrap_cone(paper_id: str, seed: int = 0) -> Image.Image:
     tie_l, tie_r = 0.415 + lean, 0.585 + lean
     top_l, top_r = 0.015 + lean * 0.4, 0.985 + lean * 0.4
 
-    def side(x_top: float, x_tie: float, swell: float, out: int) -> list:
+    # 左右の口の高さも、そろえない。
+    # そろえたままだと、口が完全な弧になり、**筒や器の縁**に見える。
+    # 実物は片側を高く巻き上げて、もう片側に重ねる。
+    corner_y_l = h * rng.uniform(-0.01, 0.05)
+    corner_y_r = h * rng.uniform(-0.01, 0.05)
+
+    def side(x_top: float, x_tie: float, swell: float, out: int, corner_y: float) -> list:
         """
         口もとから結び目までの、片側の輪郭。
 
@@ -893,7 +975,7 @@ def render_wrap_cone(paper_id: str, seed: int = 0) -> Image.Image:
         1本の弧では、この二つは同時に出せない。
         """
         mid = (x_top + (x_tie - x_top) * 0.42 + out * swell, h * 0.46)
-        upper = bezier((x_top * w, 0),
+        upper = bezier((x_top * w, corner_y),
                        ((x_top + out * swell * 1.15) * w, h * 0.17),
                        (mid[0] * w, mid[1]), 22)
         lower = bezier((mid[0] * w, mid[1]),
@@ -901,13 +983,23 @@ def render_wrap_cone(paper_id: str, seed: int = 0) -> Image.Image:
                        (x_tie * w, h), 22)
         return upper + lower[1:]
 
-    left = side(top_l, tie_l, swell_l, -1)
-    right = list(reversed(side(top_r, tie_r, swell_r, +1)))
+    left = side(top_l, tie_l, swell_l, -1, corner_y_l)
+    right = list(reversed(side(top_r, tie_r, swell_r, +1, corner_y_r)))
 
-    # 口もと。まっすぐ切らない。波は大きく。
-    mouth = [(x, 22 * math.sin(x / w * 5.1 + 1.4)
-                 + 10 * math.sin(x / w * 12.0 + 0.3) - 8)
-             for x in [top_l * w + (top_r - top_l) * w * i / 26 for i in range(27)]]
+    # 口もと。まっすぐ切らない。波は大きく、深さも均さない。
+    # 一か所だけ深く沈めて、そこだけ茎が素通しで見えるようにする。
+    # ── 均一な波は、結局きれいな弧に見える。**むらがいる。**
+    gap_at = rng.uniform(0.30, 0.70)
+    gap_w = rng.uniform(0.10, 0.16)
+    mouth = []
+    for i in range(27):
+        t = i / 26
+        x = top_l * w + (top_r - top_l) * w * t
+        base_l = corner_y_l + (corner_y_r - corner_y_l) * t
+        y = base_l + 30 * math.sin(x / w * 5.1 + 1.4) + 14 * math.sin(x / w * 12.7 + 0.3) - 10
+        gap = math.exp(-((t - gap_at) ** 2) / (2 * (gap_w ** 2) + 1e-6))
+        y -= gap * h * 0.075
+        mouth.append((x, y))
     shape = left + right + list(reversed(mouth))
 
     def cone(d):
@@ -961,6 +1053,24 @@ def render_wrap_cone(paper_id: str, seed: int = 0) -> Image.Image:
         t += rng.uniform(0.050, 0.110)
     folds = folds.filter(ImageFilter.GaussianBlur(2.4))
     img.alpha_composite(Image.composite(folds, Image.new("RGBA", (w, h), (0, 0, 0, 0)), solid))
+
+    # ---- 継ぎ目。片側の紙が、もう片側の上に重なっているところ。
+    #
+    # 折り目は何本もあるが、どれも同じ濃さだと**筒の目盛り**に見える。
+    # 本物は、手で巻いた継ぎ目が一本だけはっきり通る。そこだけ
+    # 影を濃く・線を太くして、「筒」ではなく「巻いた紙」だと分からせる。
+    seam_t = gap_at + gap_w * rng.choice([-1, 1]) * rng.uniform(0.6, 1.1)
+    seam_t = min(0.92, max(0.08, seam_t))
+    seam_x = (top_l + (top_r - top_l) * seam_t) * w
+    seam_top = (seam_x, corner_y_l + (corner_y_r - corner_y_l) * seam_t)
+    seam_path = bezier(seam_top, (seam_x - rng.uniform(14, 26), h * 0.45), apex, 22)
+    seam = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(seam)
+    sd.line(seam_path, fill=(*shade(edge, -0.40), 62), width=7, joint="curve")
+    sd.line([(x - rng.uniform(9, 14), y) for x, y in seam_path],
+            fill=(*shade(color, 0.32), 46), width=8, joint="curve")
+    seam = seam.filter(ImageFilter.GaussianBlur(3.4))
+    img.alpha_composite(Image.composite(seam, Image.new("RGBA", (w, h), (0, 0, 0, 0)), solid))
 
     # ---- 結び目のところの、寄り。
     # リボンで締まると、紙はここに集まる。**下ほど濃く、短く。**

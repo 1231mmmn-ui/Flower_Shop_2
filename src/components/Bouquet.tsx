@@ -62,6 +62,8 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
                 '--reach': stem.reach,
                 '--depth': stem.depth,
                 '--scale': stem.scale,
+                '--face-x': stem.faceX,
+                '--face-rot': `${stem.faceRot}deg`,
                 zIndex: 10 + Math.round(stem.depth * 40),
               } as CSSProperties
             }

@@ -68,7 +68,12 @@ export function DeliverScreen() {
             draggable={false}
           />
           <div className="deliver__bouquet">
-            <Bouquet bouquet={state.bouquet} />
+            {/*
+              scale は結び目（＝手の位置）を軸に花だけを大きくする。
+              枠を広げるのではなくこちらを使うのは、結び目が
+              腕の絵の手の位置とずれないようにするため。
+            */}
+            <Bouquet bouquet={state.bouquet} scale={1.3} />
           </div>
           <img
             className="deliver__arms"
