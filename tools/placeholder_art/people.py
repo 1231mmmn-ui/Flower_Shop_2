@@ -308,23 +308,32 @@ def _hair_back(img: Image.Image, spec: dict, cx: float, cy: float, fw: float,
 
     img.alpha_composite(wc_layer(size, base, dark, rng.randint(0, 9999), 3.6, 0.12))
 
-    # 毛束。地より明るい帯を、流れにそって。**顔の外側だけ。**
-    for i in range(8):
-        t = i / 7
+    # ── 毛束 ─────────────────────────────────────────
+    #
+    # **太さをそろえないこと。** 同じ太さの帯を等間隔に並べると、
+    # それは髪ではなく**簾（すだれ）**です。
+    # 太い束のあいだに細い束が混じるから、髪に見えます。
+    #
+    # **内外に流れを作ること。** 全部が外へ流れると板になります。
+    # 顔の横では、内へ入る束と外へ逃げる束を混ぜます。
+    for i in range(13):
+        t = i / 12
         side = -1 if t < 0.5 else 1
-        spread = 0.35 + abs(t - 0.5) * 1.3
+        spread = 0.30 + abs(t - 0.5) * 1.4
         drop = (length * 0.8) if style in ("long", "wave") else 22
+        # 三本に一本は細い。太さの差が、束の数に見える。
+        thin = (i % 3 == 0)
+        w0 = (7 if thin else 17) + rng.uniform(0, 9)
+        w1 = (3 if thin else 6) + rng.uniform(0, 5)
+        # 内へ入るか、外へ逃げるか。半分ずつ。
+        inward = -1 if (i % 2 == 0) else 1
         path = bezier(
-            (cx + side * fw * (10 + spread * 40), top + fh * (4 + rng.uniform(-6, 8))),
-            (cx + side * fw * (86 + spread * 34), cy + fh * (10 + spread * 30)),
-            (cx + side * fw * (92 + spread * 26) + rng.uniform(-10, 10),
-             cy + fh * (52 + drop * (0.4 + spread * 0.5))),
+            (cx + side * fw * (8 + spread * 44), top + fh * (2 + rng.uniform(-8, 10))),
+            (cx + side * fw * (86 + spread * 34 + inward * 14), cy + fh * (6 + spread * 34)),
+            (cx + side * fw * (92 + spread * 26 + inward * 22) + rng.uniform(-12, 12),
+             cy + fh * (52 + drop * (0.35 + spread * 0.55))),
             30)
-        band = tapered_band(path, 15 + rng.uniform(0, 8), 5 + rng.uniform(0, 5))
-        tone = mix(hair, light, 0.16 + 0.5 * rng.random())
-        img.alpha_composite(wc_layer(size, lambda d, b=band: d.polygon(b, fill=255),
-                                     tone, rng.randint(0, 9999), 2.6, 0.10))
-
+        band = tapered_band(path, w0, w1)
     # つや。左上に、ゆるい弧が一本。**光は左上ひとつ。**
     gl = bezier((cx - fw * 88, cy - fh * 92), (cx - fw * 24, cy - fh * 132),
                 (cx + fw * 44, cy - fh * 96), 22)
@@ -395,14 +404,23 @@ def _hair_front(img: Image.Image, spec: dict, cx: float, cy: float, fw: float,
         [cx - fw * 92, cy - fh * 116, cx + fw * 92, cy - fh * 52], fill=255)), 16),
         shade(hex_rgb(spec.get("skin", "#F2D9C4")), -0.34), 0.26)
 
-    # 後れ毛。顔の輪郭にかかる、細いのを二本だけ。
-    for _ in range(2):
-        s = rng.choice((-1, 1))
-        strand = bezier((cx + s * fw * rng.uniform(56, 78), cy - fh * rng.uniform(96, 118)),
-                        (cx + s * fw * rng.uniform(96, 116), cy - fh * rng.uniform(10, 40)),
-                        (cx + s * fw * rng.uniform(84, 104), cy + fh * rng.uniform(20, 60)), 20)
-        _over(img, _soft(_mask(size, lambda d, p=strand: d.line(p, fill=255, width=3)), 1.6),
-              mix(hair, light, 0.3), 0.45)
+    # ── 後れ毛 ───────────────────────────────────────
+    #
+    # **輪郭からはみ出す毛が、髪をやわらかく見せます。**
+    # 二本では足りませんでした（きれいに整いすぎて、かつらに見える）。
+    # 太さも長さも散らして、五、六本。
+    for i in range(rng.randint(5, 6)):
+        sd = rng.choice((-1, 1))
+        y0 = cy - fh * rng.uniform(70, 130)
+        strand = bezier(
+            (cx + sd * fw * rng.uniform(50, 84), y0),
+            (cx + sd * fw * rng.uniform(92, 124), cy - fh * rng.uniform(-6, 44)),
+            (cx + sd * fw * rng.uniform(76, 112) + rng.uniform(-10, 10),
+             cy + fh * rng.uniform(14, 76)),
+            22)
+        wid = rng.choice((2, 2, 3, 4))
+        _over(img, _soft(_mask(size, lambda d, q=strand, ww=wid: d.line(q, fill=255, width=ww)),
+                         1.5), mix(hair, light, rng.uniform(0.15, 0.45)), rng.uniform(0.30, 0.5))
 
 
 # --------------------------------------------------------------------------
@@ -444,29 +462,96 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
     # ── 1. 体 ────────────────────────────────────────────
     # なで肩。参考画のNG例「ポーズが硬い」を避けるため、
     # 左右の高さをわずかに変え、肩先を丸くする。
-    def body(d):
-        # なで肩。左右の高さをわずかに変えて、硬いポーズを避ける。
-        ly = h * 0.84 + shoulder * 12
-        ry = h * 0.84 - shoulder * 12
-        pts = (bezier((cx - 62, neck_y + 4), (cx - 168, h * 0.78), (cx - 244, ly), 26)
-               + [(cx - 272, h), (cx + 272, h)]
-               + list(reversed(bezier((cx + 62, neck_y + 4), (cx + 168, h * 0.78),
-                                      (cx + 244, ry), 26))))
+    # ── 体 ────────────────────────────────────────────
+    #
+    # **一枚の面をやめました。**
+    #
+    # 肩から下を大きな三角でひと塗りしていたので、
+    # 服ではなく**布をかぶった山**に見えていました。
+    # 人の上半身は、胴と腕という別のかたまりでできています。
+    #
+    #   胴    首から下へ、ゆるく広がる
+    #   肩    胴の上で外へ張り出し、丸くとじる
+    #   上腕  肩から下へ、胴とは別のかたまりとして落ちる
+    #
+    # **左右をそろえないこと。** 完全対称は、人ではなく紋章です。
+    # 肩の高さ・腕の太さ・落ちる角度を、左右で少しずつ変えます。
+    sway = spec.get("shoulder", 0.0)
+    arm_l = 1.0 + sway * 0.10
+    arm_r = 1.0 - sway * 0.08
+    sh_y_l = h * 0.815 + sway * 14
+    sh_y_r = h * 0.815 - sway * 11
+
+    def torso(d):
+        pts = (bezier((cx - 68, neck_y - 8), (cx - 132, h * 0.775), (cx - 176, sh_y_l), 24)
+               + bezier((cx - 176, sh_y_l), (cx - 198, h * 0.92), (cx - 206, h), 18)
+               + [(cx + 206, h)]
+               + list(reversed(
+                   bezier((cx + 68, neck_y - 8), (cx + 132, h * 0.775), (cx + 176, sh_y_r), 24)
+                   + bezier((cx + 176, sh_y_r), (cx + 198, h * 0.92), (cx + 206, h), 18))))
         d.polygon(pts, fill=255)
+
+    def arms(d):
+        # 肩先 → ひじ。胴とは別のかたまり。
+        #
+        # **胴に深く重ねること。** 一度、肩の丸みを外に置きすぎて、
+        # 胴とのあいだに**穴**が空きました（肩の上に白い切れ込みが出た）。
+        # 腕は胴から生えているので、付け根は胴の中にあります。
+        for s2, k2, sh_y in ((-1, arm_l, sh_y_l), (1, arm_r, sh_y_r)):
+            path = bezier((cx + s2 * 110, sh_y - 66),
+                          (cx + s2 * 222 * k2, sh_y + 24),
+                          (cx + s2 * 240 * k2, h + 20), 26)
+            d.polygon(tapered_band(path, 150 * k2, 106 * k2), fill=255)
+            # 肩のまるみ。**付け根は胴の中へ。**
+            #
+            # 中心を外へ置くと、丸みの上端が胴の輪郭より外に出て、
+            # そこに**背景が抜けます**（肩の上に白い切れ込みが出た）。
+            # 実測：y=566 で胴の半幅103に対し、丸みの上端が150 → 47px の穴。
+            # 中心を 128 まで内へ寄せると、上端でも 57 まで届いて重なります。
+            d.ellipse([cx + s2 * 128 * k2 - 96, sh_y - 120,
+                       cx + s2 * 128 * k2 + 96, sh_y + 52], fill=255)
+
+    def body(d):
+        torso(d)
+        arms(d)
 
     def neck(d):
         # 首は**見えていること。** 髪と服のあいだが詰まっていると、
         # 頭が体に直接載っているように見えます。
         # ただし**箱にしないこと。** 上は細く、肩へ向かって広がります。
-        side = (bezier((cx - 40, chin - 34), (cx - 44, neck_y - 20), (cx - 72, neck_y + 34), 20)
-                + [(cx + 72, neck_y + 34)]
-                + list(reversed(bezier((cx + 40, chin - 34), (cx + 44, neck_y - 20),
-                                       (cx + 72, neck_y + 34), 20))))
+        # **裾は、服より細いこと。**
+        # 一度、首の裾（±72）を服の襟もと（±60）より広くしたら、
+        # 肩の付け根に**肌の三角**がのぞきました。穴に見えます。
+        side = (bezier((cx - 40, chin - 34), (cx - 42, neck_y - 20), (cx - 52, neck_y + 30), 20)
+                + [(cx + 52, neck_y + 30)]
+                + list(reversed(bezier((cx + 40, chin - 34), (cx + 42, neck_y - 20),
+                                       (cx + 52, neck_y + 30), 20))))
         d.polygon(side, fill=255)
 
     img.alpha_composite(wc_layer(size, neck, skin, rng.randint(0, 9999), 3.0, 0.05))
     img.alpha_composite(wc_layer(size, body, cloth, rng.randint(0, 9999), 3.4, 0.09))
     img.alpha_composite(shade_side(size, body, cloth, rng.randint(0, 9999), 0.20))
+
+    # ── 立体感 ────────────────────────────────────────
+    #
+    # **ごく弱く。** 服はいちばん広い面なので、少し濃くしただけで
+    # 影が主張します（参考画のNG例「影が濃すぎる」）。
+    #
+    #   腕と胴の境目   ここが無いと、腕が胴に溶ける
+    #   胸の丸み       左上の光に対して、右下がわずかに落ちる
+    #   肩の上         光が乗る。ここだけ明るい
+    for s2, k2, sh_y in ((-1, arm_l, sh_y_l), (1, arm_r, sh_y_r)):
+        seam = bezier((cx + s2 * 138, sh_y - 20), (cx + s2 * 162, sh_y + 60),
+                      (cx + s2 * 172, h), 20)
+        _over(img, _soft(_mask(size, lambda d, q=seam: d.line(q, fill=255, width=16)), 13),
+              shade(cloth, -0.34), 0.24)
+    # 胸の丸み（右下が落ちる）
+    _over(img, _soft(_mask(size, lambda d: d.ellipse(
+        [cx + 6, neck_y + 40, cx + 168, h], fill=255)), 34), shade(cloth, -0.26), 0.20)
+    # 肩の上の光
+    _over(img, _soft(_mask(size, lambda d: d.ellipse(
+        [cx - 214, sh_y_l - 86, cx - 44, sh_y_l - 4], fill=255)), 26),
+        mix(cloth, (255, 252, 242), 0.55), 0.26)
 
     # あごが首に落とす影。**ここが無いと、頭が首に貼り付いて見えます。**
     _over(img, _soft(_mask(size, lambda d: d.ellipse(

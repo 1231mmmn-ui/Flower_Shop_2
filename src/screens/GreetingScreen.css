@@ -12,7 +12,12 @@
 .greet__entrance {
   align-self: center;
   width: min(100%, 360px);
-  margin: var(--fs-space-md) 0 0;
+  /*
+   * 下に余白を取ります。**この一行と、お客さまの言葉がくっついていました。**
+   * 「入ってきた様子」と「言ったこと」は別のものなので、
+   * 間が無いと、どこまでが地の文でどこからが台詞か分かりません。
+   */
+  margin: var(--fs-space-md) 0 var(--fs-space-md);
   padding: 3px var(--fs-space-lg);
   text-align: center;
   background: radial-gradient(
