@@ -164,8 +164,20 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
      * 来ることもあれば、葉もの同士が隣り合うこともあります。
      * ── ここが**乱数の直線**にならないよう、大きく散らします。
      */
+    /*
+     * side は、必ず −1〜1 に収めます。
+     *
+     * spanCenter（最大 ±1）に乱数の散らし（最大 ±0.95）を足すと、
+     * 合計で ±1.9 まで届いてしまい、束の外側で「自然に広がる」
+     * （spread 62°）と組むと、花が90度以上倒れて画面の外へ
+     * 飛んでいくことがありました。**結び目は原点ですが、
+     * 傾きが行き過ぎたら束ではなく破片になります。**
+     */
     const spanCenter = order.length <= 1 ? 0 : (i / (order.length - 1)) * 2 - 1;
-    const side = spanCenter * 0.55 + (r1 - 0.5) * (0.9 + outward * 0.5);
+    const side = Math.max(
+      -1,
+      Math.min(1, spanCenter * 0.55 + (r1 - 0.5) * (0.9 + outward * 0.5)),
+    );
     const ring = Math.min(1, Math.max(0, outward * 0.72 + (r2 - 0.5) * 0.5));
 
     /*
@@ -176,7 +188,9 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
      * 伸びを一本ずつ変えると、頭が前後にずれて重なり、
      * かたまりになります。
      */
-    const angle = side * style.spread + (r3 - 0.5) * 11;
+    // 端まで振り切っても、結び目から見て斜め45度ほどまで。
+    // それ以上倒すと、花瓶挿しではなく倒れた花に見える。
+    const angle = Math.max(-52, Math.min(52, side * style.spread + (r3 - 0.5) * 11));
     const reach =
       0.64 +
       (1 - ring) * style.crown -

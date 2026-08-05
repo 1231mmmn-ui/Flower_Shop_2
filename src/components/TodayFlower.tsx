@@ -49,6 +49,7 @@ export function TodayFlower() {
         aria-label={`今日のお店のお花：${flower.name}を見る`}
       >
         <img src={flowerImage(flower.id)} alt="" aria-hidden draggable={false} />
+        <span className="today-flower__name">{flower.name}</span>
         <span className="today-flower__label">今日のお店のお花</span>
       </button>
 

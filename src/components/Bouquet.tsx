@@ -50,6 +50,18 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
       className={`bouquet ${className}`}
       style={{ '--bouquet-scale': scale } as CSSProperties}
     >
+      {/*
+        奥の紙。花の後ろに立つ、紙の背骨（→ BouquetWrap.css）。
+        これが無いと、花のあいだから店の背景がのぞいてしまい、
+        「紙に包まれている」実感が出ません。
+      */}
+      <WrapCone
+        wrapping={wrappingById(bouquet.wrappingId)}
+        stems={drawn.length}
+        paper={style.paper}
+        layer="back"
+      />
+
       {drawn.map((stem) => {
         const flower = flowerById(stem.flowerId);
         return (
@@ -74,15 +86,15 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
       })}
 
       {/*
-        紙は、束ね方に合わせて形が変わります。
-        高さを出した束には細くて高い紙、広がった束には広い紙。
-        絵は色ごとに一枚のままで、伸ばし方だけを変えています ──
-        水彩の描き込みを守りながら、束に応えるいちばん静かな方法です。
+        手前の紙。根もとだけを覆います（→ BouquetWrap.css）。
+        丸ごと手前に置くと「紙の前に花を並べた」に戻るので、
+        下のほうだけを切り出します。
       */}
       <WrapCone
         wrapping={wrappingById(bouquet.wrappingId)}
         stems={drawn.length}
         paper={style.paper}
+        layer="front"
       />
       <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />
     </div>

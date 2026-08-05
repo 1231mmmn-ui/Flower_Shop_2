@@ -27,6 +27,7 @@ import { Bouquet } from '../components/Bouquet';
 import { ApronMemo } from '../components/ApronMemo';
 import { QuietBar } from '../components/QuietBar';
 import { TodayFlower } from '../components/TodayFlower';
+import { flowerById } from '../data/flowers';
 import { RIBBONS, WRAPPINGS, ribbonById, wrappingById } from '../data/wrapping';
 import { bouquetPrice } from '../game/evaluation';
 import { BOUQUET_STYLES, styleById } from '../game/styles';
@@ -39,6 +40,19 @@ export function ArrangeScreen() {
   const wrap = wrappingById(state.bouquet.wrappingId);
   const ribbon = ribbonById(state.bouquet.ribbonId);
   const style = styleById(state.bouquet.styleId);
+
+  /*
+   * いま束の中にいる花を、種類ごとに数える。
+   *
+   * 「今日のお店のお花」と混同されるという指摘のとおり、束ねている
+   * あいだは「いま自分が選んでいる花」も、どこかに見えているべきだった。
+   * 常時大きくは出さない ── ここは花を眺める画面なので、
+   * 下の帯にひとことだけ添える。
+   */
+  const pickedCounts = new Map<string, number>();
+  state.bouquet.stems.forEach((stem) => {
+    pickedCounts.set(stem.flowerId, (pickedCounts.get(stem.flowerId) ?? 0) + 1);
+  });
 
   return (
     <div className="arrange">
@@ -119,6 +133,21 @@ export function ArrangeScreen() {
           ))}
         </div>
       </div>
+
+      {/*
+        いま束の中にいる花。「今日のお店のお花」と紛れないよう、
+        名前と本数だけ小さく。良し悪しは言わない。
+      */}
+      {pickedCounts.size > 0 && (
+        <p className="arrange__picked">
+          {[...pickedCounts.entries()].map(([flowerId, count]) => (
+            <span key={flowerId} className="arrange__picked-item">
+              {flowerById(flowerId).name}
+              <span className="arrange__picked-count">×{count}</span>
+            </span>
+          ))}
+        </p>
+      )}
 
       <footer className="arrange__foot">
         <button

@@ -25,6 +25,40 @@
  * 置き場所そのものが、誰が何を言ったのかを説明しています。
  */
 
+/*
+ * オーダー票は、右上に置きます。
+ *
+ * 既定（ApronMemo.css）の左下のままだと、下の「手もと」の帯
+ * （財布の中身・今日のお店のお花・束ねるボタン）と重なりました。
+ * 束ねる画面（→ ArrangeScreen.css）ではすでに右上に置いていて、
+ * こちらもそろえます。画面間で「オーダー票は右上」という
+ * 同じ文法にします。
+ */
+.shop-view .apron {
+  left: auto;
+  right: 0;
+  top: 34px;
+  bottom: auto;
+}
+
+.shop-view .apron__corner {
+  border-radius: 4px 0 0 4px;
+  transform: translateX(8px) rotate(1.4deg);
+}
+
+.shop-view .apron__corner:hover {
+  transform: translateX(2px) rotate(1.4deg);
+}
+
+.shop-view .apron__paper {
+  left: auto;
+  right: 0;
+  bottom: auto;
+  top: 0;
+  transform-origin: 100% 0;
+  border-radius: var(--fs-radius-sm) 2px 2px var(--fs-radius-sm);
+}
+
 /* 作業台。横に流して花を眺めていく。 */
 .shop-view__counter {
   flex: 1 1 auto;

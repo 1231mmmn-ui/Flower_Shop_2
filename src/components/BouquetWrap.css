@@ -49,14 +49,39 @@
   transform-origin: 50% 100%;
   /* 下辺（結び目）が、ちょうど扇の軸にくるように置く */
   transform: translate(-50%, 8%) scaleY(var(--paper-h, 1));
-  z-index: 60;
   pointer-events: none;
-  filter: drop-shadow(6px 10px 14px rgba(96, 74, 54, 0.24));
   animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
 }
 
 .wrap-cone--sheer {
   opacity: 0.78;
+}
+
+/*
+ * 奥の一枚。束の後ろに立つ、紙の背骨。
+ *
+ * 花より奥（z-index を花より低く）に置きます。花のあいだから
+ * のぞく紙が、「紙の中に束が入っている」ことを教えてくれます。
+ * 花に隠れて見えない部分がほとんどなので、影は要りません
+ * （手前の一枚がまとめて落とします）。
+ */
+.wrap-cone--back {
+  z-index: 4;
+}
+
+/*
+ * 手前の一枚。根もとだけを覆います。
+ *
+ * 同じ絵を丸ごと手前に置くと、また「紙の前に花を並べた」に
+ * 戻ってしまいます。下から30%だけを切り出し、結び目のまわりの
+ * ──茎が集まって、紙紐で結ばれているあたり── だけを隠します。
+ * 花の顔に近いところは切り出していないので、そこは奥の一枚が
+ * そのまま透けて見え、二枚の継ぎ目は同じ絵なので分かりません。
+ */
+.wrap-cone--front {
+  z-index: 60;
+  clip-path: inset(70% 0 0 0);
+  filter: drop-shadow(6px 10px 14px rgba(96, 74, 54, 0.24));
 }
 
 /* リボン。結び目の中心が扇の軸にくる。 */

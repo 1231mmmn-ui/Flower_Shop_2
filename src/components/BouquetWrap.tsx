@@ -33,20 +33,41 @@ import type { Ribbon, Wrapping } from '../data/wrapping';
  * 高さを出した束には細くて高い紙、広がった束には広い紙。
  * 絵は色ごとに一枚のままで、伸ばし方だけを変えています。
  */
+/**
+ * 紙は、二枚に分けて置きます。
+ *
+ * ── 「紙の前に花を置いた」ように見えていた理由 ────────────────
+ *
+ * 紙が一枚だけだと、花の**手前**に置くしかありません。
+ * すると茎が結び目へ集まっていく様子が紙の裏にすべて隠れ、
+ * 見えているのは「もう開いた花の頭」だけになります。
+ * 束ねてある感じではなく、紙に花を並べて立てた感じになるのはこのためです。
+ *
+ * 本物の紙包みは逆で、**紙の中に束が入っている**ので、
+ *   奥の紙（背骨として、束のうしろに見える）
+ *   → 花と茎（結び目へ集まりながら、紙の上のほうに顔を出す）
+ *   → 手前の紙（結び目のすぐ上、束の根もとだけを覆う）
+ * の三層になります。同じ絵を二回置き、奥は花の**後ろ**（z-index を
+ * 低く）、手前は根もとだけ切り出して（clip-path）花の**前**に置くと、
+ * 同じ紙のまま、この三層が作れます。
+ */
 export function WrapCone({
   wrapping,
   stems = 3,
   paper = { width: 1, height: 1 },
+  layer,
 }: {
   wrapping: Wrapping;
   stems?: number;
   /** 束ね方ごとの、紙の伸ばし方（→ src/game/styles.ts） */
   paper?: { width: number; height: number };
+  /** back＝花の後ろの一枚。front＝根もとだけを覆う手前の一枚。 */
+  layer: 'back' | 'front';
 }) {
   const spread = Math.min(12, Math.max(2, stems));
   return (
     <img
-      className={`wrap-cone ${wrapping.sheer ? 'wrap-cone--sheer' : ''}`}
+      className={`wrap-cone wrap-cone--${layer} ${wrapping.sheer ? 'wrap-cone--sheer' : ''}`}
       style={
         {
           '--spread': spread,

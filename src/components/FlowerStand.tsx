@@ -47,17 +47,22 @@ export function FlowerStand({
       aria-label={flower.name}
     >
       {/*
-        ── 茎を、水の上と水の中で分けて描きます ──────────────
+        ── 茎は、一本のまま。水は「重ねた色」で表します ────────────
 
-        「透明なコップを花の上に重ねた」ように見えていたのは、
-        **水を通しても茎が何も変わらなかった**からです。
-        本物のガラスと水は、通ったものをずらします。
+        前は水面（下から14.8%）で絵を二枚に切り、水の中のほうだけ
+        横へずらし、太さも変えていました。丸い花はそれでもごまかせ
+        ましたが、ユーカリのような枝ものだと、**水面をまたいだ瞬間に
+        角度が変わって見える**という指摘のとおりでした。
+        本物は、花瓶の外の茎も中の茎も、ずっと一本です。
 
-        同じ絵を二枚置いて、水面（下から14.8%）で切り分け、
-        水の中のほうだけ横へずらし、少し太く、少し淡くします。
-        位置はガラスの絵から逆算しています（→ FlowerStand.css）。
+        いまは茎を一度だけ描きます（`.stand__flowers`）。
+        水の中に見えるぶんは、**同じ絵をもう一枚、寸分たがわず
+        重ねて**、水面から下だけ切り出し、色と鮮明さだけを変えます
+        （→ FlowerStand.css の `--water-tint`）。ずらしません。
+        「ガラスと水を通ると、色が少し沈み、輪郭が少しにじむ」
+        という程度の変化にとどめます。
       */}
-      <span className="stand__flowers stand__flowers--water">
+      <span className="stand__flowers">
         {STEMS.map((stem, index) => (
           <img
             key={index}
@@ -73,24 +78,23 @@ export function FlowerStand({
               } as CSSProperties
             } draggable={false} />
         ))}
-      </span>
-
-      <span className="stand__flowers stand__flowers--air">
-        {STEMS.map((stem, index) => (
-          <img
-            key={index}
-            className="stand__stem"
-            src={flowerImage(flower.id)}
-            alt=""
-            aria-hidden
-            style={
-              {
-                '--angle': `${stem.angle}deg`,
-                '--stem-scale': stem.scale,
-                zIndex: index,
-              } as CSSProperties
-            } draggable={false} />
-        ))}
+        <span className="stand__water-tint" aria-hidden>
+          {STEMS.map((stem, index) => (
+            <img
+              key={index}
+              className="stand__stem"
+              src={flowerImage(flower.id)}
+              alt=""
+              aria-hidden
+              style={
+                {
+                  '--angle': `${stem.angle}deg`,
+                  '--stem-scale': stem.scale,
+                  zIndex: index,
+                } as CSSProperties
+              } draggable={false} />
+          ))}
+        </span>
       </span>
 
       <img className="stand__vase" src={vase()} alt="" aria-hidden draggable={false} />
