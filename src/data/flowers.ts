@@ -628,8 +628,7 @@ export const FLOWERS_WITH_VASE_ART = new Set([
   'tulip',
   'rose',
   'hydrangea',
-  // ranunculus はまだ無い。届いた完成画がバラの重複だったので取り下げ。
-  // 正しい絵が来たら、ここへ 'ranunculus' を足す。
+  'ranunculus',
 ]);
 
 export const formatPrice = (yen: number): string => `¥${yen.toLocaleString('ja-JP')}`;
