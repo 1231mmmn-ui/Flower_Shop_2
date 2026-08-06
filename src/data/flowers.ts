@@ -615,4 +615,20 @@ export const FLOWERS: Flower[] = [
 export const flowerById = (id: string): Flower =>
   FLOWERS.find((flower) => flower.id === id) ?? FLOWERS[0];
 
+/**
+ * 花瓶ごと1枚の完成画（→ assets/paths.ts の `flowerVase`）が
+ * 用意できている花だけ、ここに載せる。
+ *
+ * 品質の基準を決める試作（①人物・②花瓶＋花・③完成ブーケ）が
+ * 実機で確認できたので、ここから店頭の花を1種ずつ広げていく。
+ * 載っていない花は、これまでどおり花瓶と花を重ねる方式のまま
+ * （→ FlowerStand.tsx）。全種そろったら、この分岐ごと外してよい。
+ */
+export const FLOWERS_WITH_VASE_ART = new Set([
+  'tulip',
+  'rose',
+  'hydrangea',
+  'ranunculus',
+]);
+
 export const formatPrice = (yen: number): string => `¥${yen.toLocaleString('ja-JP')}`;

@@ -44,6 +44,24 @@ export const flower = (id: string) => asset(`flowers/${id}.png`);
  */
 export const flowerSmall = (id: string) => asset(`flowers/small/${id}.png`);
 
+/**
+ * 花瓶ごと1枚に描いた完成画（店頭の棚だけで使う）。
+ *
+ * これまでは「花」と「花瓶」を別の透過素材として重ね、水面のところで
+ * 茎を二枚に割って屈折らしさを出していました（→ FlowerStand.css の
+ * 旧 `--water` 実装）。CSSでの近似だったので、水面をまたぐと茎の角度が
+ * 折れて見える種があり、直しきれませんでした。
+ *
+ * 今回から、花瓶に生けた姿を最初から1枚の絵として描いてもらう方式に
+ * 変えました。奥の縁・茎・水・手前の縁の重なりは絵の中ですでに正しく、
+ * CSSでは大きさと置き場所を決めるだけで済みます。
+ *
+ * ただし、店頭に並ぶ花の種類ぶん描き起こす必要があるので、
+ * 対応済みの花だけ `FLOWERS_WITH_VASE_ART`（→ data/flowers.ts）に載せ、
+ * 載っていない花は、これまでどおりの重ね合わせ方式のままにします。
+ */
+export const flowerVase = (id: string) => asset(`flowers/vase/${id}.png`);
+
 /** 店内背景（1600x1200・季節ごと）— §3 */
 export const shopScene = (season: SeasonId) => asset(`scenes/shop-${season}.jpg`);
 

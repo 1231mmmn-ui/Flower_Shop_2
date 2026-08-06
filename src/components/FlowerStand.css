@@ -78,6 +78,24 @@
   transition: transform var(--fs-duration-quick) var(--fs-easing-rise);
 }
 
+/*
+ * 花瓶ごと1枚の完成画（→ FlowerStand.tsx の hasVaseArt）。
+ *
+ * 絵の中に、花・茎・水・花瓶・台に落ちる影まで、もうすべて入っている。
+ * ここでは大きさと置き場所だけを決める。正方形の絵で、花瓶の下端の
+ * 影は絵の中の余白の中ほどにあるので、台の線（bottom: 0）よりわずかに
+ * 下げて、影が台の木目にちゃんと乗って見えるようにする。
+ */
+.stand__vase-art {
+  position: absolute;
+  left: 50%;
+  bottom: -4%;
+  width: 96%;
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
 .stand__stem {
   position: absolute;
   left: 50%;
