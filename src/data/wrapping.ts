@@ -25,6 +25,17 @@ export interface Wrapping {
   light: string;
   /** 透ける紙か */
   sheer?: boolean;
+  /**
+   * リボンまで、紙の絵の中に描き込まれているか。
+   *
+   * クラフト紙は「花瓶ごと1枚」の花たちと同じく、完成画に描き直しました
+   * （→ 2026-08-06 の見直し）。結び目のリボンも紙と一緒に描いてあるので、
+   * これが true のときは、コード側の蝶結び（RibbonBow）を重ねません。
+   * 重ねると、リボンが二重に見えてしまいます。
+   *
+   * まだ描き直していない紙は、これまでどおりコード側の蝶結びを重ねます。
+   */
+  hasBuiltInRibbon?: boolean;
 }
 
 export const WRAPPINGS: Wrapping[] = [
@@ -37,6 +48,7 @@ export const WRAPPINGS: Wrapping[] = [
     swatch: '#C4A578',
     shade: '#9A7B52',
     light: '#DCC198',
+    hasBuiltInRibbon: true,
   },
   {
     id: 'paper-cream',

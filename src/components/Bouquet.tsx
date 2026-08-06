@@ -36,6 +36,7 @@ interface BouquetProps {
 
 export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
   const style = styleById(bouquet.styleId);
+  const wrapping = wrappingById(bouquet.wrappingId);
   /*
    * **取った本数と、描く本数は違います。**
    * 3〜5本を扇状に開いただけでは「紙の前に花を三つ置いた絵」になります。
@@ -56,7 +57,7 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
         「紙に包まれている」実感が出ません。
       */}
       <WrapCone
-        wrapping={wrappingById(bouquet.wrappingId)}
+        wrapping={wrapping}
         stems={drawn.length}
         paper={style.paper}
         layer="back"
@@ -91,12 +92,16 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
         下のほうだけを切り出します。
       */}
       <WrapCone
-        wrapping={wrappingById(bouquet.wrappingId)}
+        wrapping={wrapping}
         stems={drawn.length}
         paper={style.paper}
         layer="front"
       />
-      <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />
+      {/*
+        リボンが紙の絵の中に描き込まれている紙（hasBuiltInRibbon）は、
+        ここで重ねません。重ねると、結び目にリボンが二重に乗って見えます。
+      */}
+      {!wrapping.hasBuiltInRibbon && <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />}
     </div>
   );
 }

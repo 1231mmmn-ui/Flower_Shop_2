@@ -67,7 +67,9 @@ export function WrapCone({
   const spread = Math.min(12, Math.max(2, stems));
   return (
     <img
-      className={`wrap-cone wrap-cone--${layer} ${wrapping.sheer ? 'wrap-cone--sheer' : ''}`}
+      className={`wrap-cone wrap-cone--${layer} ${wrapping.sheer ? 'wrap-cone--sheer' : ''} ${
+        wrapping.hasBuiltInRibbon ? 'wrap-cone--drawn-ribbon' : ''
+      }`}
       style={
         {
           '--spread': spread,
