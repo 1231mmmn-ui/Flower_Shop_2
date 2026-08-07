@@ -615,4 +615,37 @@ export const FLOWERS: Flower[] = [
 export const flowerById = (id: string): Flower =>
   FLOWERS.find((flower) => flower.id === id) ?? FLOWERS[0];
 
+/**
+ * 花瓶ごと1枚の完成画（→ assets/paths.ts の `flowerVase`）が
+ * 用意できている花だけ、ここに載せる。
+ *
+ * 品質の基準を決める試作（①人物・②花瓶＋花・③完成ブーケ）が
+ * 実機で確認できたので、ここから店頭の花を1種ずつ広げていく。
+ * 載っていない花は、これまでどおり花瓶と花を重ねる方式のまま
+ * （→ FlowerStand.tsx）。全種そろったら、この分岐ごと外してよい。
+ */
+export const FLOWERS_WITH_VASE_ART = new Set([
+  'tulip',
+  'rose',
+  'hydrangea',
+  'ranunculus',
+]);
+
+/**
+ * ブーケの中で、同じ花を何本描いても同じ1枚の複製に見えないように
+ * 用意した、別角度・別姿勢の単体素材の本数。
+ *
+ * 1（既定値。`flowers/<id>.png` の1枚だけ）より多い花は、
+ * `assets/paths.ts` の `flowerVariant(id, n)` で
+ * `flowers/variants/<id>-<n>.png`（n=1,2,…）も読みに行く。
+ * 実際にどのコピーがどの番号を使うかは `src/game/bunch.ts` が
+ * 花ごとにずらして決める（→ variantOffset）。
+ *
+ * まずバラだけで試す。効果が出れば他の花にも広げる
+ * （→ 実機フィードバック「同じ花のコピーに見える」への対応）。
+ */
+export const FLOWER_VARIANT_COUNT: Record<string, number> = {
+  rose: 5, // rose.png（基準）＋ rose-1〜4.png
+};
+
 export const formatPrice = (yen: number): string => `¥${yen.toLocaleString('ja-JP')}`;

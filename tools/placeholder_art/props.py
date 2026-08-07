@@ -73,9 +73,9 @@ CUSTOMER_SPECS = [
     # はるかさん・20代・同僚。よく笑う。丸め、頬にふくらみ、明るい目尻。
     dict(id="customer-01", hair="#5A4436", cloth="#E8C06A", skin="#F3DCC6",
          hair_len=170, hair_style="wave", face_w=1.0, face_h=0.97,
-         tilt=-3.0, shoulder=0.4, gaze=(1.5, 0.0), eye="#4A3A31",
-         forehead_w=1.0, cheek_w=1.05, jaw_w=0.92, chin_taper=0.15,
-         eye_gap=1.02, eye_h=1.06, eye_tilt=0.12,
+         tilt=-3.0, shoulder=0.4, gaze=(1.5, 0.0), yaw=3.0, eye="#4A3A31",
+         forehead_w=1.03, cheek_w=1.08, jaw_w=0.90, chin_taper=0.18,
+         eye_gap=1.0, eye_h=1.04, eye_tilt=0.12,
          brow_arch=10, brow_thick=0.9, brow_gap=30,
          nose_w=0.95, nose_len=0.98, mouth_w=1.05, lip_full=1.08, cheek_full=0.5,
          build=0.94, shoulder_width=0.92, neck_width=0.92, hold_hand="right",
@@ -83,9 +83,9 @@ CUSTOMER_SPECS = [
     # なおきさん・20代・落ち着いた男性。面長、角ばった顎、まっすぐな眉。
     dict(id="customer-02", hair="#3B3029", cloth="#7E8C9A", skin="#EFD6BE",
          hair_len=54, hair_style="short", face_w=1.02, face_h=1.08,
-         tilt=1.5, shoulder=-0.3, gaze=(-1.0, 0.0), eye="#3E3229",
-         forehead_w=0.95, cheek_w=0.92, jaw_w=1.08, chin_taper=0.05,
-         eye_gap=0.95, eye_h=0.92, eye_tilt=-0.05,
+         tilt=1.5, shoulder=-0.3, gaze=(-1.0, 0.0), yaw=-3.5, eye="#3E3229",
+         forehead_w=0.90, cheek_w=0.90, jaw_w=1.14, chin_taper=0.02,
+         eye_gap=0.93, eye_h=0.90, eye_tilt=-0.05,
          brow_arch=4, brow_thick=1.15, brow_gap=27,
          nose_w=1.08, nose_len=1.05, mouth_w=0.92, lip_full=0.85, cheek_full=-0.15,
          build=1.08, shoulder_width=1.14, neck_width=1.12, hold_hand="left",
@@ -93,9 +93,9 @@ CUSTOMER_SPECS = [
     # さとみさん・40代・母。丸顔でふっくら、やわらかい眉。
     dict(id="customer-03", hair="#54443A", cloth="#C9B79C", skin="#F2DAC4",
          hair_len=120, hair_style="bun", face_w=1.08, face_h=0.96,
-         tilt=2.5, shoulder=0.2, gaze=(2.0, 0.5), eye="#4C3B31",
-         forehead_w=1.0, cheek_w=1.10, jaw_w=0.85, chin_taper=0.4,
-         eye_gap=1.0, eye_h=0.98, eye_tilt=0.02,
+         tilt=2.5, shoulder=0.2, gaze=(2.0, 0.5), yaw=2.5, eye="#4C3B31",
+         forehead_w=0.96, cheek_w=1.16, jaw_w=0.84, chin_taper=0.4,
+         eye_gap=0.99, eye_h=0.97, eye_tilt=0.02,
          brow_arch=7, brow_thick=1.0, brow_gap=29,
          nose_w=1.0, nose_len=1.0, mouth_w=1.0, lip_full=1.05, cheek_full=0.9,
          build=1.02, shoulder_width=0.98, neck_width=1.0, hold_hand="right",
@@ -103,9 +103,9 @@ CUSTOMER_SPECS = [
     # よしこさん・70代・年配の女性。輪郭が縮み、頬がこけ、少し前かがみ。
     dict(id="customer-04", hair="#9E9A93", cloth="#A8B4A2", skin="#F0DAC6",
          hair_len=70, hair_style="bun", face_w=0.96, face_h=0.90,
-         tilt=-2.0, shoulder=-0.5, gaze=(-1.5, 0.5), eye="#544539",
-         forehead_w=0.92, cheek_w=0.88, jaw_w=0.80, chin_taper=0.1,
-         eye_gap=0.94, eye_h=0.82, eye_tilt=-0.18,
+         tilt=-2.0, shoulder=-0.5, gaze=(-1.5, 0.5), yaw=-4.0, eye="#544539",
+         forehead_w=0.86, cheek_w=0.85, jaw_w=0.78, chin_taper=0.1,
+         eye_gap=0.91, eye_h=0.80, eye_tilt=-0.18,
          brow_arch=3, brow_thick=0.85, brow_gap=24,
          nose_w=0.95, nose_len=0.95, mouth_w=0.88, lip_full=0.75, cheek_full=-0.5,
          build=0.84, shoulder_width=0.78, neck_width=0.80, stoop=0.55, age="elder",
@@ -114,19 +114,19 @@ CUSTOMER_SPECS = [
     # めいさん・高校生。顔が小さく丸く、若い目つき、細い体。
     dict(id="customer-05", hair="#4B3A30", cloth="#8FA0B8", skin="#F5DFCB",
          hair_len=210, hair_style="long", face_w=0.90, face_h=0.90,
-         tilt=4.0, shoulder=0.6, gaze=(2.5, -0.5), eye="#463629",
-         forehead_w=1.0, cheek_w=1.05, jaw_w=0.75, chin_taper=0.55,
-         eye_gap=1.05, eye_h=1.12, eye_tilt=0.15,
+         tilt=4.0, shoulder=0.6, gaze=(2.5, -0.5), yaw=4.5, eye="#463629",
+         forehead_w=1.05, cheek_w=1.02, jaw_w=0.76, chin_taper=0.42,
+         eye_gap=1.0, eye_h=1.04, eye_tilt=0.15,
          brow_arch=9, brow_thick=0.75, brow_gap=32,
-         nose_w=0.85, nose_len=0.88, mouth_w=0.90, lip_full=1.1, cheek_full=0.65,
+         nose_w=0.90, nose_len=0.90, mouth_w=0.86, lip_full=1.05, cheek_full=0.55,
          build=0.82, shoulder_width=0.78, neck_width=0.80, hold_hand="right",
          note="春から進学する高校生"),
     # りんさん・30代・ひとり暮らしの男性。面長で角ばり、肩幅が広い。
     dict(id="customer-06", hair="#6A5240", cloth="#B7AEC4", skin="#F2DAC4",
          hair_len=54, hair_style="short", face_w=1.0, face_h=1.04,
-         tilt=-1.0, shoulder=0.1, gaze=(0.0, 0.0), eye="#4F3E32",
-         forehead_w=0.96, cheek_w=0.90, jaw_w=1.15, chin_taper=0.0,
-         eye_gap=0.92, eye_h=0.90, eye_tilt=-0.08,
+         tilt=-1.0, shoulder=0.1, gaze=(0.0, 0.0), yaw=-1.5, eye="#4F3E32",
+         forehead_w=0.89, cheek_w=0.88, jaw_w=1.20, chin_taper=0.0,
+         eye_gap=0.90, eye_h=0.88, eye_tilt=-0.08,
          brow_arch=3, brow_thick=1.2, brow_gap=26,
          nose_w=1.12, nose_len=1.08, mouth_w=0.95, lip_full=0.80, cheek_full=-0.35,
          build=1.10, shoulder_width=1.18, neck_width=1.15, hold_hand="left",
@@ -134,19 +134,19 @@ CUSTOMER_SPECS = [
     # かおるさん・40代・夫婦の一方。ふつうの体格、やわらかい輪郭。
     dict(id="customer-07", hair="#4A3B33", cloth="#AFBBA8", skin="#F1DAC5",
          hair_len=110, hair_style="wave", face_w=1.04, face_h=1.0,
-         tilt=3.0, shoulder=-0.2, gaze=(1.0, 0.5), eye="#453529",
-         forehead_w=1.0, cheek_w=1.0, jaw_w=0.95, chin_taper=0.3,
+         tilt=3.0, shoulder=-0.2, gaze=(1.0, 0.5), yaw=2.0, eye="#453529",
+         forehead_w=1.0, cheek_w=0.98, jaw_w=0.97, chin_taper=0.3,
          eye_gap=1.0, eye_h=1.0, eye_tilt=0.05,
          brow_arch=7, brow_thick=0.95, brow_gap=29,
-         nose_w=1.0, nose_len=1.0, mouth_w=1.0, lip_full=1.0, cheek_full=0.35,
+         nose_w=1.0, nose_len=1.0, mouth_w=1.06, lip_full=1.0, cheek_full=0.35,
          build=0.98, shoulder_width=0.96, neck_width=0.96, hold_hand="right",
          note="家族で新居に引っ越した夫婦の一方"),
     # そうたさん・20代。友を案じる、少し細く、目尻が下がる。
     dict(id="customer-08", hair="#42352C", cloth="#93A88E", skin="#EDD4BB",
          hair_len=58, hair_style="short", face_w=0.98, face_h=1.05,
-         tilt=-3.5, shoulder=0.3, gaze=(-2.0, 0.0), eye="#3C3027",
-         forehead_w=0.98, cheek_w=0.90, jaw_w=1.0, chin_taper=0.15,
-         eye_gap=0.96, eye_h=0.95, eye_tilt=-0.10,
+         tilt=-3.5, shoulder=0.3, gaze=(-2.0, 0.0), yaw=-4.0, eye="#3C3027",
+         forehead_w=0.93, cheek_w=0.87, jaw_w=1.04, chin_taper=0.15,
+         eye_gap=0.95, eye_h=0.93, eye_tilt=-0.10,
          brow_arch=5, brow_thick=1.0, brow_gap=28,
          nose_w=1.0, nose_len=1.02, mouth_w=0.92, lip_full=0.85, cheek_full=-0.1,
          build=0.96, shoulder_width=1.02, neck_width=1.0, hold_hand="left",
@@ -305,18 +305,24 @@ def render_vase(seed: int = 0) -> Image.Image:
     for i in range(collar_h):
         yy = top + i
         t = i / collar_h
-        a = int(255 * (1 - t) ** 1.8)
+        a = int(215 * (1 - t) ** 1.8)
         if a <= 0:
             continue
         hx = half_at(yy) * (0.94 - t * 0.10)
-        cd.line([cx - hx, yy, cx + hx, yy], fill=(238, 246, 243, a))
+        cd.line([cx - hx, yy, cx + hx, yy], fill=(230, 238, 235, a))
     img.alpha_composite(collar.filter(ImageFilter.GaussianBlur(2.2)))
 
+    # ── 手前の縁は、茎を隠すのに要る太さは保ちつつ、弱めます ──────
+    #
+    # 幅34px・不透明255の白は、実機で「輪」として独立して見えるほど
+    # 強すぎました（指摘のとおり）。茎を隠す仕事は幅と衿でもう
+    # 足りているので、色を少し沈め、不透明度を少し落として、
+    # 「ガラスの縁に光が乗っている」程度まで戻します。
     d2 = ImageDraw.Draw(img)
     d2.arc([cx - half_top, top - rim_ry, cx + half_top, top + rim_ry],
-           start=0, end=180, fill=(246, 251, 249, 255), width=34)
+           start=0, end=180, fill=(234, 242, 238, 224), width=26)
     d2.arc([cx - half_top + 14, top - rim_ry + 10, cx + half_top - 14, top + rim_ry - 7],
-           start=0, end=180, fill=(196, 214, 208, 150), width=6)
+           start=0, end=180, fill=(196, 214, 208, 110), width=5)
 
     # 台に落ちる影
     shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))

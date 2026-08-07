@@ -9,8 +9,8 @@ import type { CSSProperties } from 'react';
 
 import './FlowerStand.css';
 // 棚の花は 224pt（端末で448px）。1024ではなく512で足りる（→ paths.flowerSmall）。
-import { flowerSmall as flowerImage, vase } from '../assets/paths';
-import type { Flower } from '../data/flowers';
+import { flowerSmall as flowerImage, flowerVase, vase } from '../assets/paths';
+import { FLOWERS_WITH_VASE_ART, type Flower } from '../data/flowers';
 
 interface FlowerStandProps {
   flower: Flower;
@@ -37,6 +37,7 @@ export function FlowerStand({
   onSelect,
 }: FlowerStandProps) {
   const far = Math.min(1, distance);
+  const hasVaseArt = FLOWERS_WITH_VASE_ART.has(flower.id);
 
   return (
     <button
@@ -46,57 +47,84 @@ export function FlowerStand({
       onClick={onSelect}
       aria-label={flower.name}
     >
-      {/*
-        ── 茎を、水の上と水の中で分けて描きます ──────────────
+      {hasVaseArt ? (
+        /*
+          ── 花瓶ごと1枚の完成画（→ assets/paths.ts の flowerVase） ──
 
-        「透明なコップを花の上に重ねた」ように見えていたのは、
-        **水を通しても茎が何も変わらなかった**からです。
-        本物のガラスと水は、通ったものをずらします。
+          下の重ね合わせ方式は、水面のところで茎を二枚に割ってCSSで
+          屈折らしさを近似していました。**近似でしかなく**、枝ものでは
+          水面をまたぐ角度が折れて見える種がありました。
+          対応済みの花（→ data/flowers.ts の FLOWERS_WITH_VASE_ART）は、
+          花瓶に生けた姿を最初から1枚の絵として描いてもらっています。
+          奥の縁・茎・水・手前の縁の重なりは絵の中ですでに正しいので、
+          ここでは大きさと置き場所を決めるだけです。
+        */
+        <img
+          className="stand__vase-art"
+          src={flowerVase(flower.id)}
+          alt=""
+          aria-hidden
+          draggable={false}
+        />
+      ) : (
+        <>
+          {/*
+            ── 茎は、一本のまま。水は「重ねた色」で表します ────────────
 
-        同じ絵を二枚置いて、水面（下から14.8%）で切り分け、
-        水の中のほうだけ横へずらし、少し太く、少し淡くします。
-        位置はガラスの絵から逆算しています（→ FlowerStand.css）。
-      */}
-      <span className="stand__flowers stand__flowers--water">
-        {STEMS.map((stem, index) => (
-          <img
-            key={index}
-            className="stand__stem"
-            src={flowerImage(flower.id)}
-            alt=""
-            aria-hidden
-            style={
-              {
-                '--angle': `${stem.angle}deg`,
-                '--stem-scale': stem.scale,
-                zIndex: index,
-              } as CSSProperties
-            } draggable={false} />
-        ))}
-      </span>
+            前は水面（下から14.8%）で絵を二枚に切り、水の中のほうだけ
+            横へずらし、太さも変えていました。丸い花はそれでもごまかせ
+            ましたが、ユーカリのような枝ものだと、**水面をまたいだ瞬間に
+            角度が変わって見える**という指摘のとおりでした。
+            本物は、花瓶の外の茎も中の茎も、ずっと一本です。
 
-      <span className="stand__flowers stand__flowers--air">
-        {STEMS.map((stem, index) => (
-          <img
-            key={index}
-            className="stand__stem"
-            src={flowerImage(flower.id)}
-            alt=""
-            aria-hidden
-            style={
-              {
-                '--angle': `${stem.angle}deg`,
-                '--stem-scale': stem.scale,
-                zIndex: index,
-              } as CSSProperties
-            } draggable={false} />
-        ))}
-      </span>
+            いまは茎を一度だけ描きます（`.stand__flowers`）。
+            水の中に見えるぶんは、**同じ絵をもう一枚、寸分たがわず
+            重ねて**、水面から下だけ切り出し、色と鮮明さだけを変えます
+            （→ FlowerStand.css の `--water-tint`）。ずらしません。
+            「ガラスと水を通ると、色が少し沈み、輪郭が少しにじむ」
+            という程度の変化にとどめます。
+          */}
+          <span className="stand__flowers">
+            {STEMS.map((stem, index) => (
+              <img
+                key={index}
+                className="stand__stem"
+                src={flowerImage(flower.id)}
+                alt=""
+                aria-hidden
+                style={
+                  {
+                    '--angle': `${stem.angle}deg`,
+                    '--stem-scale': stem.scale,
+                    zIndex: index,
+                  } as CSSProperties
+                } draggable={false} />
+            ))}
+            <span className="stand__water-tint" aria-hidden>
+              {STEMS.map((stem, index) => (
+                <img
+                  key={index}
+                  className="stand__stem"
+                  src={flowerImage(flower.id)}
+                  alt=""
+                  aria-hidden
+                  style={
+                    {
+                      '--angle': `${stem.angle}deg`,
+                      '--stem-scale': stem.scale,
+                      zIndex: index,
+                    } as CSSProperties
+                  } draggable={false} />
+              ))}
+            </span>
+          </span>
 
-      <img className="stand__vase" src={vase()} alt="" aria-hidden draggable={false} />
-      {/* 台に触れている影。これが無いと、器が宙に浮いて見える。 */}
-      <span className="stand__contact" aria-hidden />
-      <span className="stand__glow" style={{ background: flower.swatch }} aria-hidden />
+          <img className="stand__vase" src={vase()} alt="" aria-hidden draggable={false} />
+          {/* 台に触れている影。これが無いと、器が宙に浮いて見える。 */}
+          <span className="stand__contact" aria-hidden />
+          <span className="stand__glow" style={{ background: flower.swatch }} aria-hidden />
+        </>
+      )}
 
       {picked > 0 && (
         <span className="stand__picked" aria-label={`${picked}本 取りました`}>

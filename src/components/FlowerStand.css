@@ -37,11 +37,13 @@
 
 /*
  * ふれたときの、ひと持ち上がり。
- * **水の中の茎（--water）は動かしません。** ここで動かすと、
- * せっかく分けた二枚がずれて、茎が割れて見えます。
+ *
+ * 茎はもう一本しかないので、そのまま持ち上げます。
+ * 水の中の色（--water-tint）は同じ箱の中に入っているだけなので、
+ * 何もしなくても一緒に動きます（ここが前の二枚分けとの違い）。
  */
-.stand.is-focus:hover .stand__flowers--air,
-.stand.is-focus:focus-visible .stand__flowers--air {
+.stand.is-focus:hover .stand__flowers,
+.stand.is-focus:focus-visible .stand__flowers {
   transform: translate(-50%, -4px);
 }
 
@@ -76,6 +78,24 @@
   transition: transform var(--fs-duration-quick) var(--fs-easing-rise);
 }
 
+/*
+ * 花瓶ごと1枚の完成画（→ FlowerStand.tsx の hasVaseArt）。
+ *
+ * 絵の中に、花・茎・水・花瓶・台に落ちる影まで、もうすべて入っている。
+ * ここでは大きさと置き場所だけを決める。正方形の絵で、花瓶の下端の
+ * 影は絵の中の余白の中ほどにあるので、台の線（bottom: 0）よりわずかに
+ * 下げて、影が台の木目にちゃんと乗って見えるようにする。
+ */
+.stand__vase-art {
+  position: absolute;
+  left: 50%;
+  bottom: -4%;
+  width: 96%;
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
 .stand__stem {
   position: absolute;
   left: 50%;
@@ -86,34 +106,42 @@
   filter: drop-shadow(5px 10px 12px rgba(96, 74, 54, 0.20));
 }
 
-.stand__stem:first-child {
+/*
+ * 一本目だけ position: relative にして、寸法を持たない
+ * `.stand__flowers` に高さを持たせます。
+ *
+ * `.stand__water-tint` の中の一本目は対象外にします
+ * （> で直接の子だけに絞る）。あちらは inset:0 ですでに
+ * 寸法を持っているので、中の一本目まで relative にすると
+ * 通常の流れに戻ってしまい、位置がずれます。
+ */
+.stand__flowers > .stand__stem:first-child {
   position: relative;
 }
 
-/* 水の上。水面より下は、こちらでは描かない。 */
-.stand__flowers--air {
-  clip-path: inset(0 0 14.8% 0);
-}
-
 /*
- * 水の中。
+ * 水の中の色。
  *
- * 横へずらし、少し太くし、淡くします。
- * ガラスと水を通ったものは、まっすぐには見えません。
- * ずらす量は 1.5% ── **大きくすると割れて見えます。**
- * 水そのものの色はガラスの絵の側に描いてあるので、
- * ここでは形の話だけをします。
+ * ── 位置は、ずらしません ──────────────────────────────
+ *
+ * 前は水面から下だけを横へずらし、太さも変えていました。
+ * 丸い花の頭はそれでもごまかせましたが、ユーカリのように
+ * 枝が斜めに伸びる花では、**水面をまたいだところで枝の角度が
+ * 折れて見える**という指摘のとおりでした。茎は花瓶の外も中も、
+ * 実際には一本の同じ線です。
+ *
+ * 同じ茎の絵をもう一枚、寸分たがわず重ねて、水面（下から14.8%）
+ * より下だけを切り出します。位置も角度も、上の本体と完全に同じ。
+ * 変えるのは色と鮮明さだけ ── ガラスと水を通ると、これくらい
+ * 沈んで、これくらいにじむ、という程度に留めます。
  */
-.stand__flowers--water {
+.stand__water-tint {
+  position: absolute;
+  inset: 0;
   clip-path: inset(85.2% 0 0 0);
-  /*
-   * 屈折とうすさを、もう一段はっきりさせました。
-   * 前は 1.5% のずれと 0.82 のうすさで、水面をまたいでも
-   * ほとんど同じ太さ・同じ濃さの茎に見えていました。
-   */
-  transform: translateX(-50%) translateX(2.2%) scaleX(1.08);
-  opacity: 0.72;
-  filter: saturate(0.74) brightness(1.05);
+  opacity: 0.55;
+  filter: saturate(0.72) brightness(0.96) hue-rotate(4deg) blur(0.5px);
+  pointer-events: none;
 }
 
 /*

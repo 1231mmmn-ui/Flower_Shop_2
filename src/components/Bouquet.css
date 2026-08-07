@@ -41,15 +41,19 @@
   transform: translateX(-50%) rotate(var(--angle))
     translateY(calc(var(--reach) * -24%)) scale(var(--scale));
   /*
-   * ── 奥行きの効きを、もう一段強くしました ──────────────────
+   * ── ぼかしを、ほぼ外しました ──────────────────────────
    *
-   * 前は明暗14%・彩度14%の範囲でしか変わらず、奥の花も手前の花も
-   * ほとんど同じ濃さに見えていました（「配置しただけ」に見える一因）。
-   * 奥の花を、はっきり**退かせます**。
+   * 1.1px のぼかしは、離れた花というより「選ばれていない花が
+   * 無効化されている」ように見えていました。このゲームは花の
+   * 描き込みを眺めることが軸なので、奥の花のディテールを
+   * 消す方向とは相性が悪いです。
+   *
+   * 奥行きは、明暗・彩度・大きさ（→ scale）・重なりの4つで作ります。
+   * ぼかしは名残りで 0.35px だけ── 輪郭は最後まで読めます。
    */
-  filter: brightness(calc(0.84 + var(--depth) * 0.18))
-    saturate(calc(0.76 + var(--depth) * 0.26))
-    blur(calc((1 - var(--depth)) * 1.1px))
+  filter: brightness(calc(0.86 + var(--depth) * 0.16))
+    saturate(calc(0.80 + var(--depth) * 0.22))
+    blur(calc((1 - var(--depth)) * 0.35px))
     drop-shadow(4px 8px 10px rgba(96, 74, 54, calc(0.08 + var(--depth) * 0.14)));
   transition: transform var(--fs-duration-base) var(--fs-easing-soft),
     filter var(--fs-duration-base) var(--fs-easing-soft);

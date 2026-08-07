@@ -11,16 +11,24 @@
  * 主張しすぎないよう、色は木や紙と同じ側でまとめています。
  */
 
+/*
+ * ── 角丸が、文字を切っていました ────────────────────────────
+ *
+ * 下の余白が2pxしかないところに 24px（--fs-radius-lg）の角丸を
+ * つけたので、ラベルの行がちょうど角の曲がり際にかかり、
+ * 「カードの途中で文字が切れている」ように見えていました。
+ * 角丸をひとまわり小さくし、四辺の余白を文字の分だけ広げます。
+ */
 .today-flower {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   border: 0;
-  border-radius: var(--fs-radius-lg);
+  border-radius: var(--fs-radius-md);
   background: rgba(255, 252, 244, 0.55);
-  padding: 3px var(--fs-space-xs) 2px;
+  padding: 6px 10px 8px;
   cursor: pointer;
   transition: background var(--fs-duration-base) var(--fs-easing-soft),
     transform var(--fs-duration-quick) var(--fs-easing-rise);
@@ -51,20 +59,32 @@
 }
 
 /*
- * 一行だけ。
+ * 花の名前。絵の下、ラベルの上。
+ * 「この花が何か」は、ラベルより先に知りたいこと。
+ */
+.today-flower__name {
+  font-family: var(--fs-font-family-base);
+  font-size: var(--fs-font-sm);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--fs-color-ink);
+}
+
+/*
+ * 「今日のお店のお花」の一行。
  *
  * これが無いと、ただ花の絵が置いてあるだけで、
  * 市場で自分が選んだものだと気づけません（実機での指摘）。
- * 木や店内の上に出るので、にじみで浮かせます。
+ *
+ * いまはカードの中に収まっているので、木目に浮かせる
+ * text-shadow はもう要りません（前は木の上に直接置いていました）。
  */
 .today-flower__label {
   font-family: var(--fs-font-family-base);
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 0.04em;
   line-height: 1.2;
   white-space: nowrap;
   color: var(--fs-color-ink-faint);
-  text-shadow:
-    0 1px 3px rgba(255, 252, 244, 0.98),
-    0 2px 12px rgba(255, 250, 238, 0.9);
 }

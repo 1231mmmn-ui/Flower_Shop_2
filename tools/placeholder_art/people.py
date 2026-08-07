@@ -172,8 +172,11 @@ def _eye(img: Image.Image, cx: float, cy: float, side: int, spec: dict,
     eye_h_mult = spec.get("eye_h", 1.0)
     tilt = spec.get("eye_tilt", 0.0)  # 正で目尻が上がる（つり目寄り）
     # **顔の大きさに連れて変わること。**
-    w = 25.0 * k
-    h = 12.5 * k * eye_h_mult * (1 - narrow * 0.45)
+    # 実機だと、目が大きく離れて見えて人形的でした。7%ほど縮めます
+    # （25→23.3px, 12.5→11.6px）。離れて見える主因は間隔（eye_gap、
+    # render_customer 側）のほうなので、大きさはここで少しだけ。
+    w = 23.3 * k
+    h = 11.6 * k * eye_h_mult * (1 - narrow * 0.45)
     outer_y = cy + 1.0 - tilt * h * 0.5
 
     # 上まぶた。目頭は細く、目尻に向かって太く。目尻の高さは tilt で動く。
@@ -329,6 +332,22 @@ def _cheek_and_jaw(head: Image.Image, cx: float, cy: float, fw: float, fh: float
     `cheek_full` が高いほど、頬からあごにかけて丸みのある明るい面を足し
     （ふっくら）、低い（負）ほど頬骨の下に影を足します（こけて見える）。
     """
+    # ── 顎の輪郭に、線ではなく影で厚みを作る ──────────────────
+    #
+    # 輪郭線（face_outline）だけでは、顔が平らな紙に見えます。
+    # 頬骨からあごへかけて、内側にごく淡い影を一本沿わせると、
+    # そこで面が折れている（頬の面 → 顎の面）ことが伝わります。
+    # 濃くしすぎると輪郭線の二重描きになるので、輪郭より内側・
+    # 下方向にだけ、うすく落とします。
+    jaw_w = spec.get("jaw_w", 1.0)
+    for s in (-1, 1):
+        jawline = bezier(
+            (cx + s * 100 * fw * jaw_w, cy + 24 * fh),
+            (cx + s * 88 * fw * jaw_w, chin - 44),
+            (cx + s * 40 * fw, chin - 4), 20)
+        _over(head, _soft(_mask(head.size, lambda d, p=jawline: d.line(p, fill=255, width=10)), 9),
+              shade(skin, -0.30), 0.16)
+
     full = spec.get("cheek_full", 0.0)
     if full > 0:
         for s in (-1, 1):
@@ -760,12 +779,21 @@ def render_customer(spec: dict, mood: str, seed: int = 0) -> Image.Image:
         gaze = (gaze[0] * 0.3, 6.4)
     # 顔の大きさ。目鼻口の寸法は、すべてこれに連れて変わる。
     k = fh
+    # ── 顔の向き。正面だけにしない ─────────────────────────
+    #
+    # tilt は首を軸にした「傾け」（左右に首をかしげる）で、
+    # 向き（左右に顔を振る）とは別の動きです。ここでは輪郭は
+    # そのままに、目・鼻・口という**中身の一式**だけを cx から
+    # わずかにずらします。顔の向いた側は輪郭に対して中身が寄り、
+    # 反対側は輪郭との余白が広がるので、「振り向きかけ」に見えます。
+    # 大きく振ると崩れるので、数px の範囲にとどめます。
+    yaw = spec.get("yaw", 0.0) * fw
     for s in (-1, 1):
-        _brow(head, cx + s * 46 * fw * eye_gap, eye_y, s, spec, k)
-        _eye(head, cx + s * 46 * fw * eye_gap, eye_y, s, spec,
+        _brow(head, cx + yaw + s * 46 * fw * eye_gap, eye_y, s, spec, k)
+        _eye(head, cx + yaw + s * 46 * fw * eye_gap, eye_y, s, spec,
              (gaze[0] * k, gaze[1] * k), narrow, skin, k)
-    _nose(head, cx, cy + 46 * fh, skin, 46 * fh, k, spec)
-    _mouth(head, cx, cy + 80 * fh, skin, 0.85 if mood == "happy" else 0.45,
+    _nose(head, cx + yaw * 1.3, cy + 46 * fh, skin, 46 * fh, k, spec)
+    _mouth(head, cx + yaw * 1.2, cy + 80 * fh, skin, 0.85 if mood == "happy" else 0.45,
           22 * fw * spec.get("mouth_w", 1.0), k, spec.get("lip_full", 1.0))
 
     _age_marks(head, cx, cy, fw, fh, chin, skin, spec)
@@ -831,38 +859,59 @@ def render_customer_arms(spec: dict, seed: int = 0) -> Image.Image:
             d.polygon(tapered_band(path, 118, 60), fill=255)
 
     def hand(d):
+        """
+        手首 → 掌 → 指、の順に細くしていく。
+
+        ── 「五角形」に見えていた理由 ──────────────────────
+
+        掌の帯を手首側66px→指側52pxで描いていました。**逆です。**
+        本物の掌は手首でいちばん細く、指の付け根（関節の並び）で
+        いちばん広がります。狭いほうから広いほうへ描いていたので、
+        掌が台形の板に見え、そこから同じ太さ・同じ長さの指が
+        4本まっすぐ生えて、五角形のトークンになっていました。
+
+        直すのは二つ。掌の広がりを逆にすることと、指の長さを
+        1本ずつ変えること（人差し指・薬指はやや短く、中指がいちばん
+        長く、小指がいちばん短い）。
+        """
         # 支える手。束の下から、包み込むように。
         hx = cx + low_side * 92
         d.polygon(tapered_band(
             bezier((hx + low_side * 30, low_y + 44), (hx + low_side * 4, low_y + 8),
-                   (hx - low_side * 16, low_y - 14), 16), 66, 52), fill=255)
+                   (hx - low_side * 16, low_y - 14), 16), 40, 64), fill=255)
+        # 指の長さ比。中指がいちばん長く、小指がいちばん短い。
+        finger_len = (0.86, 1.0, 0.94, 0.72)
         for k in range(4):
             t = k / 3
+            length = finger_len[k]
             fx0 = hx - low_side * (0 + t * 8)
             fy0 = low_y - 14 + t * 24
-            fx1 = hx - low_side * (32 + t * 10)
-            fy1 = low_y - 20 + t * 26
+            fx1 = hx - low_side * (10 + t * 10 + 22 * length)
+            fy1 = low_y - 20 + t * 26 - 4 * length
             d.polygon(tapered_band(
-                bezier((fx0, fy0), ((fx0 + fx1) / 2, fy0 - 6), (fx1, fy1), 12),
-                13, 10), fill=255)
+                bezier((fx0, fy0), ((fx0 + fx1) / 2, fy0 - 6 * length), (fx1, fy1), 12),
+                12, 8), fill=255)
+        # 親指。ほかの指より太く短く、付け根も掌の低い位置から。
         d.polygon(tapered_band(
-            bezier((hx + low_side * 24, low_y + 26), (hx + low_side * 34, low_y + 2),
-                   (hx + low_side * 18, low_y - 18), 14), 16, 12), fill=255)
+            bezier((hx + low_side * 26, low_y + 30), (hx + low_side * 36, low_y + 6),
+                   (hx + low_side * 20, low_y - 12), 14), 18, 13), fill=255)
 
         # 添える手。紙のあたりを、軽く。指を深く見せない（触れているだけ）。
         hx2 = cx + high_side * 78
         d.polygon(tapered_band(
             bezier((hx2 + high_side * 22, high_y + 30), (hx2 + high_side * 2, high_y + 4),
-                   (hx2 - high_side * 10, high_y - 10), 14), 54, 44), fill=255)
+                   (hx2 - high_side * 10, high_y - 10), 14), 34, 52), fill=255)
+        finger_len2 = (0.90, 1.0, 0.78)
         for k in range(3):
             t = k / 2
+            length = finger_len2[k]
             fx0 = hx2 - high_side * (4 + t * 8)
             fy0 = high_y - 8 + t * 20
-            fx1 = hx2 - high_side * (26 + t * 10)
-            fy1 = high_y - 12 + t * 22
+            fx1 = hx2 - high_side * (8 + t * 10 + 20 * length)
+            fy1 = high_y - 12 + t * 22 - 3 * length
             d.polygon(tapered_band(
-                bezier((fx0, fy0), ((fx0 + fx1) / 2, fy0 - 4), (fx1, fy1), 10),
-                11, 8), fill=255)
+                bezier((fx0, fy0), ((fx0 + fx1) / 2, fy0 - 4 * length), (fx1, fy1), 10),
+                10, 7), fill=255)
 
     # 袖。**体より少し濃く。** 同じ色だと、体と溶けて腕に見えない。
     img.alpha_composite(wc_layer(size, sleeve, shade(cloth, -0.09),
@@ -873,13 +922,17 @@ def render_customer_arms(spec: dict, seed: int = 0) -> Image.Image:
     img.alpha_composite(shade_side(size, hand, skin, rng.randint(0, 9999), 0.16))
 
     # 指の間。線は引かず、影だけ。線を引くと手袋に見える。
+    # 指の長さが1本ずつ違うので、影の線も隣りあう指の平均の長さに合わせる。
     gaps = Image.new("L", size, 0)
     gd = ImageDraw.Draw(gaps)
     hx = cx + low_side * 92
+    finger_len = (0.86, 1.0, 0.94, 0.72)
     for k in range(3):
         t = (k + 0.5) / 3
+        length = (finger_len[k] + finger_len[k + 1]) / 2
         gd.line([(hx - low_side * (2 + t * 8), low_y - 14 + t * 24),
-                 (hx - low_side * (32 + t * 10), low_y - 20 + t * 26)], fill=90, width=3)
+                 (hx - low_side * (10 + t * 10 + 22 * length), low_y - 20 + t * 26 - 4 * length)],
+                fill=90, width=3)
     _over(img, _soft(gaps, 2.6), shade(skin, -0.40), 1.0)
 
     # 袖口が手に落とす影。重なりの厚みは、ここで出る。
