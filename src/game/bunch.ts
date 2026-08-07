@@ -22,20 +22,29 @@
  * 実機で確認すると、まだ問題がありました。
  *
  *   一．同じ花の複製が、みな似た奥行きに落ち、横一列に並んで見えた
- *       （前後のばらけが「役割＋乱数」まかせで、同じ花どうしが
- *       たまたま近い並びになっても止める仕組みが無かった）
+ *       → 花ごとに前列・中列・奥列へ必ず分ける（band）
  *   二．アジサイのような面の大きな花が、他の主役と同じ扱いで
  *       外側へ飛ばされ、コラージュの「貼り紙」に見えた
+ *       → 中心寄りへ引き戻すだけでは、「左＝アジサイ／右＝バラ」の
+ *       ような**塊どうしのブロック**が残った。面の大きな花は、
+ *       近くの主役（アンカー）の位置に**乗せる**ことにした
+ *       ── 1本は少し奥へ沈めて主役に被らせ、もう1本は少し手前で
+ *       主役の下からのぞかせる。二種類が同じ場所を取り合うことで、
+ *       初めて「一緒に束ねた」ように見える。
  *   三．ユーカリが役割だけで散らされるので、左右どちらへも均等に
  *       出てしまい、対称な羽根に見えた
- *   四．主役はほぼ正面しか向かず、重なっても奥行きが出なかった
- *   五．`style.scatter`（一本ずつのばらつき）を定義だけして、
+ *       → 束ひとつにつき片側だけへ抜ける「補外」役を用意
+ *   四．外へ抜ける役をユーカリ一本だけに頼ると、「広がり＝枝が1本
+ *       飛んでいるだけ」に見える。寄り添う花・小花にも、抜ける役の
+ *       ごく弱い版を持たせ、広がりを束全体で少しずつ作る。
+ *   五．主役はほぼ正面しか向かず、重なっても奥行きが出なかった
+ *   六．`style.scatter`（一本ずつのばらつき）を定義だけして、
  *       実際の計算では一度も使っていなかった
  *
  * ここから先は、「花ごとに前列・中列・奥列へ必ず分ける」
- * 「面の大きな花は中心寄りへ引き戻す」「葉ものは片側だけへ抜く」
- * 「主役にも向きのばらつきを持たせる」という**意図的な帯**を先に決め、
- * 乱数はその帯の中だけで小さく揺らす役に回しました。
+ * 「面の大きな花は主役に乗せる」「抜ける役は片側だけ、複数の花に
+ * 薄く配る」「主役にも向きのばらつきを持たせる」という**意図的な
+ * 帯**を先に決め、乱数はその帯の中だけで小さく揺らす役に回しました。
  *
  * ── 数えるものと、描くものを分ける ──────────────────────
  *
@@ -78,8 +87,11 @@ const MAX_DRAWN = 26;
  *
  * バラやラナンキュラスと同じ「主役」でも、アジサイは一輪の見た目の
  * 面積がずっと広いので、他の主役とまったく同じ扱いで外側へ飛ばすと、
- * 花束の縁に「貼り紙」を置いたように見えます。中心寄りへ引き戻し、
- * 手前へ出過ぎないようにして、他の主役の後ろにも潜れるようにします。
+ * 花束の縁に「貼り紙」を置いたように見えます。ただ中心へ引き戻す
+ * だけでは、「面の大きな花のかたまり」と「他の主役のかたまり」が
+ * 別々の場所にできるだけでした。ここでは一歩進めて、近くにある
+ * 主役（アンカー）と**同じ場所を取り合わせ**、前後にずらして
+ * 被らせます（→ `snapBulkyToAnchor`）。
  */
 const BULKY_FLOWERS = new Set(['hydrangea']);
 
@@ -125,6 +137,15 @@ interface Copy {
   isBulky: boolean;
   /** 0＝手前列、1＝中列、2＝奥列。同じ花のコピーは必ず別の列に落ちる。 */
   band: 0 | 1 | 2;
+}
+
+/** 位置がまだ動く途中の状態。side・ring を確定させてから角度や伸びへ変換する。 */
+interface Placement {
+  copy: Copy;
+  side: number;
+  ring: number;
+  /** 外周へ抜ける役（ユーカリの補外、寄り添う花のごく弱い版）かどうか。 */
+  isEscape: boolean;
 }
 
 /** 手前・中間・奥の、奥行き（ring）の目安。乱数はこの中だけで揺れる。 */
@@ -183,30 +204,21 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
     .map((entry) => entry.copy);
 
   /*
-   * 葉ものが外へ抜ける向きを、束ひとつにつき片側だけに決めます。
-   * 役割だけで散らすと、左右どちらにも同じくらい葉が出て、
-   * 対称な羽根のように見えていました。
+   * 外周へ抜ける役（ユーカリなどの葉もの、寄り添う花のごく弱い版）が
+   * 向く方向を、束ひとつにつき片側だけに決めます。役割だけで散らすと、
+   * 左右どちらにも同じくらい出てしまい、対称な羽根に見えていました。
    */
-  const greenEscapeSign = rand(order.length * 3.7 + 9.1) < 0.5 ? -1 : 1;
+  const escapeSign = rand(order.length * 3.7 + 9.1) < 0.5 ? -1 : 1;
 
   // 一本ずつのばらつき。style.scatter を実際に効かせる。
   const jitter = 0.55 + style.scatter * 0.85;
 
-  const drawn: DrawnStem[] = order.map((copy, i) => {
-    const { stem, outward, seed, copyIndex, isGreen, isBulky, band } = copy;
-    const flower = flowerById(stem.flowerId);
+  // ── 第一段：花ごとの帯（band）から、仮の居場所を決めます ──────
+  const placements: Placement[] = order.map((copy, i) => {
+    const { outward, seed, copyIndex, isGreen, isBulky, band } = copy;
     const r1 = rand(seed * 3.1 + 11);
     const r2 = rand(seed * 7.7 + 23);
-    const r3 = rand(seed * 11.3 + 37);
-    const r4 = rand(seed * 5.3 + 53);
-    const r5 = rand(seed * 17.9 + 61);
 
-    /*
-     * 束の中の居場所を、二つの数で決めます。
-     *
-     *   side   −1（左端）〜 +1（右端）。輪の位置（もう役割で固めない）
-     *   ring   0（中心・手前）〜 1（外側・奥）。列（band）＋ばらつき
-     */
     const spanCenter = order.length <= 1 ? 0 : (i / (order.length - 1)) * 2 - 1;
 
     // 主役は、外へ振れる幅そのものを抑える。花の顔どうしが
@@ -222,27 +234,81 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       ),
     );
 
-    // 面の大きな花は、中心寄りへ引き戻す（縁の「貼り紙」にしない）。
-    if (isBulky) side *= 0.62;
-
     let ring = Math.min(1, Math.max(0, BAND_RING[band] + (r2 - 0.5) * 0.16 * jitter + outward * 0.08));
 
-    // 面の大きな花は、手前列以外では少し奥へ沈め、主役の後ろに潜らせる。
-    if (isBulky && band !== 0) ring = Math.min(1, ring + 0.14);
+    // 面の大きな花は、いったん中心寄りへ。最終位置は後で
+    // 近くの主役に乗せ直す（→ snapBulkyToAnchor）。
+    if (isBulky) side *= 0.62;
 
-    let isEscapeGreen = false;
-    if (isGreen) {
+    /*
+     * 外周へ抜ける役。ユーカリ（outward=1.0）がいちばん強く、
+     * 寄り添う花・小花（outward が低いほど）はごく弱く抜けます。
+     * 「広がり＝ユーカリ一本だけ」にならないよう、束全体で
+     * 少しずつ分担させます。主役（outward=0）と面の大きな花は
+     * 参加しません（顔が縁へ逃げると輪郭が崩れるため）。
+     */
+    let isEscape = false;
+    if (outward > 0 && !isBulky) {
       if (copyIndex === 0) {
-        // 一本だけ、外周から自然に抜ける補助線にする。
-        isEscapeGreen = true;
-        side = greenEscapeSign * (0.74 + r1 * 0.30);
+        isEscape = true;
+        const amount = style.peripheralEscape * outward;
+        side = escapeSign * (0.30 + r1 * 0.20 + amount * 0.5);
         ring = Math.min(1, 0.16 + r2 * 0.22);
-      } else {
-        // 残りは、根もとを埋める葉として奥へ沈め、左右対称の羽根にしない。
+      } else if (isGreen) {
+        // 抜けなかった葉ものは、根もとを埋める葉として奥へ沈め、
+        // 左右対称の羽根にしない。
         side *= 0.4;
         ring = Math.min(1, 0.6 + r2 * 0.3);
       }
     }
+
+    return { copy, side, ring, isEscape };
+  });
+
+  /*
+   * ── 第二段：面の大きな花を、近くの主役に乗せます ────────────
+   *
+   * 中心寄りへ引き戻すだけでは、「面の大きな花のかたまり」と
+   * 「他の主役のかたまり」が別々の場所にできるだけでした
+   * （左右のどちらかへ寄っただけで、块そのものは残る）。
+   * ここでは面の大きな花を、実在する主役（アンカー）の
+   * side に重ね、ring だけを前後にずらします。
+   *
+   *   1本目  アンカーより少し奥へ沈め、主役を手前に被せる
+   *   2本目  アンカーより少し手前で、主役の下からのぞかせる
+   *   3本目以降  アンカーのすぐそばに軽くばらけさせる
+   *
+   * 同じ場所を取り合ってはじめて、「アジサイの塊＋バラの塊」ではなく
+   * 「アジサイとバラを一緒に束ねた」ように見えます。
+   */
+  const anchors = placements.filter((p) => p.copy.outward === 0 && !p.copy.isBulky);
+  let bulkyCounter = 0;
+  for (const placement of placements) {
+    if (!placement.copy.isBulky || anchors.length === 0) continue;
+    const anchor = anchors[bulkyCounter % anchors.length];
+    bulkyCounter += 1;
+    const r1 = rand(placement.copy.seed * 19.7 + 71);
+    const parity = placement.copy.copyIndex % 3;
+    placement.side = anchor.side + (r1 - 0.5) * 0.18;
+    if (parity === 0) {
+      // 奥へ沈め、主役に被らせる。
+      placement.ring = Math.min(1, anchor.ring + 0.16 + r1 * 0.06);
+    } else if (parity === 1) {
+      // 手前で、主役の下からのぞかせる。
+      placement.ring = Math.max(0, anchor.ring - 0.12 - r1 * 0.05);
+    } else {
+      placement.ring = Math.min(1, Math.max(0, anchor.ring + (r1 - 0.5) * 0.14));
+    }
+  }
+
+  // ── 第三段：確定した side・ring から、実際に描く値を作ります ────
+  const drawn: DrawnStem[] = placements.map(({ copy, side, ring, isEscape }, i) => {
+    const { stem, seed, isGreen } = copy;
+    const flower = flowerById(stem.flowerId);
+    const r2 = rand(seed * 7.7 + 23);
+    const r3 = rand(seed * 11.3 + 37);
+    const r4 = rand(seed * 5.3 + 53);
+    const r5 = rand(seed * 17.9 + 61);
 
     /*
      * ── 重なりは、角度ではなく「伸びの差」で作ります ──────
@@ -266,10 +332,10 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       (r2 - 0.5) * 0.20 * jitter -
       Math.abs(side) * 0.10;
 
-    if (isEscapeGreen) reach += 0.10 + r5 * 0.08;
+    if (isEscape) reach += (0.05 + r5 * 0.05) * (0.5 + style.peripheralEscape);
 
     // 手前ほど大きく、はっきり。奥は小さく、沈む。
-    const depth = Math.min(1, Math.max(0, 1 - ring * 0.95 - (r1 - 0.5) * 0.2));
+    const depth = Math.min(1, Math.max(0, 1 - ring * 0.95 - (r2 - 0.5) * 0.2));
 
     /*
      * ── 向き。正面・半身・横向きを混ぜます ────────────────
@@ -279,13 +345,13 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
      * 役割に関わらず一定の幅で回転させます。詰めすぎると花の輪郭が
      * 壊れるので、下限は 0.5 まで。
      */
-    const turn = Math.max(0, Math.min(1, outward * 0.35 + r4 * 0.75 - 0.12));
+    const turn = Math.max(0, Math.min(1, copy.outward * 0.35 + r4 * 0.75 - 0.12));
     const faceX = 1 - turn * 0.46;
     const faceRot = (r4 - 0.5) * 10 * (0.4 + turn) * jitter;
 
     let scale = (0.82 + depth * 0.30) * flower.stature * 0.95;
     // 根もとを埋める葉は、主張しすぎないよう少し小さく。
-    if (isGreen && !isEscapeGreen) scale *= 0.84;
+    if (isGreen && !isEscape) scale *= 0.84;
 
     return {
       key: `${stem.uid}-${i}`,

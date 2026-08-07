@@ -82,6 +82,15 @@ export interface BouquetStyle {
    * 幅と高さの倍率で、1.0 が基準。
    */
   paper: { width: number; height: number };
+  /**
+   * 外周へ抜ける役（ユーカリなどの葉もの、寄り添う花のごく弱い版）
+   * を、どこまで外へ出すか（0〜1）。
+   *
+   * 「丸くやわらかい」で枝を遠くまで飛ばすと、ドームの輪郭そのものが
+   * 崩れて見えました。輪郭を優先する形ほど低く、抜け感を主役にする
+   * 「自然に広がる」ほど高くします。
+   */
+  peripheralEscape: number;
 }
 
 export const BOUQUET_STYLES: BouquetStyle[] = [
@@ -90,12 +99,14 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     name: '丸くやわらかい',
     note: '花の顔がそろって、まるい輪郭になります。',
     // 主役を中心寄りに抑え、顔どうしを重ねてドーム状にする。
+    // 枝も遠くまでは飛ばさず、輪郭を丸いまま保つ。
     spread: 42,
     mainSpreadFactor: 0.52,
     crown: 0.20,
     drop: 0.03,
     scatter: 0.22,
     paper: { width: 1.10, height: 0.98 },
+    peripheralEscape: 0.34,
   },
   {
     id: 'tall',
@@ -107,13 +118,14 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     drop: 0.00,
     scatter: 0.16,
     paper: { width: 0.92, height: 1.14 },
+    peripheralEscape: 0.6,
   },
   {
     id: 'natural',
     name: '自然に広がる',
     note: '中心はまとまりながら、一部の花や葉だけが外へ抜けます。',
-    // 全体の扇はむしろ抑え、抜けは葉もの側の仕組み（→ bunch.ts の
-    // isEscapeGreen）に任せる。scatter が高いので一本ずつの向き・
+    // 全体の扇はむしろ抑え、抜けは外周へ抜ける役（→ bunch.ts の
+    // isEscape）に任せる。scatter が高いので一本ずつの向き・
     // 伸びの揺れは大きいが、束の重心は中心に残る。
     spread: 48,
     mainSpreadFactor: 0.6,
@@ -121,6 +133,7 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     drop: 0.05,
     scatter: 0.62,
     paper: { width: 1.14, height: 1.02 },
+    peripheralEscape: 1.0,
   },
 ];
 
