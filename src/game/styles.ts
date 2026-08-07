@@ -49,6 +49,16 @@ export interface BouquetStyle {
    */
   spread: number;
   /**
+   * 主役が、扇の広がりのうち何割まで使うか（0〜1）。
+   *
+   * 主役まで縁いっぱいに散らすと、花の顔どうしが離れて重ならず、
+   * 「扇状に並べたコラージュ」に見えました。主役だけ扇の中心寄りに
+   * 抑え、寄り添う花・小花・葉ものは通常どおり縁まで使うと、
+   * 主役の顔が重なり合う「かたまり」が中心にでき、そのまわりに
+   * 縁取りが広がる、という花屋らしい構造になります。
+   */
+  mainSpreadFactor: number;
+  /**
    * 中心の花が、どれだけ抜けて高いか。
    * 0 なら全部おなじ高さ、1 なら真ん中だけ大きく伸びる。
    */
@@ -61,7 +71,11 @@ export interface BouquetStyle {
    * 外側の花も必ず紙の口より上にあります。
    */
   drop: number;
-  /** 一本ずつのばらつき。0 なら整然、1 ならかなり自然。 */
+  /**
+   * 一本ずつのばらつき。0 なら整然、1 ならかなり自然。
+   *
+   * 角度・伸び・傾きの揺れ幅を直接広げます（→ src/game/bunch.ts の jitter）。
+   */
   scatter: number;
   /**
    * 包み紙の広がり。束の輪郭に合わせて紙も変わる。
@@ -75,31 +89,38 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     id: 'round',
     name: '丸くやわらかい',
     note: '花の顔がそろって、まるい輪郭になります。',
-    spread: 54,
-    crown: 0.10,
-    drop: 0.02,
+    // 主役を中心寄りに抑え、顔どうしを重ねてドーム状にする。
+    spread: 42,
+    mainSpreadFactor: 0.52,
+    crown: 0.20,
+    drop: 0.03,
     scatter: 0.22,
-    paper: { width: 1.06, height: 0.96 },
+    paper: { width: 1.10, height: 0.98 },
   },
   {
     id: 'tall',
     name: '高さを出してすっきり',
     note: '真ん中の花が高く立って、縦に伸びます。',
-    spread: 26,
-    crown: 0.42,
+    spread: 22,
+    mainSpreadFactor: 0.6,
+    crown: 0.48,
     drop: 0.00,
     scatter: 0.16,
-    paper: { width: 0.9, height: 1.1 },
+    paper: { width: 0.92, height: 1.14 },
   },
   {
     id: 'natural',
     name: '自然に広がる',
-    note: '一本ずつ向きが違って、摘んできたように見えます。',
-    spread: 62,
-    crown: 0.16,
+    note: '中心はまとまりながら、一部の花や葉だけが外へ抜けます。',
+    // 全体の扇はむしろ抑え、抜けは葉もの側の仕組み（→ bunch.ts の
+    // isEscapeGreen）に任せる。scatter が高いので一本ずつの向き・
+    // 伸びの揺れは大きいが、束の重心は中心に残る。
+    spread: 48,
+    mainSpreadFactor: 0.6,
+    crown: 0.18,
     drop: 0.05,
-    scatter: 0.72,
-    paper: { width: 1.12, height: 1.0 },
+    scatter: 0.62,
+    paper: { width: 1.14, height: 1.02 },
   },
 ];
 

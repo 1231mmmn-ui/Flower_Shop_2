@@ -64,7 +64,16 @@ export function WrapCone({
   /** back＝花の後ろの一枚。front＝根もとだけを覆う手前の一枚。 */
   layer: 'back' | 'front';
 }) {
-  const spread = Math.min(12, Math.max(2, stems));
+  /*
+   * ── 花量が増えても、紙が広がらなくなっていました ──────────
+   *
+   * 束ねる本数を20〜26本に増やしたのに、ここは12本で頭打ちに
+   * なっていました。花のかたまりだけが大きくなり続け、紙は
+   * ムスカリの小さな束のときとほぼ同じ幅のまま。上半分だけ
+   * 巨大化して見えていたのはこのためです。花量にあわせて、
+   * もう少し先まで紙も広がるようにします。
+   */
+  const spread = Math.min(20, Math.max(2, stems));
   return (
     <img
       className={`wrap-cone wrap-cone--${layer} ${wrapping.sheer ? 'wrap-cone--sheer' : ''} ${
