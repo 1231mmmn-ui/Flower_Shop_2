@@ -132,7 +132,10 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     crown: 0.08,
     drop: 0.07,
     scatter: 0.20,
-    paper: { width: 1.12, height: 1.05 },
+    // 紙の高さは、前回の底上げ（0.98→1.05）を戻した。高さで根もとの
+    // 葉を隠そうとしたのが、紙の水平clipと重なって「紙が水平に
+    // スパッと切れる」印象を強めていた（→ BouquetWrap.css）。
+    paper: { width: 1.12, height: 0.98 },
     peripheralEscape: 0.20,
     // ドームの一体感を優先。主役の個体差は控えめに。
     mainDrift: 0.15,
@@ -166,7 +169,8 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     crown: 0.16,
     drop: 0.06,
     scatter: 0.62,
-    paper: { width: 1.14, height: 1.10 },
+    // 紙の高さは、前回の底上げ（1.02→1.10）を戻した（→ round と同じ理由）。
+    paper: { width: 1.14, height: 1.02 },
     peripheralEscape: 1.0,
     mainDrift: 0.85,
   },
