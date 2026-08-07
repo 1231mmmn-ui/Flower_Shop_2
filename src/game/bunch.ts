@@ -236,6 +236,24 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
 
     let ring = Math.min(1, Math.max(0, BAND_RING[band] + (r2 - 0.5) * 0.16 * jitter + outward * 0.08));
 
+    // 主役どうしも、奥列・中列に落ちたぶんは少し沈める。
+    // 全員が同じ高さで手前に並ぶと、葉が同じ帯に集まって
+    // 「緑の壁」になる（→ styles.ts の paper 高さと合わせて対応）。
+    if (outward === 0 && !isBulky && band !== 0) ring = Math.min(1, ring + 0.05);
+
+    /*
+     * 主役自身の顔にも、個体差を持たせる（→ styles.ts の mainDrift）。
+     * ここを動かさないと、「外周へ抜ける役（ユーカリ等）だけが動き、
+     * 主役はいつも帯の中心にきれいに積む」形から抜けられず、
+     * 「自然に広がる」でも主役の顔そのものは中心に残ってしまう。
+     */
+    if (outward === 0 && !isBulky) {
+      const d1 = rand(seed * 29.3 + 83);
+      const d2 = rand(seed * 31.7 + 97);
+      side = Math.max(-1, Math.min(1, side + (d1 - 0.5) * 0.6 * style.mainDrift));
+      ring = Math.min(1, Math.max(0, ring + (d2 - 0.5) * 0.32 * style.mainDrift));
+    }
+
     // 面の大きな花は、いったん中心寄りへ。最終位置は後で
     // 近くの主役に乗せ直す（→ snapBulkyToAnchor）。
     if (isBulky) side *= 0.62;

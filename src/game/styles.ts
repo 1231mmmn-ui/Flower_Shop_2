@@ -78,11 +78,6 @@ export interface BouquetStyle {
    */
   scatter: number;
   /**
-   * 包み紙の広がり。束の輪郭に合わせて紙も変わる。
-   * 幅と高さの倍率で、1.0 が基準。
-   */
-  paper: { width: number; height: number };
-  /**
    * 外周へ抜ける役（ユーカリなどの葉もの、寄り添う花のごく弱い版）
    * を、どこまで外へ出すか（0〜1）。
    *
@@ -91,27 +86,62 @@ export interface BouquetStyle {
    * 「自然に広がる」ほど高くします。
    */
   peripheralEscape: number;
+  /**
+   * 主役自身の顔にも、左右・前後の個体差をどれだけ持たせるか（0〜1）。
+   *
+   * ── 「全部、縦長」に見えていた理由 ────────────────────
+   *
+   * ユーカリなど外周へ抜ける役だけを動かし、主役（バラ・アジサイ）は
+   * 帯（band）の中心にきれいに積んでいました。結果、「中心の花束＋
+   * 外へ流した枝」という同じ骨格が3スタイルとも残り、"自然に広がる"
+   * でも花の顔そのものは動いていませんでした。ここを効かせると、
+   * 主役の side・ring にも個体ごとの揺れが乗り、"バラが右上、
+   * アジサイが左下" のような輪郭の不整形が主役自身に生まれます。
+   * ドームの一体感を守りたい「丸くやわらかい」は低く、
+   * 「自然に広がる」は高くします。
+   */
+  mainDrift: number;
+  /**
+   * 包み紙の広がり。束の輪郭に合わせて紙も変わる。
+   * 幅と高さの倍率で、1.0 が基準。
+   */
+  paper: { width: number; height: number };
 }
 
 export const BOUQUET_STYLES: BouquetStyle[] = [
   {
     id: 'round',
     name: '丸くやわらかい',
-    note: '花の顔がそろって、まるい輪郭になります。',
-    // 主役を中心寄りに抑え、顔どうしを重ねてドーム状にする。
-    // 枝も遠くまでは飛ばさず、輪郭を丸いまま保つ。
-    spread: 42,
-    mainSpreadFactor: 0.52,
-    crown: 0.20,
-    drop: 0.03,
-    scatter: 0.22,
-    paper: { width: 1.10, height: 0.98 },
-    peripheralEscape: 0.34,
+    note: '花の顔が横にも並んで、まるいドームになります。',
+    /*
+     * ── 「丸い」のに縦長に見えていた理由 ────────────────────
+     *
+     * mainSpreadFactor を低く抑えていたので、主役は結局みな中心の
+     * すぐそばに積み上がり、crown（中心の抜け）だけが高さを作って
+     * いました。**横幅は葉ものが作り、主役は縦に積む**という構造
+     * だったので、「丸くやわらかい」と「高さを出してすっきり」の
+     * 骨格がほぼ同じになっていました。
+     *
+     * ここでは主役自身に横幅の大半を使わせ（mainSpreadFactor を
+     * 大きく）、crown を落として頭の高さをそろえます。「花の顔が
+     * 横に並ぶドーム」は、主役の位置そのものを横へ広げないと
+     * 作れません。
+     */
+    spread: 46,
+    mainSpreadFactor: 0.88,
+    crown: 0.08,
+    drop: 0.07,
+    scatter: 0.20,
+    paper: { width: 1.12, height: 1.05 },
+    peripheralEscape: 0.20,
+    // ドームの一体感を優先。主役の個体差は控えめに。
+    mainDrift: 0.15,
   },
   {
     id: 'tall',
     name: '高さを出してすっきり',
     note: '真ん中の花が高く立って、縦に伸びます。',
+    // 実機評価がいちばん良かった形。基準として変更していない。
     spread: 22,
     mainSpreadFactor: 0.6,
     crown: 0.48,
@@ -119,21 +149,26 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     scatter: 0.16,
     paper: { width: 0.92, height: 1.14 },
     peripheralEscape: 0.6,
+    mainDrift: 0.15,
   },
   {
     id: 'natural',
     name: '自然に広がる',
-    note: '中心はまとまりながら、一部の花や葉だけが外へ抜けます。',
-    // 全体の扇はむしろ抑え、抜けは外周へ抜ける役（→ bunch.ts の
-    // isEscape）に任せる。scatter が高いので一本ずつの向き・
-    // 伸びの揺れは大きいが、束の重心は中心に残る。
-    spread: 48,
-    mainSpreadFactor: 0.6,
-    crown: 0.18,
-    drop: 0.05,
+    note: '花そのものにも高さと向きの差があり、摘んできたように見えます。',
+    /*
+     * 「中心の花束＋外へ流したユーカリ」で止まっていた。抜ける役を
+     * 増やしても、バラ・アジサイという主役の顔そのものは帯の中心に
+     * きれいに収まったままだったため。mainDrift を上げ、主役の
+     * side・ring 自体に個体差を持たせて、輪郭を不整形にする。
+     */
+    spread: 44,
+    mainSpreadFactor: 0.62,
+    crown: 0.16,
+    drop: 0.06,
     scatter: 0.62,
-    paper: { width: 1.14, height: 1.02 },
+    paper: { width: 1.14, height: 1.10 },
     peripheralEscape: 1.0,
+    mainDrift: 0.85,
   },
 ];
 
