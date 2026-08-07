@@ -54,7 +54,7 @@
  * 増やしても値段は上がりません。**束は、本数を数えるものではありません。**
  */
 
-import { flowerById, type FlowerRole } from '../data/flowers';
+import { flowerById, FLOWER_VARIANT_COUNT, type FlowerRole } from '../data/flowers';
 import { styleById } from './styles';
 import type { BouquetStem, BouquetStyleId } from './types';
 
@@ -109,6 +109,13 @@ export interface DrawnStem {
   faceX: number;
   /** 花そのものの、ごく小さな傾き（度）。頭のあたりを軸に回す。 */
   faceRot: number;
+  /**
+   * 同じ花でも別角度・別姿勢の絵を持つ花（→ src/data/flowers.ts の
+   * FLOWER_VARIANT_COUNT）で、どの1枚を使うか。0＝基準の絵。
+   * 用意が無い花は常に0（`assets/paths.ts` の `flowerVariant` が
+   * そのまま `flower()` と同じパスを返す）。
+   */
+  variant: number;
 }
 
 /**
@@ -137,6 +144,8 @@ interface Copy {
   isBulky: boolean;
   /** 0＝手前列、1＝中列、2＝奥列。同じ花のコピーは必ず別の列に落ちる。 */
   band: 0 | 1 | 2;
+  /** どの別角度素材を使うか（→ DrawnStem.variant）。 */
+  variant: number;
 }
 
 /** 位置がまだ動く途中の状態。side・ring を確定させてから角度や伸びへ変換する。 */
@@ -182,6 +191,14 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
     // 全種類が同じ順（前→中→奥）だと、束全体が層になって
     // 「同じ高さの輪が3つ重なった」ように見えてしまう。
     const bandOffset = Math.floor(rand(index * 53.1 + 7) * 3);
+    /*
+     * 別角度素材があれば、その本数ぶんを花ごとにずらして回す。
+     * 同じずらし方だと、「バラを2種類選んだ」ときに両方とも
+     * 1本目＝基準、2本目＝variant1…と同じ並びになり、また
+     * コピーどうしがそろって見えてしまう。花ごとの offset で崩す。
+     */
+    const variantCount = FLOWER_VARIANT_COUNT[flower.id] ?? 1;
+    const variantOffset = Math.floor(rand(index * 71.9 + 31) * variantCount);
     for (let c = 0; c < count; c += 1) {
       copies.push({
         stem,
@@ -191,6 +208,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
         isGreen: flower.role === 'green',
         isBulky: BULKY_FLOWERS.has(flower.id),
         band: ((c + bandOffset) % 3) as 0 | 1 | 2,
+        variant: (c + variantOffset) % variantCount,
       });
     }
   });
@@ -321,7 +339,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
 
   // ── 第三段：確定した side・ring から、実際に描く値を作ります ────
   const drawn: DrawnStem[] = placements.map(({ copy, side, ring, isEscape }, i) => {
-    const { stem, seed, isGreen } = copy;
+    const { stem, seed, isGreen, variant } = copy;
     const flower = flowerById(stem.flowerId);
     const r2 = rand(seed * 7.7 + 23);
     const r3 = rand(seed * 11.3 + 37);
@@ -380,6 +398,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       scale,
       faceX,
       faceRot,
+      variant,
     };
   });
 

@@ -19,7 +19,7 @@
 import type { CSSProperties } from 'react';
 
 import './Bouquet.css';
-import { flower as flowerImage } from '../assets/paths';
+import { flowerVariant } from '../assets/paths';
 import { RibbonBow, WrapCone } from './BouquetWrap';
 import { flowerById } from '../data/flowers';
 import { ribbonById, wrappingById } from '../data/wrapping';
@@ -81,7 +81,7 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
               } as CSSProperties
             }
           >
-            <img src={flowerImage(flower.id)} alt={flower.name} draggable={false} />
+            <img src={flowerVariant(flower.id, stem.variant)} alt={flower.name} draggable={false} />
           </div>
         );
       })}
