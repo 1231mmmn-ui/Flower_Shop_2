@@ -110,6 +110,12 @@ export interface DrawnStem {
   /** 花そのものの、ごく小さな傾き（度）。頭のあたりを軸に回す。 */
   faceRot: number;
   /**
+   * −1（左端）〜 +1（右端）。紙の折り返しと前後関係を作るのに使う
+   * （→ Bouquet.tsx）。外側の花ほど、紙の山（側面の折り返し）の
+   * 後ろに回り込ませたい。
+   */
+  side: number;
+  /**
    * 同じ花でも別角度・別姿勢の絵を持つ花（→ src/data/flowers.ts の
    * FLOWER_VARIANT_COUNT）で、どの1枚を使うか。0＝基準の絵。
    * 用意が無い花は常に0（`assets/paths.ts` の `flowerVariant` が
@@ -398,6 +404,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       scale,
       faceX,
       faceRot,
+      side,
       variant,
     };
   });
