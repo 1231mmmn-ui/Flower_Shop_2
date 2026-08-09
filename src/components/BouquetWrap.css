@@ -123,8 +123,23 @@
  * 「筒」の部分だけを隠す役に戻します。
  */
 .wrap-cone--drawn-ribbon.wrap-cone--mid {
-  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
+  /*
+   * ── 「紙の表面に茎が印刷されている」と指摘されました ────────
+   *
+   * フェード幅そのものは10%でもごく狭く、単体で見ると目立たない。
+   * ただ「高さを出してすっきり」のように crown が高い形では、
+   * 中心の花へ届くまでの**裸の茎**が長く、そのぶん多くの茎が
+   * この上端の帯（絵の透ける山と山のあいだ＋フェード域）を
+   * まとめて通過する。何本もの、退色した（depth の低い）茎が
+   * 同じ帯を重なって通ると、一本ずつは不透明でも、まとまりとして
+   * 「紙にうっすら透けて印刷されている」ように見えてしまう。
+   *
+   * フェードを半分（10%→5%）に詰め、不透明な帯そのものを広げる。
+   * 残る透け域（絵そのものの山と山のあいだ）は、crown 側
+   * （styles.ts）で通過する茎の量を減らして対応する。
+   */
+  mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 100%);
 }
 
 /*

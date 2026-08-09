@@ -144,13 +144,23 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     id: 'tall',
     name: '高さを出してすっきり',
     note: '真ん中の花が高く立って、縦に伸びます。',
-    // 実機評価がいちばん良かった形。基準として変更していない。
+    /*
+     * ── 「紙に印刷されている」がいちばん出る形だった ─────────────
+     *
+     * crown が高いほど、中心の花が紙の口からずっと上まで届く裸の茎
+     * を持つ。5本という少ない本数でこれをやると、その裸の茎が
+     * 紙の山と山のあいだ（→ BouquetWrap.css のフェード域）を
+     * まとめて通過し、「紙に茎が透けて印刷されている」ように見えた。
+     * crown を少し下げ、紙の丈（height）を上げて、裸の茎が
+     * 通る距離そのものを短くする。「縦に伸びる」印象は、spread の
+     * 狭さと mainSpreadFactor の低さだけでも十分に残る。
+     */
     spread: 22,
     mainSpreadFactor: 0.6,
-    crown: 0.48,
+    crown: 0.36,
     drop: 0.00,
     scatter: 0.16,
-    paper: { width: 0.92, height: 1.14 },
+    paper: { width: 0.92, height: 1.26 },
     peripheralEscape: 0.6,
     mainDrift: 0.15,
   },
