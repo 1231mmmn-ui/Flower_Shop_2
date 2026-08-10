@@ -16,7 +16,7 @@
  * 押せるところは一つもありません。
  */
 
-import type { CSSProperties } from 'react';
+import { useRef, type CSSProperties } from 'react';
 
 import './Bouquet.css';
 import { flowerVariant } from '../assets/paths';
@@ -24,6 +24,7 @@ import { RibbonBow, WrapCone } from './BouquetWrap';
 import { flowerById } from '../data/flowers';
 import { ribbonById, wrappingById } from '../data/wrapping';
 import { bunch } from '../game/bunch';
+import { useAutoFitScale } from '../game/useAutoFitScale';
 import { styleById } from '../game/styles';
 import type { Bouquet as BouquetModel } from '../game/types';
 
@@ -37,6 +38,7 @@ interface BouquetProps {
 export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
   const style = styleById(bouquet.styleId);
   const wrapping = wrappingById(bouquet.wrappingId);
+  const containerRef = useRef<HTMLDivElement>(null);
   /*
    * **取った本数と、描く本数は違います。**
    * 3〜5本を扇状に開いただけでは「紙の前に花を三つ置いた絵」になります。
@@ -62,10 +64,26 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
    */
   const useMidWrap = wrapping.hasBuiltInRibbon === true;
 
+  /*
+   * ── ③ 背の高い花が表示エリアから切れないよう、自動でフィットさせる ──
+   *
+   * → src/game/useAutoFitScale.ts
+   *
+   * 花ごとの決め打ちの倍率では対応しきれない（crown の高いスタイル、
+   * 花によって正方形キャンバスの中の絵柄の届き方が違う、など要因が
+   * 複数絡む）。実際に描いた花・紙の外接矩形を測り、表示エリアに
+   * 収まらなければ縮める。縦横とも見る。
+   */
+  const signature = `${bouquet.styleId}|${bouquet.wrappingId}|${scale}|${bouquet.stems
+    .map((s) => s.flowerId)
+    .join(',')}`;
+  const fit = useAutoFitScale(containerRef, signature);
+
   return (
     <div
+      ref={containerRef}
       className={`bouquet ${className}`}
-      style={{ '--bouquet-scale': scale } as CSSProperties}
+      style={{ '--bouquet-scale': scale * fit } as CSSProperties}
     >
       {/*
         奥の紙。花の後ろに立つ、紙の背骨（→ BouquetWrap.css）。
