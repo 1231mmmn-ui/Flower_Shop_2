@@ -1,0 +1,71 @@
+/*
+ * 花瓶に生けた花、その組み方。
+ *
+ * 大きさ・置き場所は呼び出し側が `--vased-*` で決める。
+ * 前後関係・水の表現そのものは、ここ一箇所だけが持つ
+ * （→ VasedFlower.tsx のコメント）。
+ */
+
+.vased {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/*
+ * ── 茎は、一本のまま。水は「重ねた色」で表す ────────────────
+ * → 旧 FlowerStand.tsx から移設。手法の説明はそちらの履歴を参照。
+ */
+.vased__flowers {
+  position: absolute;
+  left: 50%;
+  bottom: var(--vased-stem-bottom, 4%);
+  width: var(--vased-flowers-width, 190%);
+  transform: translateX(-50%);
+  transition: transform var(--fs-duration-quick) var(--fs-easing-rise);
+}
+
+.vased__stem {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  transform-origin: 50% 92%;
+  transform: translateX(-50%) rotate(var(--angle)) scale(var(--stem-scale));
+  filter: drop-shadow(5px 10px 12px rgba(96, 74, 54, 0.2));
+}
+
+/* 一本目だけ position: relative にして、寸法を持たない .vased__flowers に高さを持たせる。 */
+.vased__flowers > .vased__stem:first-child {
+  position: relative;
+}
+
+.vased__water-tint {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(85.2% 0 0 0);
+  opacity: 0.55;
+  filter: saturate(0.72) brightness(0.96) hue-rotate(4deg) blur(0.5px);
+  pointer-events: none;
+}
+
+.vased__vase {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--vased-vase-width, 72%);
+  transform: translateX(-50%);
+  z-index: 5;
+  filter: drop-shadow(5px 8px 11px rgba(96, 74, 54, 0.24));
+}
+
+/* 花瓶ごと1枚の完成画（→ data/flowers.ts の FLOWERS_WITH_VASE_ART）。 */
+.vased__art {
+  position: absolute;
+  left: 50%;
+  bottom: var(--vased-art-bottom, -4%);
+  width: var(--vased-art-width, 96%);
+  height: auto;
+  transform: translateX(-50%);
+  z-index: 5;
+}

@@ -36,112 +36,46 @@
 }
 
 /*
+ * 花瓶に生ける仕組みそのものは VasedFlower が持つ（→ VasedFlower.css）。
+ * ここでは店頭の一台としての大きさ・置き場所だけを決める。
+ *
+ * 茎の切り口は、**花瓶の口より下**へ入れる。9% では口の高さとほぼ
+ * 同じで、茎が縁の手前で終わって見えた。4% まで沈めると、茎は縁に
+ * 隠れて水の中へ続く。
+ *
+ *   絵の中の水面   上から 0.544
+ *   花瓶の幅       この台の 72%（正方形なので高さも 0.72W）
+ *   水面の高さ     台の下から 0.328W
+ *   花の絵の箱     高さ 1.9W、下端は台の下から 0.046W
+ *   → 箱の下から (0.328 − 0.046) / 1.9 = **14.8%**
+ *
+ * 花瓶ごと1枚の完成画（→ FlowerStand.tsx の VasedFlower）は、絵の中に
+ * 花・茎・水・花瓶・台に落ちる影までもう全部入っている。正方形の絵で、
+ * 花瓶の下端の影は絵の中の余白の中ほどにあるので、台の線（bottom: 0）
+ * よりわずかに下げて、影が台の木目にちゃんと乗って見えるようにする。
+ */
+.stand__vased {
+  --vased-stem-bottom: 4%;
+  --vased-flowers-width: 190%;
+  --vased-vase-width: 72%;
+  --vased-art-width: 96%;
+  --vased-art-bottom: -4%;
+}
+
+/*
  * ふれたときの、ひと持ち上がり。
  *
  * 茎はもう一本しかないので、そのまま持ち上げます。
  * 水の中の色（--water-tint）は同じ箱の中に入っているだけなので、
  * 何もしなくても一緒に動きます（ここが前の二枚分けとの違い）。
  */
-.stand.is-focus:hover .stand__flowers,
-.stand.is-focus:focus-visible .stand__flowers {
+.stand.is-focus:hover .vased__flowers,
+.stand.is-focus:focus-visible .vased__flowers {
   transform: translate(-50%, -4px);
 }
 
 .stand:focus-visible {
   outline: none;
-}
-
-/*
- * 茎の切り口は、**花瓶の口より下**へ入れます。
- * 9% では口の高さとほぼ同じで、茎が縁の手前で終わって見えました。
- * 4% まで沈めると、茎は縁に隠れて水の中へ続きます。
- *
- * ── 水面のところで、二枚に分けます ──────────────────────
- *
- * 「透明なコップを花の上に重ねた」ように見えていたのは、
- * **水を通しても茎が何も変わらなかった**からです。
- *
- * 水面の高さは、ガラスの絵（props.py）から逆算しています。
- *   絵の中の水面   上から 0.544
- *   花瓶の幅       この台の 72%（正方形なので高さも 0.72W）
- *   水面の高さ     台の下から 0.328W
- *   花の絵の箱     高さ 1.9W、下端は台の下から 0.046W
- *   → 箱の下から (0.328 − 0.046) / 1.9 = **14.8%**
- */
-.stand__flowers {
-  position: absolute;
-  left: 50%;
-  bottom: 4%;
-  /* 花の画像は正方形で、花冠はその4割ほど。大きく見せるため置き場所より広く取る。 */
-  width: 190%;
-  transform: translateX(-50%);
-  transition: transform var(--fs-duration-quick) var(--fs-easing-rise);
-}
-
-/*
- * 花瓶ごと1枚の完成画（→ FlowerStand.tsx の hasVaseArt）。
- *
- * 絵の中に、花・茎・水・花瓶・台に落ちる影まで、もうすべて入っている。
- * ここでは大きさと置き場所だけを決める。正方形の絵で、花瓶の下端の
- * 影は絵の中の余白の中ほどにあるので、台の線（bottom: 0）よりわずかに
- * 下げて、影が台の木目にちゃんと乗って見えるようにする。
- */
-.stand__vase-art {
-  position: absolute;
-  left: 50%;
-  bottom: -4%;
-  width: 96%;
-  height: auto;
-  transform: translateX(-50%);
-  z-index: 5;
-}
-
-.stand__stem {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 100%;
-  transform-origin: 50% 92%;
-  transform: translateX(-50%) rotate(var(--angle)) scale(var(--stem-scale));
-  filter: drop-shadow(5px 10px 12px rgba(96, 74, 54, 0.20));
-}
-
-/*
- * 一本目だけ position: relative にして、寸法を持たない
- * `.stand__flowers` に高さを持たせます。
- *
- * `.stand__water-tint` の中の一本目は対象外にします
- * （> で直接の子だけに絞る）。あちらは inset:0 ですでに
- * 寸法を持っているので、中の一本目まで relative にすると
- * 通常の流れに戻ってしまい、位置がずれます。
- */
-.stand__flowers > .stand__stem:first-child {
-  position: relative;
-}
-
-/*
- * 水の中の色。
- *
- * ── 位置は、ずらしません ──────────────────────────────
- *
- * 前は水面から下だけを横へずらし、太さも変えていました。
- * 丸い花の頭はそれでもごまかせましたが、ユーカリのように
- * 枝が斜めに伸びる花では、**水面をまたいだところで枝の角度が
- * 折れて見える**という指摘のとおりでした。茎は花瓶の外も中も、
- * 実際には一本の同じ線です。
- *
- * 同じ茎の絵をもう一枚、寸分たがわず重ねて、水面（下から14.8%）
- * より下だけを切り出します。位置も角度も、上の本体と完全に同じ。
- * 変えるのは色と鮮明さだけ ── ガラスと水を通ると、これくらい
- * 沈んで、これくらいにじむ、という程度に留めます。
- */
-.stand__water-tint {
-  position: absolute;
-  inset: 0;
-  clip-path: inset(85.2% 0 0 0);
-  opacity: 0.55;
-  filter: saturate(0.72) brightness(0.96) hue-rotate(4deg) blur(0.5px);
-  pointer-events: none;
 }
 
 /*
@@ -167,35 +101,6 @@
   );
   z-index: 4;
   pointer-events: none;
-}
-
-/*
- * 花瓶。
- *
- * 47% では花に対して小さく、**一輪挿しというより試験管**に見えていた。
- * 実際の店頭のバケツ／花瓶は、花の広がりに対してもっと器がある。
- * 花より大きくしないまま、受けとして成立する太さへ（47% → 58%）。
- */
-/*
- * ── 「花瓶の前に茎が置かれている」ように見えていた ────────────
- *
- * 絵のほうを描き直しました（口の楕円・水面・手前の縁 → props.py）。
- * ここでは**大きさ**を直します。58% だと口の楕円が 8px しかなく、
- * せっかく描いた「穴」が縮んで消えていました。
- *
- *   58%   幅 90px   口の楕円 8px
- *   72%   幅 112px  口の楕円 14px
- *
- * 花より大きくはしません。器として成立する、いちばん小さい太さです。
- */
-.stand__vase {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 72%;
-  transform: translateX(-50%);
-  z-index: 5;
-  filter: drop-shadow(5px 8px 11px rgba(96, 74, 54, 0.24));
 }
 
 /* 花の色が、木の台にほんのり落ちる */
