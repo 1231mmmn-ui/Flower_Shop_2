@@ -43,7 +43,32 @@ export function FlowerStand({
     <button
       type="button"
       className={`stand ${focused ? 'is-focus' : ''}`}
-      style={{ '--far': far } as CSSProperties}
+      style={
+        {
+          '--far': far,
+          /*
+           * ── 「タップした花と違う花の詳細が出る」の調査で見つけた、
+           *    重なり帯の前後関係のずれ ──────────────────────────
+           *
+           * 隣とは -3.5% ずつ重なっている（→ ShopScreen.css）。重なりは
+           * 意図どおりだが、重なった帯の中でどちらの `<button>` が
+           * クリックを受け取るかは、これまで **DOM の並び順**（後の
+           * 花が手前）で決まっていた。中央にフォーカスが移る途中
+           * （スクロール直後の遷移アニメーション中）は、大きくなって
+           * いく花の縁が隣とわずかに重なる瞬間があり、そこでは
+           * 「見た目にいちばん手前の花」と「実際にクリックを受け取る
+           * 要素」が一致しない可能性があった。
+           *
+           * inspect / flowerById 側の参照ロジックそのものに不一致は
+           * 見つからなかった（花IDは選ばれた花のクロージャをそのまま
+           * dispatch している）。この重なり帯のずれは唯一見つかった、
+           * 見た目と実際のクリック先がずれうる箇所なので、中心に近い
+           * ほど z-index を上げ、**見た目の手前さ＝実際にクリックを
+           * 受け取る要素** を一致させておく。
+           */
+          zIndex: 100 - Math.min(distance, 99),
+        } as CSSProperties
+      }
       onClick={onSelect}
       aria-label={flower.name}
     >
