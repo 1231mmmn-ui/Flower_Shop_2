@@ -75,33 +75,19 @@
 }
 
 /*
- * 花瓶に生ける仕組みそのものは VasedFlower が持つ（→ VasedFlower.css）。
- * ここでは一輪挿しとしての大きさだけを決める。
- *
- * ── ここだけ、花瓶に「ただ重ねただけ」の古い書き方が残っていた ──
- *
- * 店頭の一台（FlowerStand）は、水面での色の沈み込みも
- * `FLOWERS_WITH_VASE_ART` の1枚完成画も踏まえた組み方だったのに、
- * ここは花の絵と花瓶を重ねるだけの、もっと前の書き方のままだった。
- * 同じバラでも、店頭では自然、こちらではただ重ねただけ、という
- * 画面ごとの差はここが原因だった。VasedFlower に揃える。
+ * 一輪の花そのもの（→ SingleFlower.tsx）。花瓶は使わない ──
+ * 図鑑や絵本の1ページに一輪だけ描かれているような見せ方にする。
+ * ここでは一輪挿しとしての大きさ・置き場所・ゆれだけを決める。
  */
-.morning__front-vased {
-  --vased-stem-bottom: 1%;
-  --vased-flowers-width: 100%;
-  --vased-vase-width: 42%;
-  --vased-art-width: 62%;
-  --vased-art-bottom: -1%;
-}
-
-.morning__front-vased .vased__stem {
-  filter: drop-shadow(5px 10px 12px rgba(96, 74, 54, 0.2))
-    drop-shadow(6px 12px 15px rgba(96, 74, 54, 0.2));
-}
-
-/* 揺れの支点は、茎の下（花瓶の口のあたり）。花首から曲がると造花に見える。 */
-.morning__front-vased .vased__flowers {
+.morning__front .morning__front-flower {
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  width: 84%;
+  transform: translateX(-50%);
   transform-origin: 50% 96%;
+  filter: drop-shadow(6px 12px 15px rgba(96, 74, 54, 0.2));
+  /* 茎の下（切り口のあたり）を軸に、ごくわずかに揺れる。花首から曲がると造花に見える。 */
   animation: petal-sway 6.4s var(--fs-easing-soft) infinite;
 }
 
@@ -169,7 +155,6 @@
 /*
  * .morning__front-flower は translateX(-50%) で中央に置いてある。
  * keyframes の transform はそれを丸ごと上書きするので、必ず書き足すこと。
- * （FrontVase.css もこの keyframes を使っています。動かすときは両方見ること。）
  */
 @keyframes petal-sway {
   0%,

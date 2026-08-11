@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 import './FlowerDetail.css';
 import { flower as flowerImage } from '../assets/paths';
+import { SingleFlower } from './SingleFlower';
 import { flowerById, formatPrice, type Flower } from '../data/flowers';
 import { useGame } from '../game/GameContext';
 
@@ -85,11 +86,11 @@ export function FlowerDetail({
         aria-label={paperDown ? '説明を見る' : '花だけを見る'}
       >
         <span className="detail__light" aria-hidden />
-        <img
-          className="detail__flower"
+        <SingleFlower
+          flowerId={flower.id}
           src={flowerImage(flower.id)}
           alt={flower.name}
-          draggable={false}
+          className="detail__flower"
         />
       </button>
 

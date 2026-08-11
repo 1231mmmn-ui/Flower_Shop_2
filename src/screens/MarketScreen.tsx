@@ -24,6 +24,7 @@ import { useMemo, useRef, useState } from 'react';
 
 import './MarketScreen.css';
 import { flowerSmall as flowerImage } from '../assets/paths';
+import { SingleFlower } from '../components/SingleFlower';
 import { marketForDay, remarkFor } from '../data/market';
 import { useBenchTop } from '../components/useSceneBox';
 import { useGame } from '../game/GameContext';
@@ -69,14 +70,12 @@ export function MarketScreen() {
               aria-label={flower.name}
             >
               {/*
-                花の高さは、そろえません。背丈差はそのまま出します。
-                そろえるのは**茎の下端の位置だけ**。ここが同じ台に
-                並んでいるという印は、絵の外（この影）で作ります。
-                絵の中で見えている茎の太さや長さは花ごとに違うので、
-                絵だけでは「同じ線に立っている」ことが伝わりません。
+                一覧では、花はすべて同じ大きさ・同じ並びで見せる
+                （→ SingleFlower.tsx の bounding box 補正）。
+                同じ台に並んでいるという印は、絵の外（この影）で作る。
               */}
               <span className="market__flower">
-                <img src={flowerImage(flower.id)} alt="" aria-hidden draggable={false} />
+                <SingleFlower flowerId={flower.id} src={flowerImage(flower.id)} />
                 <span className="market__contact" aria-hidden />
               </span>
               <span className="market__name">{flower.name}</span>

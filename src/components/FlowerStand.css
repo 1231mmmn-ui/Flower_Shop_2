@@ -36,41 +36,22 @@
 }
 
 /*
- * 花瓶に生ける仕組みそのものは VasedFlower が持つ（→ VasedFlower.css）。
- * ここでは店頭の一台としての大きさ・置き場所だけを決める。
- *
- * 茎の切り口は、**花瓶の口より下**へ入れる。9% では口の高さとほぼ
- * 同じで、茎が縁の手前で終わって見えた。4% まで沈めると、茎は縁に
- * 隠れて水の中へ続く。
- *
- *   絵の中の水面   上から 0.544
- *   花瓶の幅       この台の 72%（正方形なので高さも 0.72W）
- *   水面の高さ     台の下から 0.328W
- *   花の絵の箱     高さ 1.9W、下端は台の下から 0.046W
- *   → 箱の下から (0.328 − 0.046) / 1.9 = **14.8%**
- *
- * 花瓶ごと1枚の完成画（→ FlowerStand.tsx の VasedFlower）は、絵の中に
- * 花・茎・水・花瓶・台に落ちる影までもう全部入っている。正方形の絵で、
- * 花瓶の下端の影は絵の中の余白の中ほどにあるので、台の線（bottom: 0）
- * よりわずかに下げて、影が台の木目にちゃんと乗って見えるようにする。
+ * 一輪の花そのもの（→ SingleFlower.tsx）。ここでは店頭の一台としての
+ * 大きさ・置き場所だけを決める。花瓶は使わない。
  */
-.stand__vased {
-  --vased-stem-bottom: 4%;
-  --vased-flowers-width: 190%;
-  --vased-vase-width: 72%;
-  --vased-art-width: 96%;
-  --vased-art-bottom: -4%;
+/* `.single-flower` の position:relative より確実に勝つよう、.stand の子として書く。 */
+.stand .stand__flower {
+  position: absolute;
+  left: 50%;
+  bottom: 6%;
+  width: 78%;
+  transform: translateX(-50%);
+  filter: drop-shadow(5px 10px 12px rgba(96, 74, 54, 0.16));
 }
 
-/*
- * ふれたときの、ひと持ち上がり。
- *
- * 茎はもう一本しかないので、そのまま持ち上げます。
- * 水の中の色（--water-tint）は同じ箱の中に入っているだけなので、
- * 何もしなくても一緒に動きます（ここが前の二枚分けとの違い）。
- */
-.stand.is-focus:hover .vased__flowers,
-.stand.is-focus:focus-visible .vased__flowers {
+/* ふれたときの、ひと持ち上がり。 */
+.stand.is-focus:hover .stand__flower,
+.stand.is-focus:focus-visible .stand__flower {
   transform: translate(-50%, -4px);
 }
 

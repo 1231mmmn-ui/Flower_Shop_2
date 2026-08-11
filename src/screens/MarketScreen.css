@@ -102,36 +102,26 @@
 /*
  * 一輪の絵と、その足もとの影。
  *
- * **`market__stall img` は `object-fit: contain` + `object-position:
- * center bottom` で、どの花も同じ 214px の箱の底に揃えて置いています。**
- * 絵そのものの茎の下端は、実測するとどの花も画像の最下端で揃っています
- * （tools/placeholder_art/flowers.py の render_flower は、種にかかわらず
- * 必ず画像の下端で茎を切る）。
- *
- * それでも「3枚を横に置いた」ように見えていたのは、**そこに何も
- * 印が無かったから**です。チューリップは葉が画像の途中で終わり、
- * 下端まではただの細い茎の線だけが続くので、遠目にはその茎が
- * 見えず、葉の先端が「花の終わり」に見えます。紫陽花は葉が
- * 下端近くまであるので、同じ下端でも重みがそこにあるように見えます。
- * 種によって「絵の中で目に付く終わり方」がばらばらなので、
- * 同じ線に立っていても揃って見えませんでした。
- *
- * 絵の中を直すのではなく、**箱の底、全部の花で同じ位置**に
- * 影を一つ置きます。これでどの花も「ここが売り場の面」という
- * 同じ印の上に立ちます。
+ * **どの花も同じ大きさの正方形として、同じ 214px の箱の底に
+ * 揃えて置きます。**（→ SingleFlower.tsx の bounding box 補正）
+ * 花ごとに絵柄がキャンバスのどこまで届くかは違うので、実測した
+ * bounding box をもとに、花の絵柄そのものがだいたい同じ大きさに
+ * 見えるよう SingleFlower 側で拡大率を調整している。ここでは
+ * その正方形を箱の底へ置くだけでよい。
  */
 .market__flower {
   position: relative;
   display: block;
   width: 100%;
+  height: 214px;
 }
 
-.market__stall img {
-  display: block;
+.market__stall .single-flower {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
   width: 100%;
-  height: 214px;
-  object-fit: contain;
-  object-position: center bottom;
+  transform: translateX(-50%);
   filter: drop-shadow(3px 7px 8px rgba(96, 74, 54, 0.16));
   /* 手に取った花だけ、ほんの少し起き上がる。持ち上げすぎない。 */
   transition: transform var(--fs-duration-slow) var(--fs-easing-rise);
@@ -166,8 +156,8 @@
   opacity: 1;
 }
 
-.market__stall.is-held img {
-  transform: translateY(-10px);
+.market__stall.is-held .single-flower {
+  transform: translate(-50%, -10px);
 }
 
 .market__name {

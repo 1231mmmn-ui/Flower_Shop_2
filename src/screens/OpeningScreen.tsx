@@ -30,17 +30,15 @@ import { useEffect, useState } from 'react';
 
 import './OpeningScreen.css';
 import { FlowerDetail } from '../components/FlowerDetail';
-import { VasedFlower, type VaseStem } from '../components/VasedFlower';
+import { SingleFlower } from '../components/SingleFlower';
 import { ambience } from '../audio/ambience';
+import { flowerSmall as flowerImage } from '../assets/paths';
 import { flowerById } from '../data/flowers';
 import { useGame } from '../game/GameContext';
 import { useBreeze } from '../game/useBreeze';
 
 /** 店を開けるまでの、ひと呼吸。ベルが鳴ってから画面が変わる。 */
 const OPEN_MS = 700;
-
-/** 一輪挿し。生けるのは一本だけ、まっすぐ。 */
-const STEM: VaseStem[] = [{ angle: 0, scale: 1 }];
 
 export function OpeningScreen() {
   const { state, dispatch, season } = useGame();
@@ -109,7 +107,11 @@ export function OpeningScreen() {
           onClick={() => dispatch({ type: 'inspect', flowerId: front.id })}
           aria-label={`${front.name}を見る`}
         >
-          <VasedFlower flower={front} stems={STEM} className="morning__front-vased" />
+          <SingleFlower
+            flowerId={front.id}
+            src={flowerImage(front.id)}
+            className="morning__front-flower"
+          />
           <span className="morning__front-glow" style={{ background: front.swatch }} aria-hidden />
         </button>
       )}

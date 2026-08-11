@@ -1,14 +1,20 @@
 /**
- * 作業台の上に立っている、一台の花。
+ * 作業台の上に立っている、一輪の花。
  *
  * 値札は付けない。いま見ている花にだけ、そっと名前が出る（店頭側で出す）。
  * 手前の花は大きくはっきり、奥の花は小さくかすむ。
+ *
+ * ── 花瓶を、やめました ────────────────────────────────────
+ *
+ * 「花瓶に生けてある花」ではなく、一輪だけがそっと置かれている見せ方に
+ * 統一する（→ src/components/SingleFlower.tsx）。器も水も描き足さない。
  */
 
 import type { CSSProperties } from 'react';
 
 import './FlowerStand.css';
-import { VasedFlower } from './VasedFlower';
+import { flowerSmall as flowerImage } from '../assets/paths';
+import { SingleFlower } from './SingleFlower';
 import type { Flower } from '../data/flowers';
 
 interface FlowerStandProps {
@@ -20,13 +26,6 @@ interface FlowerStandProps {
   picked: number;
   onSelect: () => void;
 }
-
-/** 花瓶に生ける本数と、その傾き。 */
-const STEMS = [
-  { angle: -7, scale: 0.9 },
-  { angle: 6, scale: 0.94 },
-  { angle: -1, scale: 1.0 },
-];
 
 export function FlowerStand({
   flower,
@@ -70,8 +69,8 @@ export function FlowerStand({
       onClick={onSelect}
       aria-label={flower.name}
     >
-      <VasedFlower flower={flower} stems={STEMS} className="stand__vased" />
-      {/* 台に触れている影。これが無いと、器が宙に浮いて見える。 */}
+      <SingleFlower flowerId={flower.id} src={flowerImage(flower.id)} className="stand__flower" />
+      {/* 台に落ちる、ごく薄い影。花そのものから気をそらさない程度に。 */}
       <span className="stand__contact" aria-hidden />
       <span className="stand__glow" style={{ background: flower.swatch }} aria-hidden />
 

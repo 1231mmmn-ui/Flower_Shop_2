@@ -1,0 +1,71 @@
+/**
+ * 一輪の絵（`assets/flowers/<id>.png` / `flowers/small/<id>.png`）の中で、
+ * 実際に花・葉・茎が描かれている範囲（キャンバスに対する割合）。
+ *
+ * ── なぜこれが要るか ────────────────────────────────────────
+ *
+ * キャンバスはどれも正方形（1024×1024）だが、絵柄がその正方形の
+ * どこまで届いているかは花によってまるで違う。ユーカリはキャンバス
+ * 上端ぎりぎりまで枝が伸びているが、ゲンチアナはずっと余白がある。
+ * これを何も考えずに同じ大きさの正方形として並べると、
+ *
+ *   ・余白の少ない花（ユーカリ・ムスカリ等）は画面から切れやすい
+ *   ・余白の多い花（ゲンチアナ・フリージア等）はやけに小さく見える
+ *
+ * という二つの問題が同時に起きる。ここに実測した bounding box を
+ * 置き、`SingleFlower` コンポーネントがこれを使って「花の絵柄その
+ * ものが表示エリアの中で毎回同じくらいの大きさに見える」よう、
+ * 花ごとに拡大率を自動で変える（→ SingleFlower.tsx）。
+ *
+ * 測り方: 各PNGのアルファチャンネルの bounding box（透明でない範囲）
+ * を Pillow で実測。`bottom` はどの花も茎がキャンバス下端で
+ * 切れているため、ほぼ 1.0 で揃っている。
+ */
+
+export interface FlowerBounds {
+  /** キャンバス上端から、絵柄がはじまるまでの割合（0〜1）。 */
+  top: number;
+  /** キャンバス上端から、絵柄が終わるまでの割合（0〜1）。ほぼ茎の切り口＝1.0 に近い。 */
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+export const FLOWER_BOUNDS: Record<string, FlowerBounds> = {
+  alstroemeria: { top: 0.1562, bottom: 1.0, left: 0.2539, right: 0.7422 },
+  anemone: { top: 0.0293, bottom: 0.9941, left: 0.207, right: 0.793 },
+  carnation: { top: 0.1436, bottom: 1.0, left: 0.252, right: 0.7891 },
+  celosia: { top: 0.1963, bottom: 1.0, left: 0.3721, right: 0.6533 },
+  cosmos: { top: 0.1309, bottom: 1.0, left: 0.2275, right: 0.6777 },
+  dahlia: { top: 0.1094, bottom: 1.0, left: 0.3174, right: 0.7451 },
+  delphinium: { top: 0.1562, bottom: 1.0, left: 0.3223, right: 0.5811 },
+  eucalyptus: { top: 0.0156, bottom: 0.998, left: 0.3047, right: 0.6943 },
+  freesia: { top: 0.1992, bottom: 1.0, left: 0.3164, right: 0.6475 },
+  gentian: { top: 0.208, bottom: 1.0, left: 0.3506, right: 0.6338 },
+  gerbera: { top: 0.0713, bottom: 1.0, left: 0.2529, right: 0.7363 },
+  gypsophila: { top: 0.1406, bottom: 1.0, left: 0.2051, right: 0.7852 },
+  hydrangea: { top: 0.0312, bottom: 0.998, left: 0.1201, right: 0.8828 },
+  lily: { top: 0.0977, bottom: 1.0, left: 0.1836, right: 0.7363 },
+  lisianthus: { top: 0.1094, bottom: 1.0, left: 0.2617, right: 0.7656 },
+  marguerite: { top: 0.125, bottom: 1.0, left: 0.2432, right: 0.7686 },
+  muscari: { top: 0.0693, bottom: 0.9961, left: 0.3164, right: 0.6885 },
+  narcissus: { top: 0.1426, bottom: 1.0, left: 0.2734, right: 0.6631 },
+  poinsettia: { top: 0.0996, bottom: 1.0, left: 0.292, right: 0.7246 },
+  pompon: { top: 0.1797, bottom: 1.0, left: 0.3428, right: 0.6514 },
+  ranunculus: { top: 0.0322, bottom: 0.998, left: 0.2783, right: 0.7207 },
+  rose: { top: 0.0273, bottom: 0.998, left: 0.2285, right: 0.7686 },
+  ruscus: { top: 0.1709, bottom: 1.0, left: 0.3848, right: 0.6143 },
+  solidago: { top: 0.124, bottom: 1.0, left: 0.2402, right: 0.7764 },
+  statice: { top: 0.0371, bottom: 0.999, left: 0.2324, right: 0.791 },
+  sunflower: { top: 0.0244, bottom: 1.0, left: 0.2051, right: 0.7822 },
+  sweetpea: { top: 0.1572, bottom: 1.0, left: 0.2861, right: 0.7109 },
+  tulip: { top: 0.0273, bottom: 0.998, left: 0.3252, right: 0.6748 },
+  zinnia: { top: 0.1553, bottom: 1.0, left: 0.333, right: 0.666 },
+};
+
+/** 実測が無い花（今後追加された花など）の、控えめな既定値。 */
+export const DEFAULT_FLOWER_BOUNDS: FlowerBounds = { top: 0.12, bottom: 1.0, left: 0.25, right: 0.75 };
+
+export function flowerBoundsOf(id: string): FlowerBounds {
+  return FLOWER_BOUNDS[id] ?? DEFAULT_FLOWER_BOUNDS;
+}
