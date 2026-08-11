@@ -35,8 +35,16 @@ interface SingleFlowerProps {
   className?: string;
 }
 
-/** 花の絵柄が、表示エリアの短いほうの辺に対して占める割合。 */
-const TARGET_FILL = 0.86;
+/** 花の絵柄が、表示エリアの短いほうの辺に対して占める割合の基準値。 */
+const TARGET_FILL = 0.8;
+/*
+ * `presence`（→ flowerBounds.ts）で基準値を押し上げ／押し下げても、
+ * 必ずここに収まるようにする。上限を1.0未満にしておけば、
+ * どれだけ `presence` を大きくしても表示エリアからはみ出さない
+ * （「全体＋小さな余白」を、自動フィットとは別にここでも保証する）。
+ */
+const MIN_FILL = 0.68;
+const MAX_FILL = 0.94;
 
 export function SingleFlower({ flowerId, src, alt = '', className = '' }: SingleFlowerProps) {
   const bounds = flowerBoundsOf(flowerId);
@@ -44,7 +52,8 @@ export function SingleFlower({ flowerId, src, alt = '', className = '' }: Single
   const contentH = bounds.bottom - bounds.top;
   const centerX = (bounds.left + bounds.right) / 2;
   const centerY = (bounds.top + bounds.bottom) / 2;
-  const fitScale = TARGET_FILL / Math.max(contentW, contentH);
+  const targetFill = Math.max(MIN_FILL, Math.min(MAX_FILL, TARGET_FILL * (bounds.presence ?? 1)));
+  const fitScale = targetFill / Math.max(contentW, contentH);
 
   return (
     <span className={`single-flower ${className}`}>

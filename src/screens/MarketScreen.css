@@ -73,6 +73,21 @@
   padding: 0 var(--fs-space-lg);
   scroll-snap-type: x proximity;
   transform: translateY(-100%);
+  /* 縁で次の花がのぞくとき、そこで絵がスパッと切れて見えないよう薄くする。 */
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 4%,
+    black 96%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 4%,
+    black 96%,
+    transparent 100%
+  );
 }
 
 .market__row::-webkit-scrollbar {
@@ -116,31 +131,37 @@
   height: 214px;
 }
 
+/*
+ * 台の上に「立たせる」のではなく、絵本の挿絵のように少し浮かせる
+ * （→ FlowerStand.css の同じ考え方）。
+ */
 .market__stall .single-flower {
   position: absolute;
   left: 50%;
-  bottom: 0;
-  width: 100%;
+  bottom: 5%;
+  width: 92%;
   transform: translateX(-50%);
-  filter: drop-shadow(3px 7px 8px rgba(96, 74, 54, 0.16));
+  filter: drop-shadow(3px 6px 8px rgba(96, 74, 54, 0.13));
   /* 手に取った花だけ、ほんの少し起き上がる。持ち上げすぎない。 */
   transition: transform var(--fs-duration-slow) var(--fs-easing-rise);
 }
 
+/* ごく薄い水彩のにじみ。台に固定されている印ではなく、そこにある印だけ。 */
 .market__contact {
   position: absolute;
   left: 50%;
-  bottom: 0;
-  width: 46%;
-  height: 9px;
+  bottom: 2%;
+  width: 34%;
+  height: 8px;
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(
     50% 50% at 50% 50%,
-    rgba(74, 63, 53, 0.32) 0%,
-    rgba(74, 63, 53, 0.13) 60%,
-    rgba(74, 63, 53, 0) 100%
+    rgba(120, 100, 76, 0.13) 0%,
+    rgba(120, 100, 76, 0.05) 62%,
+    rgba(120, 100, 76, 0) 100%
   );
+  filter: blur(4px);
   pointer-events: none;
 }
 

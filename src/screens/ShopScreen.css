@@ -72,6 +72,25 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /*
+   * 画面の左右の縁で次の花がのぞくとき、そこで絵がスパッと
+   * 切れて見えないよう、縁のごく狭い帯だけ透明へ薄くする。
+   * スクロールしても縁（ビューポート）に固定されたまま動かない。
+   */
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 7%,
+    black 93%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 7%,
+    black 93%,
+    transparent 100%
+  );
 }
 
 .shop-view__counter::-webkit-scrollbar {
