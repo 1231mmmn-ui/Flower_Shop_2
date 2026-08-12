@@ -46,7 +46,7 @@ export interface FlowerBounds {
 
 export const FLOWER_BOUNDS: Record<string, FlowerBounds> = {
   alstroemeria: { top: 0.1562, bottom: 1.0, left: 0.2539, right: 0.7422, presence: 0.97 },
-  anemone: { top: 0.0293, bottom: 0.9941, left: 0.207, right: 0.793, presence: 0.91 },
+  anemone: { top: 0.0615, bottom: 0.9678, left: 0.2031, right: 0.7969, presence: 0.91 },
   carnation: { top: 0.1436, bottom: 1.0, left: 0.252, right: 0.7891, presence: 0.94 },
   celosia: { top: 0.1963, bottom: 1.0, left: 0.3721, right: 0.6533, presence: 1.18 },
   cosmos: { top: 0.1309, bottom: 1.0, left: 0.2275, right: 0.6777, presence: 1.0 },
@@ -57,7 +57,7 @@ export const FLOWER_BOUNDS: Record<string, FlowerBounds> = {
   gentian: { top: 0.208, bottom: 1.0, left: 0.3506, right: 0.6338, presence: 1.18 },
   gerbera: { top: 0.0713, bottom: 1.0, left: 0.2529, right: 0.7363, presence: 0.98 },
   gypsophila: { top: 0.1406, bottom: 1.0, left: 0.2051, right: 0.7852, presence: 0.92 },
-  hydrangea: { top: 0.0312, bottom: 0.998, left: 0.1201, right: 0.8828, presence: 0.9 },
+  hydrangea: { top: 0.0625, bottom: 0.9658, left: 0.1602, right: 0.8398, presence: 0.9 },
   lily: { top: 0.0977, bottom: 1.0, left: 0.1836, right: 0.7363, presence: 0.93 },
   lisianthus: { top: 0.1094, bottom: 1.0, left: 0.2617, right: 0.7656, presence: 0.96 },
   marguerite: { top: 0.125, bottom: 1.0, left: 0.2432, right: 0.7686, presence: 0.95 },
@@ -65,14 +65,14 @@ export const FLOWER_BOUNDS: Record<string, FlowerBounds> = {
   narcissus: { top: 0.1426, bottom: 1.0, left: 0.2734, right: 0.6631, presence: 1.05 },
   poinsettia: { top: 0.0996, bottom: 1.0, left: 0.292, right: 0.7246, presence: 1.01 },
   pompon: { top: 0.1797, bottom: 1.0, left: 0.3428, right: 0.6514, presence: 1.14 },
-  ranunculus: { top: 0.0322, bottom: 0.998, left: 0.2783, right: 0.7207, presence: 1.01 },
+  ranunculus: { top: 0.0625, bottom: 0.9658, left: 0.2402, right: 0.7588, presence: 0.95 },
   rose: { top: 0.0449, bottom: 0.9834, left: 0.2373, right: 0.7637, presence: 0.95 },
   ruscus: { top: 0.1709, bottom: 1.0, left: 0.3848, right: 0.6143, presence: 1.25 },
   solidago: { top: 0.124, bottom: 1.0, left: 0.2402, right: 0.7764, presence: 0.94 },
-  statice: { top: 0.0371, bottom: 0.999, left: 0.2324, right: 0.791, presence: 0.93 },
+  statice: { top: 0.0625, bottom: 0.9678, left: 0.1699, right: 0.8301, presence: 0.9 },
   sunflower: { top: 0.0244, bottom: 1.0, left: 0.2051, right: 0.7822, presence: 0.92 },
   sweetpea: { top: 0.1572, bottom: 1.0, left: 0.2861, right: 0.7109, presence: 1.02 },
-  tulip: { top: 0.0273, bottom: 0.998, left: 0.3252, right: 0.6748, presence: 1.09 },
+  tulip: { top: 0.0566, bottom: 0.9668, left: 0.2559, right: 0.7441, presence: 0.97 },
   zinnia: { top: 0.1553, bottom: 1.0, left: 0.333, right: 0.666, presence: 1.11 },
 };
 
