@@ -104,8 +104,22 @@ export function useAutoFitScale(containerRef: RefObject<HTMLDivElement>, signatu
     // ちらつきも起きない）。
     measure();
 
+    /*
+     * ── 画像が届く前に測って、縮めそこねることがありました ──────
+     *
+     * `.bouquet__stem img` は `width:100%; height:auto` で、高さは
+     * 画像そのものの縦横比から決まる。マウント直後、まだ画像が
+     * 読み込まれていない一瞬は高さ0で描かれるため、その状態で
+     * measure() すると外接矩形を実際より小さく見積もり、縮小が
+     * 足りないまま確定してしまう。前回訪れた画面ですでに画像が
+     * キャッシュ済みなら気づきにくいが、初回や新しい花の組み合わせ
+     * では起きうる。コンテナ本体だけでなく、中の img 一つひとつも
+     * ResizeObserver で見て、読み込みで高さが確定した瞬間に
+     * 測り直す。
+     */
     const ro = new ResizeObserver(measure);
     ro.observe(el);
+    el.querySelectorAll('img').forEach((img) => ro.observe(img));
     return () => ro.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature]);
