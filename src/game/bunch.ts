@@ -310,7 +310,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const blended: Attractor = {
         angle: a.angle + (b.angle - a.angle) * t,
         // 隣り合う主役より、わずかに手前に短く。隙間から覗く高さ。
-        reach: (a.reach + (b.reach - a.reach) * t) * 0.88,
+        reach: (a.reach + (b.reach - a.reach) * t) * 0.92,
       };
       const isPrimary = c === 0;
       const { angle, reach } = place(blended, seed, jitter, 16, 0.12, mirror);

@@ -20,6 +20,34 @@
   pointer-events: none;
 }
 
+/*
+ * ── 結束点の、共有の影 ─────────────────────────────────
+ *
+ * 一輪ずつの影を薄くしたぶん（→ .bouquet__stem の filter）、
+ * このままでは「束のどこか一点に、みんなが集まっている」実感が
+ * 薄くなる。すべての茎が集まる結束点そのものに、束全体でひとつだけ
+ * 淡い影を落とす ── 個々の花の影ではなく、**束の重み**として。
+ * 紙より奥、花より手前という中間の高さに置き、花の根もとが
+ * 集まっている場所を、影の濃さで示す。
+ */
+.bouquet__base {
+  position: absolute;
+  left: 50%;
+  bottom: var(--knot-bottom);
+  width: calc(38% * var(--bouquet-scale, 1));
+  height: calc(22% * var(--bouquet-scale, 1));
+  transform: translate(-50%, 38%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(90, 68, 46, 0.32) 0%,
+    rgba(90, 68, 46, 0.16) 45%,
+    rgba(90, 68, 46, 0) 75%
+  );
+  /* 背骨の紙（z=4）より前、いちばん奥の花（z=10〜）より後ろ。 */
+  z-index: 5;
+  pointer-events: none;
+}
+
 .bouquet__stem {
   position: absolute;
   left: 50%;
@@ -51,10 +79,19 @@
    * 奥行きは、明暗・彩度・大きさ（→ scale）・重なりの4つで作ります。
    * ぼかしは名残りで 0.35px だけ── 輪郭は最後まで読めます。
    */
+  /*
+   * ── 一輪ずつの影が、「切り貼り」に見せていました ────────────
+   *
+   * 花ごとに落ちる影は、奥行きの手がかりにはなるものの、隣の花に
+   * まで濃く落ちると「一枚ずつ紙に貼った」ような、ステッカーの
+   * 重なりに見えてしまう。影そのものは薄く・近くだけに留め、
+   * 「束としてのまとまり」は結び目まわりの共有の影
+   * （→ .bouquet__base）に持たせる。
+   */
   filter: brightness(calc(0.86 + var(--depth) * 0.16))
     saturate(calc(0.80 + var(--depth) * 0.22))
     blur(calc((1 - var(--depth)) * 0.35px))
-    drop-shadow(4px 8px 10px rgba(96, 74, 54, calc(0.08 + var(--depth) * 0.14)));
+    drop-shadow(2px 3px 5px rgba(96, 74, 54, calc(0.05 + var(--depth) * 0.07)));
   transition: transform var(--fs-duration-base) var(--fs-easing-soft),
     filter var(--fs-duration-base) var(--fs-easing-soft);
   animation: stem-bloom var(--fs-duration-bloom) var(--fs-easing-rise) both;

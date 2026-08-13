@@ -82,6 +82,12 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
       />
 
       {/*
+        結束点の、共有の影（→ Bouquet.css）。一輪ずつの影を薄くした
+        ぶん、「すべての茎がここに集まっている」実感をこちらで作る。
+      */}
+      <span className="bouquet__base" aria-hidden />
+
+      {/*
         中の紙。外側の花より前、中心の花より後ろに置く一枚
         （→ components/BouquetWrap.css）。6色とも同じ構造なので、
         常に描く。
