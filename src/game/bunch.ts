@@ -221,6 +221,16 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
   const edge = style.edgeAttractors;
 
   /*
+   * 実際に置いた主役（1本目＝顔）の位置。寄り添う花・小花は、
+   * 抽象的な「核の位置の並び」ではなく、この**実在する主役**へ
+   * 寄せる（→ 下の gapStems）。核の位置は5つ用意していても、
+   * 選んだ主役がそのうち2つしか占めていなければ、残り3つは
+   * 空き地でしかない。空き地のあいだに小花を置くと、主役の塊と
+   * 小花の塊が離れて「別々の塊」に見える。
+   */
+  const mainAnchors: Attractor[] = [];
+
+  /*
    * ── 主役（core）：面を作る ──────────────────────────────
    *
    * 選んだ主役を、核になる位置へ順に収める。位置より主役が多ければ
@@ -242,6 +252,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const attractor = core[(mi + c) % core.length];
       const isPrimary = c === 0;
       const { angle, reach } = place(attractor, seed, jitter, 13, 0.08, mirror);
+      if (isPrimary) mainAnchors.push({ angle, reach });
 
       const r4 = rand(seed * 5.3 + 53);
       const r6 = rand(seed * 23.1 + 83);
@@ -252,18 +263,22 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const faceX = 1 - turn * 0.46;
       const faceRot = (r4 - 0.5) * 8 + (r6 - 0.5) * 8 * jitter;
 
-      // 1本目＝面の顔。前寄りで、はっきり大きく。
-      // 2本目以降＝同じ花がもう少し入っている気配。奥へ沈め、控えめに。
-      const depthBase = isPrimary ? 0.78 : 0.42;
-      const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.16));
+      /*
+       * ── 同じ花だけの束が、横並びの複製に見えていました ────────
+       *
+       * 2本目・3本目をひとまとめに「secondary」として同じ奥行きの
+       * 帯に落としていたので、ヒマワリを3本選ぶと3本ともほぼ同じ
+       * 大きさ・高さに見えた。1本ごとに段を分け、後の本ほど
+       * はっきり奥へ・小さく沈める。
+       */
+      const depthBase = isPrimary ? 0.80 : Math.max(0.16, 0.46 - c * 0.16);
+      const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.14));
       const scaleMul = isPrimary || !isBulky ? 1 : 0.74;
+      // 主役の個体差も、1本目（顔）はそろえ、2本目以降で広げる。
+      const scaleJitter = isPrimary ? 0.95 + r7 * 0.10 : 0.86 + r7 * 0.20;
 
       const scale =
-        (0.84 + depth * 0.26) *
-        flower.stature *
-        ROLE_SCALE.main *
-        scaleMul *
-        (0.95 + r7 * 0.10);
+        (0.84 + depth * 0.26) * flower.stature * ROLE_SCALE.main * scaleMul * scaleJitter;
 
       raw.push({
         key: `${stem.uid}-${keySeed}`,
@@ -281,39 +296,45 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
   });
 
   /*
-   * ── 寄り添う花・小花（gap）：主役の隙間を埋める ──────────────
+   * ── 寄り添う花・小花（gap）：主役の輪郭へ食い込ませる ──────────
    *
-   * 隣り合う2つの核の位置を選び、そのあいだ（t=0.3〜0.7）へ
-   * 収める。核の伸びよりわずかに手前・控えめにして、主役の隙間から
-   * 「覗いている」形にする。
+   * 前は「隣り合う核の位置のあいだ」に置いていた。核の位置は
+   * 選んだ主役の数だけ埋まるとは限らず、余った（誰もいない）
+   * 位置のあいだに小花を置くと、主役の塊と小花の塊が離れて見えた
+   * （→ アジサイ＋かすみ草のような組み合わせで特に目立った）。
+   *
+   * ここでは、実在する主役（mainAnchors。無ければ核の位置そのもの）
+   * を直接の目当てにし、その**すぐ近く**へ強めの重なりで置く。
+   * 「隙間から覗く」のではなく「主役の輪郭に一部めり込む」形にする。
    */
+  const gapTargets = mainAnchors.length > 0 ? mainAnchors : core;
+  /*
+   * mainAnchors は、主役の place() ですでに mirror を適用し終えた
+   * 「確定した」位置。ここでもう一度 place() に mirror を渡すと、
+   * 二重に反転してしまい、寄り添う花が実在する主役の反対側へ
+   * 飛んでしまう（→ アジサイ＋かすみ草で塊が分離して見えた原因）。
+   * 主役が無く核の位置（未反転）を使うときだけ、mirror を効かせる。
+   */
+  const gapMirror: 1 | -1 = mainAnchors.length > 0 ? 1 : mirror;
   gapStems.forEach((stem, gi) => {
     const flower = flowerById(stem.flowerId);
     const variantCount = FLOWER_VARIANT_COUNT[flower.id] ?? 1;
     const variantOffset = Math.floor(rand(gi * 61.7 + 41) * variantCount);
     const count = Math.max(1, Math.round(COPIES[flower.role] * shrink));
     /*
-     * どの隙間に収まるかは、選んだ順（gi）ではなく種ごとの乱数で
+     * どの主役に寄り添うかは、選んだ順（gi）ではなく種ごとの乱数で
      * 決める。選ぶ順で決めていたときは、選んだ花の数が少ないと
-     * 毎回 core[0] 寄りの同じ隙間ばかりに偏っていた。
+     * 毎回同じ主役ばかりに偏っていた。
      */
-    const speciesOffset = Math.floor(rand(gi * 83.7 + 13) * core.length);
+    const speciesOffset = Math.floor(rand(gi * 83.7 + 13) * gapTargets.length);
 
     for (let c = 0; c < count; c += 1) {
       keySeed += 1;
       const seed = 500 + gi * 97 + c * 7;
-      const aIdx = (speciesOffset + c) % core.length;
-      const bIdx = (aIdx + 1) % core.length;
-      const a = core[aIdx];
-      const b = core[bIdx];
-      const t = 0.32 + rand(seed * 4.4 + 2) * 0.36;
-      const blended: Attractor = {
-        angle: a.angle + (b.angle - a.angle) * t,
-        // 隣り合う主役より、わずかに手前に短く。隙間から覗く高さ。
-        reach: (a.reach + (b.reach - a.reach) * t) * 0.92,
-      };
+      const target = gapTargets[(speciesOffset + c) % gapTargets.length];
       const isPrimary = c === 0;
-      const { angle, reach } = place(blended, seed, jitter, 16, 0.12, mirror);
+      // 主役の位置そのものへ、ごく近い揺れだけで寄せる（＝食い込ませる）。
+      const { angle, reach } = place(target, seed, jitter, 9, 0.05, gapMirror);
 
       const r4 = rand(seed * 5.3 + 53);
       const r6 = rand(seed * 23.1 + 83);
@@ -324,7 +345,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const faceRot = (r4 - 0.5) * 9 + (r6 - 0.5) * 10 * jitter;
 
       // 1本目だけ「そこにいる」と分かる程度に前へ。残りは主役の陰へ。
-      const depthBase = isPrimary ? 0.56 : 0.22;
+      const depthBase = isPrimary ? 0.60 : 0.22;
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.18));
 
       const scale =
@@ -349,8 +370,15 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
    * ── 葉物・ライン（edge）：外へ抜けて輪郭を作る ──────────────
    *
    * 1本目は、外へ抜ける位置（edgeAttractors）へ実際に配って
-   * 輪郭のふちを見せる。2本目以降は根もとの葉として奥へ沈め、
-   * 「抜ける枝が何本も同じ場所から飛び出す」ことを避ける。
+   * 輪郭のふちを見せる。
+   *
+   * ── 片側だけに抜けると、また「枝が飛び出した」形に戻りました ──
+   *
+   * 1本だけを外へ出す形は、選んだ葉物が1種類のときに特に、
+   * 束全体が片側だけへ傾いた「不安定な」印象になる。実際の花束は、
+   * 大きく抜ける枝が1本あっても、反対側には短い枝や小花を残して
+   * 重心を支える。2本目は「長い1本」と逆側・短めの「短い添え」に、
+   * 3本目以降は根もとを埋める葉として沈める。
    */
   greenStems.forEach((stem, gi) => {
     const flower = flowerById(stem.flowerId);
@@ -364,23 +392,29 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
      * （edgeAttractors に用意した複数の抜け先）が生きなかった。
      */
     const speciesEdgeOffset = edge.length > 0 ? Math.floor(rand(gi * 67.1 + 29) * edge.length) : 0;
+    const primaryAttractor =
+      edge.length > 0 ? edge[speciesEdgeOffset % edge.length] : { angle: 0, reach: 0.4 };
 
     for (let c = 0; c < count; c += 1) {
       keySeed += 1;
       const seed = 900 + gi * 97 + c * 7;
       const isPrimary = c === 0;
+      const isCounter = c === 1 || c === 2;
       let angle: number;
       let reach: number;
-      if (isPrimary || edge.length === 0) {
-        const attractor =
-          edge.length > 0 ? edge[(speciesEdgeOffset + c) % edge.length] : { angle: 0, reach: 0.4 };
-        ({ angle, reach } = place(attractor, seed, jitter, 10, 0.10, mirror));
+      if (isPrimary) {
+        ({ angle, reach } = place(primaryAttractor, seed, jitter, 10, 0.10, mirror));
+      } else if (isCounter) {
+        // 反対側・短めの「短い添え」。長い1本の重心を支える。
+        const counterSign = c === 1 ? -1 : 1;
+        const counter: Attractor = {
+          angle: Math.abs(primaryAttractor.angle) * 0.5 * counterSign,
+          reach: primaryAttractor.reach * 0.5,
+        };
+        ({ angle, reach } = place(counter, seed, jitter, 14, 0.12, mirror));
       } else {
         // 抜けなかった葉ものは、根もとを埋める葉として低く沈める。
-        const nearRoot: Attractor = {
-          angle: edge[(speciesEdgeOffset + c) % edge.length].angle * 0.3,
-          reach: 0.22,
-        };
+        const nearRoot: Attractor = { angle: primaryAttractor.angle * 0.3, reach: 0.20 };
         ({ angle, reach } = place(nearRoot, seed, jitter, 14, 0.14, mirror));
       }
 
@@ -392,12 +426,12 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const faceX = 1 - turn * 0.46;
       const faceRot = (r4 - 0.5) * 9 + (r6 - 0.5) * 10 * jitter;
 
-      const depthBase = isPrimary ? 0.62 : 0.16;
+      const depthBase = isPrimary ? 0.62 : isCounter ? 0.42 : 0.16;
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.18));
 
       let scale =
         (0.84 + depth * 0.26) * flower.stature * ROLE_SCALE.green * (0.95 + r7 * 0.10);
-      if (!isPrimary) scale *= 0.84;
+      if (!isPrimary) scale *= isCounter ? 0.90 : 0.84;
 
       raw.push({
         key: `${stem.uid}-${keySeed}`,
