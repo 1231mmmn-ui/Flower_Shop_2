@@ -88,13 +88,18 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
      * 中心0.70・外側0.52（差0.18）では、高低差が弱く、ただの
      * 横一列に近かった。差を0.28へ広げ、外側の角度もわずかに
      * 詰めて、花顔の並びそのものが半円を描くようにする。
+     *
+     * ── 中心の空間を、もう少し詰める ─────────────────────
+     *
+     * 外形（弧のカーブ）はそのまま、角度の間隔だけを少し狭め、
+     * 隣どうしの核がより深く重なるようにする。
      */
     coreAttractors: [
-      { angle: -30, reach: 0.46 },
-      { angle: -14, reach: 0.62 },
+      { angle: -26, reach: 0.46 },
+      { angle: -12, reach: 0.62 },
       { angle: 0, reach: 0.74 },
-      { angle: 14, reach: 0.62 },
-      { angle: 30, reach: 0.46 },
+      { angle: 12, reach: 0.62 },
+      { angle: 26, reach: 0.46 },
     ],
     // ドームの縁を少しだけなぞる、控えめな葉物。主役より低く。
     edgeAttractors: [
@@ -157,12 +162,20 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
       { angle: 22, reach: 0.64 },
       { angle: 36, reach: 0.50 },
     ],
-    // 長さも角度もそろえない、不規則な抜け。1本だけ大きく長く。
+    /*
+     * 長さも角度もそろえない、不規則な抜け。1本だけ大きく長く。
+     *
+     * ── 抜ける枝が、主役より目立っていました ─────────────────
+     *
+     * 主役の核（reach 0.50〜0.72）に迫る長さで抜けると、外周が
+     * 主役と張り合ってしまう。あくまで輪郭の「差し色」程度に
+     * 収まるよう、全体をひとまわり短くする。
+     */
     edgeAttractors: [
-      { angle: 52, reach: 0.58 },
-      { angle: -40, reach: 0.34 },
-      { angle: 38, reach: 0.26 },
-      { angle: -24, reach: 0.22 },
+      { angle: 52, reach: 0.46 },
+      { angle: -40, reach: 0.28 },
+      { angle: 38, reach: 0.22 },
+      { angle: -24, reach: 0.18 },
     ],
     scatter: 0.55,
     paper: { width: 1.14, height: 1.02 },

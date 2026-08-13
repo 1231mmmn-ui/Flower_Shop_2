@@ -60,7 +60,7 @@ const ROLE_SCALE: Record<FlowerRole, number> = {
   main: 1.08,
   sub: 0.92,
   filler: 0.70,
-  green: 0.84,
+  green: 0.74,
 };
 
 /**
@@ -249,9 +249,21 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
     for (let c = 0; c < count; c += 1) {
       keySeed += 1;
       const seed = mi * 97 + c * 7 + 1;
-      const attractor = core[(mi + c) % core.length];
       const isPrimary = c === 0;
-      const { angle, reach } = place(attractor, seed, jitter, 13, 0.08, mirror);
+      /*
+       * ── 2本目以降は、別の核の位置へ跳ばさない ────────────────
+       *
+       * 前は複製ごとに core[(mi+c)%length] と違う位置へ跳んでいた。
+       * 選んだ主役が少ないときは全ての核が埋まって輪郭が保てる
+       * 一方、「1本ごとに綺麗に離れて立つ」印象を強めてもいた。
+       * ここでは同じ種の複製を**同じ核の位置のまわりに集め**、
+       * 2本目以降は揺れそのものを広げて、主役どうし・同じ花どうし
+       * が深く重なり合う密度を作る（→ ①の要望）。
+       */
+      const attractor = core[mi % core.length];
+      const angleSpread = isPrimary ? 13 : 22;
+      const reachSpread = isPrimary ? 0.08 : 0.16;
+      const { angle, reach } = place(attractor, seed, jitter, angleSpread, reachSpread, mirror);
       if (isPrimary) mainAnchors.push({ angle, reach });
 
       const r4 = rand(seed * 5.3 + 53);
@@ -333,8 +345,24 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const seed = 500 + gi * 97 + c * 7;
       const target = gapTargets[(speciesOffset + c) % gapTargets.length];
       const isPrimary = c === 0;
-      // 主役の位置そのものへ、ごく近い揺れだけで寄せる（＝食い込ませる）。
-      const { angle, reach } = place(target, seed, jitter, 9, 0.05, gapMirror);
+      /*
+       * ── 「主役の横に添える」ではなく「主役の内側から覗く」 ─────
+       *
+       * 揺れをさらに詰め、主役の位置そのものにほぼ重ねる。加えて
+       * reach を少し内側（結束点寄り）へ引き、主役の花びらの
+       * 陰・隙間から覗く高さにする ── 主役と同じ高さに並べると、
+       * 「横に添えた」ラインになってしまう。
+       *
+       * ただし1本目まで強く引き込むと、主役（より高い depth・
+       * 大きな scale）にほぼ完全に隠れてしまい、「選んだ花が
+       * 見えなくなる」ことがあった。1本目だけは主役のすぐ縁へ
+       * わずかにずらし、隙間からでも確実に顔が見える位置にする。
+       * 2本目以降だけ、深く沈める。
+       */
+      const angleSpread = isPrimary ? 11 : 6;
+      const pullIn = isPrimary ? 0.97 : 0.82;
+      const { angle, reach: rawReach } = place(target, seed, jitter, angleSpread, 0.035, gapMirror);
+      const reach = rawReach * pullIn;
 
       const r4 = rand(seed * 5.3 + 53);
       const r6 = rand(seed * 23.1 + 83);
@@ -345,7 +373,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const faceRot = (r4 - 0.5) * 9 + (r6 - 0.5) * 10 * jitter;
 
       // 1本目だけ「そこにいる」と分かる程度に前へ。残りは主役の陰へ。
-      const depthBase = isPrimary ? 0.60 : 0.22;
+      const depthBase = isPrimary ? 0.56 : 0.20;
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.18));
 
       const scale =
@@ -426,7 +454,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const faceX = 1 - turn * 0.46;
       const faceRot = (r4 - 0.5) * 9 + (r6 - 0.5) * 10 * jitter;
 
-      const depthBase = isPrimary ? 0.62 : isCounter ? 0.42 : 0.16;
+      const depthBase = isPrimary ? 0.54 : isCounter ? 0.36 : 0.14;
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.18));
 
       let scale =
