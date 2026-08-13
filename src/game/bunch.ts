@@ -163,6 +163,17 @@ function stemsHash(stems: BouquetStem[]): number {
   return h;
 }
 
+/**
+ * 実在する主役の位置。寄り添う花・小花（gap）が寄せる先。
+ *
+ * `bulky`（アジサイのような塊花）かどうかで、寄せ方そのものを変える
+ * （→ 下の gapStems）。塊花は面が不透明で大きいので、他の主役と
+ * 同じ「内側へ引き込む」寄せ方をすると、寄り添う花が完全に埋もれる。
+ */
+interface MainAnchor extends Attractor {
+  bulky: boolean;
+}
+
 interface RawStem {
   key: string;
   flowerId: string;
@@ -247,7 +258,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
    * 空き地でしかない。空き地のあいだに小花を置くと、主役の塊と
    * 小花の塊が離れて「別々の塊」に見える。
    */
-  const mainAnchors: Attractor[] = [];
+  const mainAnchors: MainAnchor[] = [];
 
   /*
    * ── 主役（core）：面を作る ──────────────────────────────
@@ -280,10 +291,29 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
        * が深く重なり合う密度を作る（→ ①の要望）。
        */
       const attractor = core[mi % core.length];
-      const angleSpread = isPrimary ? 13 : 22;
-      const reachSpread = isPrimary ? 0.08 : 0.16;
-      const { angle, reach } = place(attractor, seed, jitter, angleSpread, reachSpread, mirror);
-      if (isPrimary) mainAnchors.push({ angle, reach });
+      /*
+       * ── 塊花の2本目は、広げずに「同じ場所の裏」へ沈める ─────────
+       *
+       * 他の主役は、2本目以降の揺れを広げて重なり合う密度を作る
+       * （→ ①の要望）。塊花でこれをやると、ただでさえ面積の大きい
+       * 花がさらに広い範囲を覆ってしまい、寄り添う花の入る隙間が
+       * 消える。塊花の2本目は揺れを狭いままにし、ほぼ同じ場所の
+       * 少し奥（reach をわずかに引く）に置いて、1本目の陰に
+       * 沈める複製にする。
+       */
+      const angleSpread = isPrimary ? 13 : isBulky ? 8 : 22;
+      const reachSpread = isPrimary ? 0.08 : isBulky ? 0.04 : 0.16;
+      const attractorForPlace =
+        isBulky && !isPrimary ? { angle: attractor.angle, reach: attractor.reach * 0.7 } : attractor;
+      const { angle, reach } = place(
+        attractorForPlace,
+        seed,
+        jitter,
+        angleSpread,
+        reachSpread,
+        mirror,
+      );
+      if (isPrimary) mainAnchors.push({ angle, reach, bulky: isBulky });
 
       const r4 = rand(seed * 5.3 + 53);
       const r6 = rand(seed * 23.1 + 83);
@@ -302,9 +332,16 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
        * 大きさ・高さに見えた。1本ごとに段を分け、後の本ほど
        * はっきり奥へ・小さく沈める。
        */
-      const depthBase = isPrimary ? 0.80 : Math.max(0.16, 0.46 - c * 0.16);
+      /*
+       * ── 塊花の2本目は、かなり小さく・かなり奥へ ────────────────
+       *
+       * 「1本目と同じ大きさの塊がもう1つ」に見えると、寄り添う花の
+       * 入る余地が消える。奥行き・大きさの両方を、ほかの主役より
+       * 一段強く落とす。
+       */
+      const depthBase = isPrimary ? 0.80 : isBulky ? 0.10 : Math.max(0.16, 0.46 - c * 0.16);
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.14));
-      const scaleMul = isPrimary || !isBulky ? 1 : 0.74;
+      const scaleMul = isPrimary || !isBulky ? 1 : 0.48;
       // 主役の個体差も、1本目（顔）はそろえ、2本目以降で広げる。
       const scaleJitter = isPrimary ? 0.95 + r7 * 0.10 : 0.86 + r7 * 0.20;
 
@@ -340,7 +377,8 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
    * を直接の目当てにし、その**すぐ近く**へ強めの重なりで置く。
    * 「隙間から覗く」のではなく「主役の輪郭に一部めり込む」形にする。
    */
-  const gapTargets = mainAnchors.length > 0 ? mainAnchors : core;
+  const gapTargets: MainAnchor[] =
+    mainAnchors.length > 0 ? mainAnchors : core.map((a) => ({ ...a, bulky: false }));
   /*
    * mainAnchors は、主役の place() ですでに mirror を適用し終えた
    * 「確定した」位置。ここでもう一度 place() に mirror を渡すと、
@@ -366,6 +404,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const seed = 500 + gi * 97 + c * 7;
       const target = gapTargets[(speciesOffset + c) % gapTargets.length];
       const isPrimary = c === 0;
+      const targetBulky = target.bulky;
       /*
        * ── 「主役の横に添える」ではなく「主役の内側から覗く」 ─────
        *
@@ -379,10 +418,20 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
        * 見えなくなる」ことがあった。1本目だけは主役のすぐ縁へ
        * わずかにずらし、隙間からでも確実に顔が見える位置にする。
        * 2本目以降だけ、深く沈める。
+       *
+       * ── 塊花（アジサイ）が相手のときは、逆に外へ押し出す ────────
+       *
+       * アジサイは面そのものが不透明で大きいので、「内側へ引き込む」
+       * と、寄り添う花は完全にその下へ埋もれて見えなくなる（fragment
+       * マスクをかけても、その上にアジサイの塊が重なるだけ）。塊花の
+       * ときだけ、角度の揺れを広げ、reach を輪郭のふち（塊花自身の
+       * reach と同じか、わずかに外）まで押し出す。「内側から覗く」の
+       * ではなく「輪郭のすぐ縁から顔をのぞかせる」形にする。
        */
-      const angleSpread = isPrimary ? 11 : 6;
-      const pullIn = isPrimary ? 0.97 : 0.82;
-      const { angle, reach: rawReach } = place(target, seed, jitter, angleSpread, 0.035, gapMirror);
+      const angleSpread = targetBulky ? (isPrimary ? 26 : 15) : isPrimary ? 11 : 6;
+      const pullIn = targetBulky ? (isPrimary ? 1.12 : 0.94) : isPrimary ? 0.97 : 0.82;
+      const reachJitter = targetBulky ? 0.05 : 0.035;
+      const { angle, reach: rawReach } = place(target, seed, jitter, angleSpread, reachJitter, gapMirror);
       const reach = rawReach * pullIn;
 
       const r4 = rand(seed * 5.3 + 53);
@@ -394,7 +443,9 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const faceRot = (r4 - 0.5) * 9 + (r6 - 0.5) * 10 * jitter;
 
       // 1本目だけ「そこにいる」と分かる程度に前へ。残りは主役の陰へ。
-      const depthBase = isPrimary ? 0.56 : 0.20;
+      // 塊花の縁に立つ1本目は、縁でのわずかな重なりに負けないよう
+      // 塊花の1本目（depthBase 0.80）に迫る手前へ出す。
+      const depthBase = targetBulky ? (isPrimary ? 0.78 : 0.22) : isPrimary ? 0.56 : 0.20;
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.18));
 
       const scale =
