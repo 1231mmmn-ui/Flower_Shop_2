@@ -80,7 +80,24 @@
  */
 .wrap-cone--front {
   z-index: 60;
-  clip-path: inset(70% 0 0 0);
+  /*
+   * ── 結び目のまわりに、四角い影が見えていました ────────────
+   *
+   * clip-path: inset() は、絵の輪郭（アルファ）に関係なく矩形で
+   * 切り取る。淡い色の紙（クリーム等）では紙とページの余白の
+   * コントラストが弱く、切った上端の**直線**だけが目に見えてしまい、
+   * 結び目のまわりに「四角い影」が浮いて見えていた
+   * （drawn-ribbon の紙ではこの直線を、下のマスクで先に消してある）。
+   * 同じやわらかいフェードに揃える。
+   */
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 63%, black 74%, black 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 63%,
+    black 74%,
+    black 100%
+  );
   filter: drop-shadow(6px 10px 14px rgba(96, 74, 54, 0.24));
 }
 

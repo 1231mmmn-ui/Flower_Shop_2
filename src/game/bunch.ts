@@ -67,6 +67,25 @@ const ROLE_OUTWARD: Record<FlowerRole, number> = {
 };
 
 /**
+ * 役割ごとの、見た目の大きさの重み。
+ *
+ * ── 「全部同じ面積」に見えていた理由 ────────────────────────
+ *
+ * 大きさは depth（手前ほど大きい）と stature（花ごとの背丈）だけで
+ * 決まっていて、role は一度も参照していなかった。主役も脇役も、
+ * 同じ奥行きに落ちれば同じ大きさだった。バラやダリアが「自然に主役」
+ * に見えるためには、奥行きや配置だけでなく、大きさそのものに
+ * 主役・脇役の重みを持たせる必要がある。かすみ草・スターチス・
+ * ソリダゴのような「隙間から見える脇役」は、ここで初めて小さくなる。
+ */
+const ROLE_SCALE: Record<FlowerRole, number> = {
+  main: 1.12,
+  sub: 0.95,
+  filler: 0.74,
+  green: 0.86,
+};
+
+/**
  * 一種につき、何本描くか。
  *
  * 花屋の束の組み方どおりです。主役は数輪、
@@ -196,7 +215,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
     // 同じ花の中で、列（手前/中/奥）を回す順番を花ごとにずらす。
     // 全種類が同じ順（前→中→奥）だと、束全体が層になって
     // 「同じ高さの輪が3つ重なった」ように見えてしまう。
-    const bandOffset = Math.floor(rand(index * 53.1 + 7) * 3);
+    const bandOffset = Math.floor(rand(index * 53.1 + 7) * 2);
     /*
      * 別角度素材があれば、その本数ぶんを花ごとにずらして回す。
      * 同じずらし方だと、「バラを2種類選んだ」ときに両方とも
@@ -206,6 +225,18 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
     const variantCount = FLOWER_VARIANT_COUNT[flower.id] ?? 1;
     const variantOffset = Math.floor(rand(index * 71.9 + 31) * variantCount);
     for (let c = 0; c < count; c += 1) {
+      /*
+       * ── 「この花、入ってる？」に答えるための、一本目の保証 ──────
+       *
+       * 選んだ花が全種、少なくとも一輪は分かる程度に見えること
+       * （→ ①の要望）。band のずらしをそのまま使うと、種によっては
+       * 一本目からいきなり奥列（band=2）に落ち、その種だけ束の中で
+       * 見えにくくなることがあった。**1本目（copyIndex 0）だけは
+       * 必ず手前列（band=0）に固定**し、2本目以降だけを band=1/2で
+       * 花ごとにずらす。主役はもちろん、脇役・小花・葉ものも、
+       * 最低一輪は必ず手前で顔を見せる。
+       */
+      const band = (c === 0 ? 0 : (((c - 1) + bandOffset) % 2) + 1) as 0 | 1 | 2;
       copies.push({
         stem,
         outward,
@@ -213,7 +244,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
         copyIndex: c,
         isGreen: flower.role === 'green',
         isBulky: BULKY_FLOWERS.has(flower.id),
-        band: ((c + bandOffset) % 3) as 0 | 1 | 2,
+        band,
         variant: (c + variantOffset) % variantCount,
       });
     }
@@ -233,6 +264,18 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
    * 左右どちらにも同じくらい出てしまい、対称な羽根に見えていました。
    */
   const escapeSign = rand(order.length * 3.7 + 9.1) < 0.5 ? -1 : 1;
+
+  /*
+   * ── 束全体の、片寄り ──────────────────────────────────
+   *
+   * 「丸くやわらかい」「高さを出してすっきり」は左右対称のまま
+   * でいい。「自然に広がる」だけは、**束全体を少し片側へ傾け**、
+   * 摘んできた花を無造作に束ねたような、余白と動きのある輪郭に
+   * する（→ styles.ts の asymmetry）。抜ける役（escapeSign）と
+   * 同じ向きにそろえ、「片側に葉ものが流れ、そちら側の余白が
+   * 広い」という一貫した傾きにする。
+   */
+  const asymmetryBias = escapeSign * style.asymmetry;
 
   // 一本ずつのばらつき。style.scatter を実際に効かせる。
   const jitter = 0.55 + style.scatter * 0.85;
@@ -254,7 +297,9 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       Math.min(
         1,
         spanCenter * 0.55 * roleSpreadFactor +
-          (r1 - 0.5) * (0.9 + outward * 0.5) * roleSpreadFactor,
+          (r1 - 0.5) * (0.9 + outward * 0.5) * roleSpreadFactor +
+          // 主役は中心に近く残し、外側へ出る役ほど片寄りを強く受ける。
+          asymmetryBias * (0.35 + outward * 0.65),
       ),
     );
 
@@ -372,7 +417,16 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       ring * style.drop -
       // 同じ角度の花を、少しずつ沈める。これが重なりを作る。
       (r2 - 0.5) * 0.20 * jitter -
-      Math.abs(side) * 0.10;
+      Math.abs(side) * 0.10 +
+      /*
+       * 花の種類ごとの、自然な背丈（→ flower.stature）。
+       * これまで stature は大きさ（scale）にしか効いておらず、
+       * 高さ（reach）はすべての花で同じ式だった。ムスカリのような
+       * 背の低い花も、ユーカリ・デルフィニウムのような背の高い花も
+       * 同じ高さに並び、「高低差」が奥行き（band/ring）だけに頼って
+       * いた。ここで背丈そのものを高さへ映す。
+       */
+      (flower.stature - 1) * 0.32;
 
     if (isEscape) reach += (0.05 + r5 * 0.05) * (0.5 + style.peripheralEscape);
 
@@ -391,7 +445,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
     const faceX = 1 - turn * 0.46;
     const faceRot = (r4 - 0.5) * 10 * (0.4 + turn) * jitter;
 
-    let scale = (0.82 + depth * 0.30) * flower.stature * 0.95;
+    let scale = (0.82 + depth * 0.30) * flower.stature * ROLE_SCALE[flower.role] * 0.95;
     // 根もとを埋める葉は、主張しすぎないよう少し小さく。
     if (isGreen && !isEscape) scale *= 0.84;
 

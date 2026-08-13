@@ -102,6 +102,16 @@ export interface BouquetStyle {
    */
   mainDrift: number;
   /**
+   * 束全体の、左右の片寄り（0〜1）。
+   *
+   * 0 なら左右対称。上げるほど、束全体（特に外側へ出る役）が
+   * 片側へ流れ、「摘んできた花を無造作に束ねた」余白と動きが出る
+   * （→ src/game/bunch.ts の asymmetryBias）。輪郭そのものの
+   * 対称・非対称を決める値なので、丸くやわらかい／高さを出して
+   * すっきりはごく低く、自然に広がるだけ高くする。
+   */
+  asymmetry: number;
+  /**
    * 包み紙の広がり。束の輪郭に合わせて紙も変わる。
    * 幅と高さの倍率で、1.0 が基準。
    */
@@ -127,18 +137,29 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
      * 横に並ぶドーム」は、主役の位置そのものを横へ広げないと
      * 作れません。
      */
-    spread: 46,
-    mainSpreadFactor: 0.88,
-    crown: 0.08,
-    drop: 0.07,
-    scatter: 0.20,
+    spread: 42,
+    mainSpreadFactor: 0.85,
+    crown: 0.10,
+    /*
+     * ── ドームの縁を、少し落とす ────────────────────────
+     *
+     * crown（中心の抜け）だけでは、正面から見て「横に広い塊」には
+     * なっても、縁がまっすぐ横一直線に見えると「丸い」ではなく
+     * 「台形」に見える。外側の花をわずかに低く落とし、中心から
+     * 縁へなだらかに下がる曲線（ドームの丸み）を作る。
+     */
+    drop: 0.16,
+    scatter: 0.18,
     // 紙の高さは、前回の底上げ（0.98→1.05）を戻した。高さで根もとの
     // 葉を隠そうとしたのが、紙の水平clipと重なって「紙が水平に
     // スパッと切れる」印象を強めていた（→ BouquetWrap.css）。
-    paper: { width: 1.12, height: 0.98 },
-    peripheralEscape: 0.20,
+    // 幅も束のコンパクトさに合わせて少し絞った。
+    paper: { width: 1.05, height: 0.98 },
+    peripheralEscape: 0.16,
     // ドームの一体感を優先。主役の個体差は控えめに。
-    mainDrift: 0.15,
+    mainDrift: 0.12,
+    // 左右対称のドームのまま。
+    asymmetry: 0.04,
   },
   {
     id: 'tall',
@@ -155,14 +176,25 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
      * 通る距離そのものを短くする。「縦に伸びる」印象は、spread の
      * 狭さと mainSpreadFactor の低さだけでも十分に残る。
      */
-    spread: 22,
-    mainSpreadFactor: 0.6,
-    crown: 0.36,
+    spread: 18,
+    mainSpreadFactor: 0.55,
+    crown: 0.42,
     drop: 0.00,
-    scatter: 0.16,
-    paper: { width: 0.92, height: 1.26 },
-    peripheralEscape: 0.6,
-    mainDrift: 0.15,
+    scatter: 0.14,
+    paper: { width: 0.90, height: 1.30 },
+    peripheralEscape: 0.45,
+    /*
+     * ── 縦の流れに、高低差を足す ────────────────────────
+     *
+     * 「高さを出してすっきり」は、crown で中心を持ち上げるだけでは
+     * 主役の頭がみな同じ高さで一列に積み上がり、「縦のトーテムポール」
+     * に見えていた。主役自身の side・ring にも個体差を持たせ、
+     * まっすぐな柱ではなく、背丈の違う花が寄り添って立つ縦の流れにする
+     * （stature の高低差は → src/game/bunch.ts の reach 計算）。
+     */
+    mainDrift: 0.30,
+    // 縦の柱は左右対称のまま、わずかにだけ崩す。
+    asymmetry: 0.06,
   },
   {
     id: 'natural',
@@ -178,11 +210,21 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
     mainSpreadFactor: 0.62,
     crown: 0.16,
     drop: 0.06,
-    scatter: 0.62,
+    scatter: 0.68,
     // 紙の高さは、前回の底上げ（1.02→1.10）を戻した（→ round と同じ理由）。
     paper: { width: 1.14, height: 1.02 },
     peripheralEscape: 1.0,
     mainDrift: 0.85,
+    /*
+     * ── 唯一、左右非対称にするスタイル ──────────────────
+     *
+     * round・tall はどちらも左右対称のまま、角度や高さの「量」だけで
+     * 輪郭を作っていた。それだと三つとも結局「同じ骨格の変形」に
+     * 見えてしまう。「自然に広がる」だけは束全体を片側へ傾け
+     * （→ bunch.ts の asymmetryBias）、対称・非対称という**骨格そのもの**
+     * を他の二つと分ける。
+     */
+    asymmetry: 0.32,
   },
 ];
 
