@@ -1,10 +1,12 @@
 /**
  * ラッピングペーパーとリボン。
  * id は IMAGE_ASSETS.md §6 の一覧と完全に一致させること。
- * 資材の画像は assets/wrap/<id>.png（紙のロール／リボンの巻き）。
  *
- * ブーケを包んだ姿そのものは、素材の色をもとにコード側で描いている
- * （IMAGE_ASSETS.md §2「1本の花を扇状に合成する現行方式」に合わせるため）。
+ * 包んだ姿は、背面／前面の2枚の紙の絵（→ assets/paths.ts の
+ * wrapPaperBack/wrapPaperFront）とリボンの絵（ribbonBow）を
+ * 組み合わせて描く。6色とも同じ構造・同じ水彩の密度で統一してあり、
+ * リボンは常に別の資材として重ねるので、紙の色とリボンの色は
+ * 独立に選べる（→ components/BouquetWrap.tsx）。
  */
 
 import type { Impression } from './flowers';
@@ -25,17 +27,6 @@ export interface Wrapping {
   light: string;
   /** 透ける紙か */
   sheer?: boolean;
-  /**
-   * リボンまで、紙の絵の中に描き込まれているか。
-   *
-   * クラフト紙は「花瓶ごと1枚」の花たちと同じく、完成画に描き直しました
-   * （→ 2026-08-06 の見直し）。結び目のリボンも紙と一緒に描いてあるので、
-   * これが true のときは、コード側の蝶結び（RibbonBow）を重ねません。
-   * 重ねると、リボンが二重に見えてしまいます。
-   *
-   * まだ描き直していない紙は、これまでどおりコード側の蝶結びを重ねます。
-   */
-  hasBuiltInRibbon?: boolean;
 }
 
 export const WRAPPINGS: Wrapping[] = [
@@ -48,7 +39,6 @@ export const WRAPPINGS: Wrapping[] = [
     swatch: '#C4A578',
     shade: '#9A7B52',
     light: '#DCC198',
-    hasBuiltInRibbon: true,
   },
   {
     id: 'paper-cream',

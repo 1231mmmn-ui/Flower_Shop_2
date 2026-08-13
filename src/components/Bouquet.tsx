@@ -47,22 +47,6 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
    * 値段も記録も、取った本数のまま変わりません。
    */
   const drawn = bunch(bouquet.stems, bouquet.styleId);
-  /*
-   * 折り返しが描き込まれた紙（hasBuiltInRibbon）だけ、三層構造にする。
-   *
-   * 二層（奥／手前）だけだと、どの花も「等しく紙の後ろ」か
-   * 「等しく紙より高い」かのどちらかにしかならず、外側の花だけ
-   * 紙の折り返しの後ろへ回り込む、という入り組みが作れなかった。
-   * 中の紙（mid）を挟み、side（輪の外側かどうか）で花の z-index を
-   * 中の紙の上下に振り分けると、外側の花は折り返しの後ろに隠れ、
-   * 中心の花は折り返しの手前に出る。これで初めて「紙が花を包む」
-   * 前後関係になる（→ BouquetWrap.tsx）。
-   *
-   * 折り返しの絵が無い紙（procedural な旧素材）では、この振り分けを
-   * する意味が無いので、これまでどおりの2層・depth だけの z-index
-   * のままにする。
-   */
-  const useMidWrap = wrapping.hasBuiltInRibbon === true;
 
   /*
    * ── ③ 背の高い花が表示エリアから切れないよう、自動でフィットさせる ──
@@ -99,25 +83,22 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
 
       {/*
         中の紙。外側の花より前、中心の花より後ろに置く一枚
-        （→ 上の useMidWrap の説明）。折り返しの絵が無い紙では描かない。
+        （→ components/BouquetWrap.css）。6色とも同じ構造なので、
+        常に描く。
       */}
-      {useMidWrap && (
-        <WrapCone
-          wrapping={wrapping}
-          stems={drawn.length}
-          paper={style.paper}
-          layer="mid"
-        />
-      )}
+      <WrapCone
+        wrapping={wrapping}
+        stems={drawn.length}
+        paper={style.paper}
+        layer="mid"
+      />
 
       {drawn.map((stem) => {
         const flower = flowerById(stem.flowerId);
-        const isOuter = useMidWrap && Math.abs(stem.side) > 0.5;
-        const zIndex = useMidWrap
-          ? isOuter
-            ? 10 + Math.round(stem.depth * 20) // 外側：中の紙(35)より低く、後ろへ回り込む
-            : 40 + Math.round(stem.depth * 20) // 中心：中の紙(35)より高く、手前に出る
-          : 10 + Math.round(stem.depth * 40); // 従来どおり
+        const isOuter = Math.abs(stem.side) > 0.5;
+        const zIndex = isOuter
+          ? 10 + Math.round(stem.depth * 20) // 外側：中の紙(35)より低く、後ろへ回り込む
+          : 40 + Math.round(stem.depth * 20); // 中心：中の紙(35)より高く、手前に出る
         return (
           <div
             key={stem.key}
@@ -150,11 +131,8 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
         paper={style.paper}
         layer="front"
       />
-      {/*
-        リボンが紙の絵の中に描き込まれている紙（hasBuiltInRibbon）は、
-        ここで重ねません。重ねると、結び目にリボンが二重に乗って見えます。
-      */}
-      {!wrapping.hasBuiltInRibbon && <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />}
+      {/* リボン。紙とは別の資材なので、紙の色と関係なく選べる。 */}
+      <RibbonBow ribbon={ribbonById(bouquet.ribbonId)} />
     </div>
   );
 }

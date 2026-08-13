@@ -15,7 +15,7 @@
 import type { CSSProperties } from 'react';
 
 import './BouquetWrap.css';
-import { ribbonBow, wrapCone } from '../assets/paths';
+import { ribbonBow, wrapPaperBack, wrapPaperFront } from '../assets/paths';
 import type { Ribbon, Wrapping } from '../data/wrapping';
 
 /**
@@ -34,7 +34,8 @@ import type { Ribbon, Wrapping } from '../data/wrapping';
  * 絵は色ごとに一枚のままで、伸ばし方だけを変えています。
  */
 /**
- * 紙は、二枚（絵によっては三枚）に分けて置きます。
+ * 紙は、背面・前面の2枚の絵を、3か所で使って置きます
+ * （2026-08-13、6色とも同じ構造に統一）。
  *
  * ── 「紙の前に花を置いた」ように見えていた理由 ────────────────
  *
@@ -51,13 +52,14 @@ import type { Ribbon, Wrapping } from '../data/wrapping';
  * 「外側の花だけ紙の折り返しの後ろに回り込む」という、包んだ束
  * ならではの入り組みが作れませんでした。
  *
- * 折り返し（山なりの絵）を描き込んだ紙では、**もう一枚**を挟みます。
- *   奥の紙（背骨。z-index いちばん低い）
+ * ここでは背面の紙とは別に、前面の紙（折り返しと結び目を持つ絵）を
+ * もう一度使います。
+ *   背面の紙（背骨。z-index いちばん低い）
  *   → 外側の花・茎（side が大きいものだけ低い z-index。折り返しの後ろへ）
- *   → 中の紙（折り返しの絵。外側の花より高く、中心の花より低い z-index）
+ *   → 前面の紙・上半分（折り返しの絵。外側の花より高く、中心の花より低い z-index）
  *   → 中心の花・茎（side が小さいものは高い z-index。折り返しの手前に出る）
- *   → 手前の紙（結び目のすぐ上、束の根もとだけを覆う。いちばん高い）
- * の五層です。中の紙より前に出る花・後ろに回る花の両方ができて
+ *   → 前面の紙・下半分（結び目のすぐ上、束の根もとだけを覆う。いちばん高い）
+ * の五層です。前面の紙より前に出る花・後ろに回る花の両方ができて
  * はじめて、「紙が花を包んでいる」感じになります
  * （z-indexの割り当ては → components/Bouquet.tsx）。
  */
@@ -72,8 +74,9 @@ export function WrapCone({
   /** 束ね方ごとの、紙の伸ばし方（→ src/game/styles.ts） */
   paper?: { width: number; height: number };
   /**
-   * back＝花の後ろの背骨。mid＝折り返し（外側の花より前、中心の花より後ろ）。
-   * front＝根もとだけを覆う、いちばん手前の一枚。
+   * back＝花の後ろの背骨（背面の絵）。mid＝折り返し（前面の絵の上半分。
+   * 外側の花より前、中心の花より後ろ）。front＝根もとだけを覆う、
+   * いちばん手前の一枚（前面の絵の下半分）。
    */
   layer: 'back' | 'mid' | 'front';
 }) {
@@ -87,11 +90,10 @@ export function WrapCone({
    * もう少し先まで紙も広がるようにします。
    */
   const spread = Math.min(20, Math.max(2, stems));
+  const src = layer === 'back' ? wrapPaperBack(wrapping.id) : wrapPaperFront(wrapping.id);
   return (
     <img
-      className={`wrap-cone wrap-cone--${layer} ${wrapping.sheer ? 'wrap-cone--sheer' : ''} ${
-        wrapping.hasBuiltInRibbon ? 'wrap-cone--drawn-ribbon' : ''
-      }`}
+      className={`wrap-cone wrap-cone--${layer} ${wrapping.sheer ? 'wrap-cone--sheer' : ''}`}
       style={
         {
           '--spread': spread,
@@ -99,7 +101,7 @@ export function WrapCone({
           '--paper-h': paper.height,
         } as CSSProperties
       }
-      src={wrapCone(wrapping.id)}
+      src={src}
       alt=""
       aria-hidden
       draggable={false}

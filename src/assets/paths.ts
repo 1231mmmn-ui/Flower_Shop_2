@@ -112,8 +112,18 @@ export const wrapMaterial = (id: string) => asset(`wrap/${id}.png`);
  * **これまで CSS の多角形で描いていました。** 真っ直ぐな辺と、
  * 等間隔の折り目（conic-gradient）で、花と店内が水彩なのに
  * ここだけ図形に見えていたので、同じ筆で描いた絵に差し替えました。
+ *
+ * ── 紙は、背面と前面の2枚に分けました（2026-08-13）───────────
+ *
+ * 1枚の絵を CSS の mask/clip で使い回していたころは、クラフト紙
+ * だけがリボンまで描き込まれた特別な絵で、他5色は折り目のない
+ * 平たい図形のままだった。6色とも「背面（花の後ろに立つ、控えめな
+ * 一枚）」「前面（折り返しと結び目まわりを持つ、いちばん見える
+ * 一枚）」の同じ構造・同じ水彩の密度で描き直し、リボンは常に
+ * `ribbonBow` 側の別資材で色を選べるようにした。
  */
-export const wrapCone = (paperId: string) => asset(`wrap/cone-${paperId}.png`);
+export const wrapPaperBack = (paperId: string) => asset(`wrap/paper-back-${paperId}.png`);
+export const wrapPaperFront = (paperId: string) => asset(`wrap/paper-front-${paperId}.png`);
 export const ribbonBow = (ribbonId: string) => asset(`wrap/bow-${ribbonId}.png`);
 
 /** 温室の生育段階（512x512・透過）— §7 */
