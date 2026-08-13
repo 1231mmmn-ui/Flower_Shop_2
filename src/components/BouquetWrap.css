@@ -67,6 +67,9 @@
  */
 .wrap-cone--back {
   z-index: 4;
+  /* 花の後ろとはいえ、山の頂点が花の外へはみ出すと先に目に入る。 */
+  mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 100%);
 }
 
 /*
@@ -83,22 +86,20 @@
 .wrap-cone--mid {
   z-index: 35;
   /*
-   * ── 「紙の表面に茎が印刷されている」と指摘されました ────────
+   * ── 紙の三角が、花より先に目に入っていました ────────────────
    *
-   * フェード幅そのものは10%でもごく狭く、単体で見ると目立たない。
-   * ただ「高さを出してすっきり」のように crown が高い形では、
-   * 中心の花へ届くまでの**裸の茎**が長く、そのぶん多くの茎が
-   * この上端の帯（絵の透ける山と山のあいだ＋フェード域）を
-   * まとめて通過する。何本もの、退色した（depth の低い）茎が
-   * 同じ帯を重なって通ると、一本ずつは不透明でも、まとまりとして
-   * 「紙にうっすら透けて印刷されている」ように見えてしまう。
-   *
-   * フェードを半分（10%→5%）に詰め、不透明な帯そのものを広げる。
-   * 残る透け域（絵そのものの山と山のあいだ）は、crown 側
-   * （styles.ts）で通過する茎の量を減らして対応する。
+   * 山の頂点の輪郭がくっきりしていると、花の塊を見る前に
+   * 「ここに紙がある」と分かってしまう ── 「花の前に紙を置いた」
+   * 側の問題ではなく、紙の輪郭そのものの主張が強すぎた。
+   * フェード幅を広げ（5%→9%）、山の頂点そのものを花の陰へ
+   * なだらかに溶け込ませる。広げすぎると、こんどは裸の茎が
+   * 集まって「紙に印刷されている」問題（すぐ上のコメント）が
+   * 戻るので、そこまでは広げない ── 紙そのものの丈は
+   * styles.ts の paper.height 側で詰め、この帯は輪郭を
+   * やわらげる程度に留める。
    */
-  mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 5%, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 9%, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 9%, black 100%);
 }
 
 /*

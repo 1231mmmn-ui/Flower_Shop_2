@@ -109,7 +109,14 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
       { angle: 22, reach: 0.24 },
     ],
     scatter: 0.20,
-    paper: { width: 1.0, height: 0.98 },
+    /*
+     * ── 紙の上端が、目立ちすぎていました ────────────────────
+     *
+     * 紙の三角の頂点が花の塊より高い位置まで届くと、先に紙の形が
+     * 目に入ってしまう。横へ広げ、丈は詰めて、紙の上端そのものを
+     * 花の塊の後ろに沈める。
+     */
+    paper: { width: 1.12, height: 0.86 },
   },
   {
     id: 'tall',
@@ -141,7 +148,7 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
       { angle: 30, reach: 0.42 },
     ],
     scatter: 0.16,
-    paper: { width: 0.84, height: 1.32 },
+    paper: { width: 0.92, height: 1.18 },
   },
   {
     id: 'natural',
@@ -178,7 +185,7 @@ export const BOUQUET_STYLES: BouquetStyle[] = [
       { angle: -24, reach: 0.18 },
     ],
     scatter: 0.55,
-    paper: { width: 1.14, height: 1.02 },
+    paper: { width: 1.24, height: 0.90 },
   },
 ];
 

@@ -120,6 +120,24 @@
   transform: scaleX(var(--face-x, 1)) rotate(var(--face-rot, 0deg));
 }
 
+/*
+ * ── 「一輪＋一輪＋一輪」に見えていた、本当の理由 ──────────────
+ *
+ * 寄り添う花・小花・葉物（→ src/game/bunch.ts の fragment）は、
+ * 主役のすぐ近くへ寄せても、絵そのものは「花・葉・長い茎まで
+ * 描かれた、完成した一輪」のまま丸ごと描かれていた。重ねるほど、
+ * その完成した一輪の輪郭が下から透けて見え、「一輪素材を重ねた」
+ * 印象が最後まで消えなかった。
+ *
+ * 絵の中心（花の顔があるあたり＝ headY 付近）だけを柔らかく見せ、
+ * 茎や外側の葉はマスクで透明にする。主役の隙間から、白い房や
+ * 小さな花の顔が**断片で**覗く見え方にする。
+ */
+.bouquet__stem--fragment img {
+  mask-image: radial-gradient(ellipse 66% 58% at 50% 32%, black 45%, transparent 86%);
+  -webkit-mask-image: radial-gradient(ellipse 66% 58% at 50% 32%, black 45%, transparent 86%);
+}
+
 @keyframes stem-bloom {
   from {
     opacity: 0;

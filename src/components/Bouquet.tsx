@@ -108,7 +108,7 @@ export function Bouquet({ bouquet, scale = 1, className = '' }: BouquetProps) {
         return (
           <div
             key={stem.key}
-            className="bouquet__stem"
+            className={`bouquet__stem ${stem.fragment ? 'bouquet__stem--fragment' : ''}`}
             style={
               {
                 '--angle': `${stem.angle}deg`,

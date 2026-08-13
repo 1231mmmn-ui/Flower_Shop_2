@@ -116,6 +116,24 @@ export interface DrawnStem {
    * そのまま `flower()` と同じパスを返す）。
    */
   variant: number;
+  /**
+   * 一輪の絵を、まるごと見せない（→ Bouquet.css の
+   * `.bouquet__stem--fragment`）。
+   *
+   * ── 「一輪＋一輪＋一輪」に見えていた、本当の理由 ──────────────
+   *
+   * 寄り添う花・小花・葉物を主役のすぐ近くへ寄せても、絵そのものは
+   * 「花・葉・長い茎まで描かれた、完成した一輪」のまま丸ごと
+   * 描いていた。どれだけ重ねても、輪郭の下に完成した一輪の茎や葉が
+   * 透けて見え、「一輪素材を重ねた」印象が消えなかった。
+   *
+   * 主役（面を作る顔）は絵をまるごと見せる。寄り添う花・小花・
+   * 葉物は、絵の中心（花の顔があるあたり）だけを柔らかく見せ、
+   * 茎や外側の葉はマスクで透明にする。「ダリアの隙間から、
+   * かすみ草の白い房がいくつか覗く」という、選んだ花が
+   * **一輪まるごとではなく断片で分かる**見え方にする。
+   */
+  fragment: boolean;
 }
 
 /**
@@ -156,6 +174,7 @@ interface RawStem {
   faceRot: number;
   side: number;
   variant: number;
+  fragment: boolean;
 }
 
 /**
@@ -303,6 +322,8 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
         faceRot,
         side: Math.max(-1, Math.min(1, angle / 45)),
         variant: (c + variantOffset) % variantCount,
+        // 主役は「面」そのものなので、絵をまるごと見せる。
+        fragment: false,
       });
     }
   });
@@ -390,6 +411,8 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
         faceRot,
         side: Math.max(-1, Math.min(1, angle / 45)),
         variant: (c + variantOffset) % variantCount,
+        // 寄り添う花・小花は、絵をまるごとではなく断片で見せる。
+        fragment: true,
       });
     }
   });
@@ -472,6 +495,8 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
         faceRot,
         side: Math.max(-1, Math.min(1, angle / 45)),
         variant: (c + variantOffset) % variantCount,
+        // 葉物・ラインも、絵をまるごとではなく断片で見せる。
+        fragment: true,
       });
     }
   });
