@@ -89,6 +89,24 @@ const MAX_DRAWN = 26;
  */
 const BULKY_FLOWERS = new Set(['hydrangea']);
 
+/**
+ * 縦のラインを添えるだけの花。
+ *
+ * リンドウのような、丈の長い穂状の花は、脇役（role: sub）でも
+ * 主張が強く、主役より目立ってしまうことがある（→ ピンポンマム＋
+ * リンドウで、リンドウが主役に見えた）。ピンポンマムを大きくする
+ * のではなく、リンドウ側の重みを絞る。sub・fillerすべてを弱くすると
+ * 他の組み合わせ（バラ＋かすみ草など、うまくいっている束）まで
+ * 変わってしまうので、この花だけの個別調整にする。
+ *
+ * `tallScale` を `scale` よりゆるくしているのは、tall（高さを出して
+ * すっきり）では、リンドウの「縦に伸びる」性質がそのまま高さを出す
+ * 役に立つため。round・naturalでは、主役の輪郭を支える添えに留める。
+ */
+const LINE_ACCENT: Record<string, { scale: number; tallScale: number }> = {
+  gentian: { scale: 0.62, tallScale: 0.86 },
+};
+
 export interface DrawnStem {
   key: string;
   flowerId: string;
@@ -268,16 +286,52 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
    * 広がる ── どちらの場合も、位置の並びそのもの（＝輪郭）は
    * 崩れない。
    */
-  mainStems.forEach((stem, mi) => {
+  /*
+   * ── 同じ花を何本選んでも、ひとつの核の位置にまとめる ────────────
+   *
+   * `mainStems` は「取った花」を1本ずつ数えた配列で、同じ種を4本
+   * 選べば4つの別エントリになる。以前はこの並び順そのままを
+   * `mi`（→ core[mi % core.length]）に使っていたため、同じ種を
+   * 何本も選ぶと、本数ぶんだけ**違う核の位置**へ散らばってしまった
+   * （coreAttractors の間隔が広い natural で特に、同じ花が離れた
+   * 場所に何個も「主役級」で並んで見えた）。ここで種ごとにまとめ、
+   * 同じ種の複製はすべて**同じ核の位置**を目指すようにする。
+   *
+   * 塊花（アジサイ）は対象外。アジサイは複製の乗せ方（下の isBulky
+   * 分岐）がすでに個別に調整済みで、1本ずつ別エントリとして扱う
+   * 前提のまま検証されている。ここでまとめてしまうと、複数本選んだ
+   * ときの本数・重なり方が変わってしまうので、1本＝1エントリの
+   * 挙動をそのまま残す。
+   */
+  interface MainGroup {
+    flowerId: string;
+    stems: BouquetStem[];
+  }
+  const mainGroups: MainGroup[] = [];
+  const groupedNonBulky = new Set<string>();
+  mainStems.forEach((stem) => {
     const flower = flowerById(stem.flowerId);
+    if (BULKY_FLOWERS.has(flower.id)) {
+      mainGroups.push({ flowerId: stem.flowerId, stems: [stem] });
+    } else if (!groupedNonBulky.has(stem.flowerId)) {
+      groupedNonBulky.add(stem.flowerId);
+      mainGroups.push({
+        flowerId: stem.flowerId,
+        stems: mainStems.filter((s) => s.flowerId === stem.flowerId),
+      });
+    }
+  });
+  mainGroups.forEach(({ flowerId, stems: speciesStems }, mi) => {
+    const flower = flowerById(flowerId);
     const isBulky = BULKY_FLOWERS.has(flower.id);
     const variantCount = FLOWER_VARIANT_COUNT[flower.id] ?? 1;
     const variantOffset = Math.floor(rand(mi * 71.9 + 31) * variantCount);
-    const wantedCount = Math.max(1, Math.round(COPIES.main * shrink));
+    const wantedCount = Math.max(1, Math.round(COPIES.main * shrink * speciesStems.length));
     const count = isBulky ? Math.min(2, wantedCount) : wantedCount;
 
     for (let c = 0; c < count; c += 1) {
       keySeed += 1;
+      const stem = speciesStems[c % speciesStems.length];
       const seed = mi * 97 + c * 7 + 1;
       const isPrimary = c === 0;
       /*
@@ -305,7 +359,7 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const reachSpread = isPrimary ? 0.08 : isBulky ? 0.04 : 0.16;
       const attractorForPlace =
         isBulky && !isPrimary ? { angle: attractor.angle, reach: attractor.reach * 0.7 } : attractor;
-      const { angle, reach } = place(
+      const { angle, reach: rawReach } = place(
         attractorForPlace,
         seed,
         jitter,
@@ -313,6 +367,18 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
         reachSpread,
         mirror,
       );
+      /*
+       * ── naturalの2本目以降は、reach を確実に一段引く ────────────
+       *
+       * naturalは揺れ幅（scatter）が他のスタイルよりずっと広いので、
+       * 「1本目と同じ高さ・同じ大きさ」に乱数が転ぶことがあり、
+       * ヒマワリやダリアで「同じ花を横に2本並べた」ペアに見えていた。
+       * 角度の揺れ（naturalらしい不規則さ）はそのまま残し、reach
+       * だけを毎回確実に低くして、2本目が1本目の横ではなく
+       * 「少し奥・少し低い場所に咲いている」ようにする。
+       */
+      const isNaturalSecondary = !isPrimary && !isBulky && style.id === 'natural';
+      const reach = isNaturalSecondary ? rawReach * (0.86 - c * 0.05) : rawReach;
       if (isPrimary) mainAnchors.push({ angle, reach, bulky: isBulky });
 
       const r4 = rand(seed * 5.3 + 53);
@@ -339,9 +405,15 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
        * 入る余地が消える。奥行き・大きさの両方を、ほかの主役より
        * 一段強く落とす。
        */
-      const depthBase = isPrimary ? 0.80 : isBulky ? 0.10 : Math.max(0.16, 0.46 - c * 0.16);
+      const depthBase = isPrimary
+        ? 0.80
+        : isBulky
+          ? 0.10
+          : isNaturalSecondary
+            ? Math.max(0.08, 0.30 - c * 0.14)
+            : Math.max(0.16, 0.46 - c * 0.16);
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.14));
-      const scaleMul = isPrimary || !isBulky ? 1 : 0.48;
+      const scaleMul = isPrimary ? 1 : isBulky ? 0.48 : isNaturalSecondary ? 0.74 : 1;
       // 主役の個体差も、1本目（顔）はそろえ、2本目以降で広げる。
       const scaleJitter = isPrimary ? 0.95 + r7 * 0.10 : 0.86 + r7 * 0.20;
 
@@ -442,14 +514,43 @@ export function bunch(stems: BouquetStem[], styleId: BouquetStyleId): DrawnStem[
       const faceX = 1 - turn * 0.46;
       const faceRot = (r4 - 0.5) * 9 + (r6 - 0.5) * 10 * jitter;
 
+      /*
+       * ── リンドウのような「縦のライン」は、前に出す本数を絞る ──────
+       *
+       * scaleを下げるだけでは、本数（COPIES.sub=4）がそのまま前へ
+       * 並び、青い穂が画面の大半を占めてしまう。3本目以降は主役の
+       * 陰へ深く沈め、「2〜3箇所だけ覗く添え」に留める。tallでは
+       * 縦のラインがそのまま高さの役に立つので、沈め方をゆるめる。
+       */
+      const lineAccent = LINE_ACCENT[flower.id];
+      const isLineOverflow = !!lineAccent && c >= 2;
+
       // 1本目だけ「そこにいる」と分かる程度に前へ。残りは主役の陰へ。
       // 塊花の縁に立つ1本目は、縁でのわずかな重なりに負けないよう
       // 塊花の1本目（depthBase 0.80）に迫る手前へ出す。
-      const depthBase = targetBulky ? (isPrimary ? 0.78 : 0.22) : isPrimary ? 0.56 : 0.20;
+      const depthBase = targetBulky
+        ? isPrimary
+          ? 0.78
+          : 0.22
+        : isPrimary
+          ? 0.56
+          : isLineOverflow
+            ? style.id === 'tall'
+              ? 0.14
+              : 0.08
+            : 0.20;
       const depth = Math.min(1, Math.max(0, depthBase + (rand(seed * 9.1 + 5) - 0.5) * 0.18));
 
-      const scale =
+      let scale =
         (0.84 + depth * 0.26) * flower.stature * ROLE_SCALE[flower.role] * (0.95 + r7 * 0.10);
+      /*
+       * 1本目（isPrimary）は縮めない。主役の縁で確実に見える1本目まで
+       * 縮めると、pullIn で主役の内側へ引き込まれた分と合わさって、
+       * 完全に隠れてしまうことがあった（→ ピンポンマム＋リンドウの
+       * naturalで、リンドウが1本も見えなくなった）。絞るのは2本目
+       * 以降だけにする。
+       */
+      if (lineAccent && !isPrimary) scale *= style.id === 'tall' ? lineAccent.tallScale : lineAccent.scale;
 
       raw.push({
         key: `${stem.uid}-${keySeed}`,
