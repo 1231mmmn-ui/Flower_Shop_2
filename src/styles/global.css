@@ -68,9 +68,40 @@ img {
     transform var(--fs-duration-slow) var(--fs-easing-soft);
 }
 
+/*
+ * ── 花は水彩、背景はデジタルのぼかし ── その技法差が、いちばんの違和感でした ──
+ *
+ * 花の一輪素材は輪郭線のある水彩なのに、店内の絵は輪郭を持たない塗りに
+ * 近く、そこへ画像そのものの荒さをごまかす意図でCSSのぼかしを重ねると、
+ * 「窓の外の景色」ではなく「曇りガラス」に見えてしまう。
+ *
+ * ここでは背景の絵そのものは描き直せない（新しい絵の生成が要る）ので、
+ * ごく薄い紙のにじみ（フィルムグレイン）を一枚重ねるだけに留める。
+ * 「デジタルなぼかし」を「紙の上のにじみ」に少しだけ近づける、
+ * ローリスクな一手。
+ */
+.scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/*
+ * ── ぼかしを、弱めました ─────────────────────────────────
+ *
+ * 10px は、花の水彩と並べると「店内の形そのものが崩れて」見えるほど
+ * 強かった。花：もっとも鮮明／ラッピング：次に鮮明／店内：水彩の形が
+ * 分かる程度／窓の外：少し夢のようにぼける、という奥行きを目指し、
+ * 「店内の形が分かる程度」まで戻す。花・ラッピングはこの層より
+ * 前面の別レイヤーなので、ここを弱めても花の鮮明さには影響しない。
+ */
 .scene--blurred {
-  filter: blur(10px) saturate(0.9);
-  transform: scale(1.06);
+  filter: blur(4px) saturate(0.94);
+  transform: scale(1.04);
 }
 
 .scene--dim::after {
