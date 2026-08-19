@@ -12,24 +12,18 @@
 }
 
 /*
- * コピーとカゴを積む柱。
- *
- * 下端は、絵の中の作業台の面（TitleScreen.tsx が px で入れます）。
- * 下から順に、カゴ、コピー。**同じ柱なので、重なりません。**
- * 収まらない画面では、すきま（gap）ではなく上へ伸びていきます。
+ * 店の外壁いちばん静かなところ ── 扉と窓のすぐ上 ── に、文字を置く。
+ * 画面の高さの割合で位置を決めるので、縦横比が変わっても
+ * 常に「扉の上の壁」に留まる。
  */
-.title-screen__stack {
+.title-screen__top {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
-  /* 絵が測れるまでの、ひと呼吸ぶんの控え */
-  bottom: 40%;
+  top: 6%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 2%;
   padding: 0 var(--fs-space-md);
   pointer-events: none;
 }
@@ -102,26 +96,8 @@
 }
 
 /*
- * 作業台に置かれたカゴ。柱のいちばん下 ── つまり台の上に立つ。
- *
- * 狭い画面では、コピーに場所を譲って小さくなります
- * （min-height: 0 と flex-shrink で、絵のほうが縮む）。
- */
-.title-screen__basket {
-  flex: 0 1 auto;
-  min-height: 0;
-  width: 46%;
-  max-width: 230px;
-  object-fit: contain;
-  object-position: bottom center;
-  filter: drop-shadow(6px 12px 16px rgba(96, 74, 54, 0.24));
-  animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
-  animation-delay: var(--fs-duration-base);
-}
-
-/*
- * 下の帯。柱とは別に、画面の下に置く。
- * 柱の下端（作業台）より下なので、ぶつかりません。
+ * 下の帯。店先の鉢植えの上に重なるので、光のにじみを一枚敷いて
+ * 文字が沈まないようにする（上の title-screen__center と同じ考え方）。
  */
 .title-screen__foot {
   position: absolute;
@@ -132,6 +108,13 @@
   flex-direction: column;
   align-items: center;
   gap: var(--fs-space-md);
+  padding: var(--fs-space-lg) var(--fs-space-md) 0;
+  background: linear-gradient(
+    to top,
+    rgba(255, 252, 244, 0.85) 0%,
+    rgba(255, 252, 244, 0.55) 60%,
+    rgba(255, 252, 244, 0) 100%
+  );
   animation: fade var(--fs-duration-bloom) var(--fs-easing-soft) both;
   animation-delay: var(--fs-duration-slow);
 }
