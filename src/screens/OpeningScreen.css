@@ -139,6 +139,10 @@
   letter-spacing: var(--fs-font-letter);
   text-indent: 0;
   color: var(--fs-color-ink-faint);
+  /* すぐ上の .morning__name にはあるにじみが、ここには無かった。 */
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .morning__foot {

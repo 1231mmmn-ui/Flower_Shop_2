@@ -38,6 +38,9 @@
   letter-spacing: 0.34em;
   text-indent: 0.34em;
   color: var(--fs-color-ink-faint);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .market__lead {
@@ -46,6 +49,9 @@
   font-size: var(--fs-font-md);
   line-height: var(--fs-font-line-base);
   color: var(--fs-color-ink-soft);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 /* ---- 並んでいる花 -------------------------------------------------------- */
@@ -185,6 +191,9 @@
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-sm);
   color: var(--fs-color-ink);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 /*
@@ -197,6 +206,9 @@
   line-height: 1.7;
   color: var(--fs-color-ink-faint);
   text-align: center;
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 /* ---- 足もと -------------------------------------------------------------- */
@@ -218,6 +230,9 @@
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-md);
   color: var(--fs-color-ink);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
   animation: market-in var(--fs-duration-slow) var(--fs-easing-soft) both;
 }
 

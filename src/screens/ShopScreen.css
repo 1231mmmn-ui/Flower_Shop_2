@@ -123,14 +123,18 @@
   font-size: var(--fs-font-lg);
   letter-spacing: 0.16em;
   color: var(--fs-color-ink);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .shop-view__price {
   font-size: var(--fs-font-sm);
   letter-spacing: 0.08em;
   color: var(--fs-color-ink-soft);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 /*
@@ -184,7 +188,9 @@
   font-size: var(--fs-font-md);
   letter-spacing: 0.06em;
   color: var(--fs-color-ink-soft);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
   transition: color var(--fs-duration-base) var(--fs-easing-soft);
 }
 
@@ -196,7 +202,7 @@
 .shop-view__of {
   margin-left: 4px;
   font-size: var(--fs-font-sm);
-  opacity: 0.68;
+  color: var(--fs-color-ink-faint);
 }
 
 .shop-view__count {

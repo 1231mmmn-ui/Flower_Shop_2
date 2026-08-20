@@ -86,6 +86,13 @@
   font-size: var(--fs-font-md);
   line-height: var(--fs-font-line-base);
   color: var(--fs-color-ink);
+  /*
+   * にじみの面は外周（72%以降）で透明へ落ちるので、長い台詞は
+   * 端のほうで下地を失う。文字そのものにも縁取りを足しておく。
+   */
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
   animation: fade var(--fs-duration-slow) var(--fs-easing-soft) both;
 }
 

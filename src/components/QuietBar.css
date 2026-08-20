@@ -59,17 +59,19 @@
    * opacity で薄くしていたのが、読みにくさの正体だった（0.62倍）。
    * 「静か」と「読めない」は別なので、透かすのはやめて、
    * にじみで背景から浮かせる。
+   *
+   * 0.88 も同じ理由でやめた。本文の文字そのものに opacity を
+   * かけないという方針にそろえ、濃淡は色（トークン）だけで作る。
    */
-  opacity: 0.88;
   text-shadow:
     0 1px 3px rgba(255, 252, 244, 0.98),
     0 2px 16px rgba(255, 250, 238, 0.9);
-  transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
+  transition: color var(--fs-duration-base) var(--fs-easing-soft);
 }
 
 .quiet__mark:hover,
 .quiet__mark:focus-visible {
-  opacity: 1;
+  color: var(--fs-color-ink);
   outline: none;
 }
 

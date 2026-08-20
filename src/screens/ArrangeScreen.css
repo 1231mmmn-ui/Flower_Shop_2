@@ -124,7 +124,9 @@
   font-size: var(--fs-font-md);
   letter-spacing: 0.1em;
   color: var(--fs-color-ink-soft);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
   border-bottom: 1px solid var(--fs-color-line);
   transition: color var(--fs-duration-quick) var(--fs-easing-soft),
     border-color var(--fs-duration-quick) var(--fs-easing-soft);
@@ -196,7 +198,9 @@
   font-size: var(--fs-font-sm);
   letter-spacing: 0.08em;
   color: var(--fs-color-ink-soft);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .arrange__slash {
@@ -300,5 +304,7 @@
   font-size: var(--fs-font-md);
   letter-spacing: 0.06em;
   color: var(--fs-color-ink-soft);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }

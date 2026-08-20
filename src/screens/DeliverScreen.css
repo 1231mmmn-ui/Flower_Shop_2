@@ -243,7 +243,9 @@
   margin: 0;
   font-size: var(--fs-font-sm);
   color: var(--fs-color-ink-faint);
-  text-shadow: 0 1px 12px rgba(255, 250, 238, 0.95);
+  text-shadow:
+    0 1px 3px rgba(255, 252, 244, 0.98),
+    0 2px 16px rgba(255, 250, 238, 0.9);
 }
 
 .deliver__foot .button {
