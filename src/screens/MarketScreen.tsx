@@ -66,7 +66,20 @@ export function MarketScreen() {
               key={flower.id}
               type="button"
               className={`market__stall ${held === flower.id ? 'is-held' : ''}`}
-              onClick={() => setHeld(flower.id)}
+              onClick={(event) => {
+                setHeld(flower.id);
+                /*
+                 * 花の箱を大きくしてから、2輪目以降を選ぶと箱の右側が
+                 * 横スクロール領域の外にわずかにはみ出し、ひとことの
+                 * 文末が見えなくなることがあった。選んだ花を画面内へ
+                 * 収める。
+                 */
+                event.currentTarget.scrollIntoView({
+                  behavior: 'smooth',
+                  inline: 'center',
+                  block: 'nearest',
+                });
+              }}
               aria-label={flower.name}
             >
               {/*

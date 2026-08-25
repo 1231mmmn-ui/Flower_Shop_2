@@ -103,69 +103,117 @@
 /*
  * 一輪ぶん。面も枠も持たせません ── 値札の付いた商品に見えるので。
  * あるのは、花と、名前と、ときどきのひとことだけ。
+ *
+ * ── 花・名前・ひとことを、独立した3層にする ──────────────
+ *
+ * 前は縦積み（flex-column）で、名前・ひとことは花の箱の直後に
+ * 詰めていました。この並べ方だと「花をどれだけ台に沈めるか」を
+ * 変えるたびに、名前の位置まで一緒に動いてしまいます
+ * （花＝商品・名前＝札、という別の物なのに、同じ紐で吊っていた）。
+ *
+ * ここでは箱の高さを固定し、花・名前・ひとことは
+ * その箱を基準にした絶対位置で個別に置きます。固定するのは
+ * ── `.market__row` は横スクロールのため overflow-x: auto で、
+ * CSS の仕様上、片方だけ overflow-y: visible にしても auto 扱いに
+ * なりはみ出しがクリップされるため。箱を名前・ひとことの実際の
+ * 位置まで広げて、はみ出しそのものを無くしています。
+ *
+ * 幅・花の箱とも、もとの 132px / 214px から通算4割ほど大きく
+ * しています。背景の市場がにぎやかになった分、「今日のお花」が
+ * 一輪として埋もれて見えたため、主役として一段前に出しました。
  */
 .market__stall {
+  position: relative;
   flex: 0 0 auto;
-  width: 132px;
+  width: 186px;
+  height: 430px;
   border: 0;
   background: none;
-  padding: var(--fs-space-sm) 0;
+  padding: 0;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--fs-space-xs);
   scroll-snap-align: center;
   opacity: 0.86;
   transition: opacity var(--fs-duration-base) var(--fs-easing-soft);
 }
 
 /*
+ * 花の背後の、ごく薄い明るいにじみ。
+ * 背景がにぎやかな水彩なので、花の輪郭だけを強くするのではなく、
+ * 花の後ろに柔らかい光だまりを置いて、前後関係で分離させる。
+ */
+.market__flower::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 92%;
+  height: 78%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(255, 253, 246, 0.55) 0%,
+    rgba(255, 253, 246, 0.22) 55%,
+    rgba(255, 253, 246, 0) 100%
+  );
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/*
  * 一輪の絵と、その足もとの影。
  *
- * **どの花も同じ大きさの正方形として、同じ 214px の箱の底に
- * 揃えて置きます。**（→ SingleFlower.tsx の bounding box 補正）
+ * **どの花も同じ大きさの正方形として、同じ箱の底に揃えて置きます。**
+ * （→ SingleFlower.tsx の bounding box 補正）
  * 花ごとに絵柄がキャンバスのどこまで届くかは違うので、実測した
  * bounding box をもとに、花の絵柄そのものがだいたい同じ大きさに
  * 見えるよう SingleFlower 側で拡大率を調整している。ここでは
  * その正方形を箱の底へ置くだけでよい。
  */
 .market__flower {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   display: block;
   width: 100%;
-  height: 214px;
+  height: 302px;
 }
 
 /*
- * 台の上に「立たせる」のではなく、絵本の挿絵のように少し浮かせる
- * （→ FlowerStand.css の同じ考え方）。
+ * カウンターに置く花なので、茎の下端は台の縁ぴったりではなく、
+ * 木の面の内側へ沈める。ぴったり縁に乗せただけだと、
+ * 「台の向こうの通路に立っている」ように見えてしまった。
+ *
+ * saturate/contrast をごくわずかに足しているのは、背景の水彩が
+ * にぎやかになった分、前景の花が埋もれて見えたため。輪郭を
+ * デジタルにくっきりさせるのではなく、同じ水彩のタッチのまま
+ * 一段だけ鮮明に見せる程度にとどめている。
  */
 .market__stall .single-flower {
   position: absolute;
   left: 50%;
-  bottom: 5%;
+  bottom: -4%;
   width: 92%;
   transform: translateX(-50%);
-  filter: drop-shadow(3px 6px 8px rgba(96, 74, 54, 0.13));
+  filter: drop-shadow(3px 6px 8px rgba(96, 74, 54, 0.13)) saturate(1.14)
+    contrast(1.05) brightness(1.02);
   /* 手に取った花だけ、ほんの少し起き上がる。持ち上げすぎない。 */
   transition: transform var(--fs-duration-slow) var(--fs-easing-rise);
 }
 
-/* ごく薄い水彩のにじみ。台に固定されている印ではなく、そこにある印だけ。 */
+/* 茎元の接地影。台に置かれている印。 */
 .market__contact {
   position: absolute;
   left: 50%;
-  bottom: 2%;
-  width: 34%;
-  height: 8px;
+  bottom: 0%;
+  width: 40%;
+  height: 9px;
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(
     50% 50% at 50% 50%,
-    rgba(120, 100, 76, 0.13) 0%,
-    rgba(120, 100, 76, 0.05) 62%,
-    rgba(120, 100, 76, 0) 100%
+    rgba(96, 74, 54, 0.20) 0%,
+    rgba(96, 74, 54, 0.08) 62%,
+    rgba(96, 74, 54, 0) 100%
   );
   filter: blur(4px);
   pointer-events: none;
@@ -188,27 +236,45 @@
 }
 
 .market__name {
+  position: absolute;
+  left: 50%;
+  top: 319px;
+  transform: translateX(-50%);
+  white-space: nowrap;
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-sm);
   color: var(--fs-color-ink);
   text-shadow:
-    0 1px 3px rgba(255, 252, 244, 0.98),
-    0 2px 16px rgba(255, 250, 238, 0.9);
+    0 1px 2px rgba(255, 250, 238, 0.95),
+    0 1px 5px rgba(255, 250, 238, 0.85);
 }
 
 /*
  * ひとこと。状態と、その日のできごとだけ。
  * 良し悪しは書きません。「今日いちばん」とも書きません。
+ * 名前のすぐ下、まだ「下部の操作エリア」にはかからない位置。
+ *
+ * **必ず1行に収める。** 文が長いと2行になり、下の「今日の店の花に」
+ * ピルと重なってしまっていた（実機で発見）。ひとことは添え物であって
+ * 必須の情報ではないので、収まりきらない分は省略してよい。
  */
 .market__remark {
+  position: absolute;
+  left: 50%;
+  top: 345px;
+  transform: translateX(-50%);
+  width: 186px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-xs);
-  line-height: 1.7;
+  line-height: 1.4;
   color: var(--fs-color-ink-faint);
   text-align: center;
   text-shadow:
-    0 1px 3px rgba(255, 252, 244, 0.98),
-    0 2px 16px rgba(255, 250, 238, 0.9);
+    0 1px 2px rgba(255, 250, 238, 0.95),
+    0 1px 5px rgba(255, 250, 238, 0.85);
 }
 
 /* ---- 足もと -------------------------------------------------------------- */
@@ -227,12 +293,12 @@
 
 .market__chosen {
   margin: 0;
+  padding: 5px var(--fs-space-lg);
+  border-radius: var(--fs-radius-pill);
+  background: rgba(255, 252, 244, 0.86);
   font-family: var(--fs-font-family-base);
   font-size: var(--fs-font-md);
   color: var(--fs-color-ink);
-  text-shadow:
-    0 1px 3px rgba(255, 252, 244, 0.98),
-    0 2px 16px rgba(255, 250, 238, 0.9);
   animation: market-in var(--fs-duration-slow) var(--fs-easing-soft) both;
 }
 

@@ -84,10 +84,11 @@ export function useWindowRect(ref: RefObject<HTMLElement | null>): Rect | null {
  * **画面の縦横比が変わると宙に浮きました。**
  * 絵の中の台の位置から逆算します。
  *
- *   市場の台     0.80（新しい市場背景の、手前カウンターの縁に合わせて較正）
+ *   市場の台     0.867（左右のサイド花を収めるため引き気味にした背景の
+ *                カウンター縁に、拡大した「今日のお花」を合わせて較正）
  *   店の作業台   0.60（scene.py の render_shop の table_y）
  */
-export const MARKET_BENCH_Y = 0.8;
+export const MARKET_BENCH_Y = 0.867;
 export const SHOP_COUNTER_Y = 0.60;
 
 export function useSceneY(
