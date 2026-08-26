@@ -53,7 +53,7 @@ export const FLOWER_BOUNDS: Record<string, FlowerBounds> = {
   dahlia: { top: 0.1094, bottom: 1.0, left: 0.3174, right: 0.7451, presence: 1.02 },
   delphinium: { top: 0.1562, bottom: 1.0, left: 0.3223, right: 0.5811, presence: 1.21 },
   eucalyptus: { top: 0.0459, bottom: 0.9834, left: 0.2822, right: 0.7178, presence: 1.01 },
-  freesia: { top: 0.1992, bottom: 1.0, left: 0.3164, right: 0.6475, presence: 1.11 },
+  freesia: { top: 0.0664, bottom: 0.9619, left: 0.2305, right: 0.7686, presence: 1.11 },
   gentian: { top: 0.0635, bottom: 0.9805, left: 0.1973, right: 0.8018, presence: 0.9 },
   gerbera: { top: 0.0713, bottom: 1.0, left: 0.2529, right: 0.7363, presence: 0.98 },
   gypsophila: { top: 0.1406, bottom: 1.0, left: 0.2051, right: 0.7852, presence: 0.92 },

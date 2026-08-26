@@ -17,6 +17,7 @@
 
 .market__head {
   flex: 0 0 auto;
+  margin-top: 28px;
   padding: 0 var(--fs-space-lg);
   text-align: center;
   animation: market-in 1.6s var(--fs-easing-soft) both;
