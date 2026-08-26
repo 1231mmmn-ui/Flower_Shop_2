@@ -24,7 +24,7 @@ const INLINE: AssetMap | undefined = (globalThis as { __FS_ASSETS?: AssetMap }).
 const asset = (path: string) => INLINE?.[path] ?? `${BASE}/${path}`;
 
 /** お客さまの表情差分（IMAGE_ASSETS.md §4） */
-export type CustomerMood = 'normal' | 'happy';
+export type CustomerMood = 'normal' | 'happy' | 'blink';
 
 /** 茎付きの1本の花（1024x1024・透過・下端近くまで茎）— §1 */
 export const flower = (id: string) => asset(`flowers/${id}.png`);

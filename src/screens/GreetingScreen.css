@@ -44,9 +44,42 @@
   justify-content: center;
 }
 
-.greet__person {
+/*
+ * 呼吸。人物の箱をごくわずかに上下させるだけの、静かな動き。
+ *
+ * **瞬き（img の src 差し替え）とは別の箱・別の transform。**
+ * 同じ要素の transform を、登場アニメーション（step-in）と
+ * 呼吸の両方で取り合うと、後から始まったほうが勝ってどちらかが
+ * 効かなくなる。ここでは呼吸をこの外側の箱だけが受け持ち、
+ * 登場アニメーションは中の img だけが受け持つ。
+ *
+ * 「動いているとわかる」ところまで揺らすと、静かにお客さまの
+ * 話を聞いている場面から浮いてしまう。1〜1.5px、拡大縮小なしに
+ * とどめる。
+ */
+.greet__breathe {
   width: 70%;
   max-width: 300px;
+  animation: breathe-idle var(--fs-duration-breath) ease-in-out infinite;
+}
+
+.greet__breathe.is-still {
+  animation-play-state: paused;
+}
+
+@keyframes breathe-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.3px);
+  }
+}
+
+.greet__person {
+  display: block;
+  width: 100%;
   height: auto;
   object-fit: contain;
   object-position: bottom;

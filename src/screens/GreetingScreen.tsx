@@ -6,14 +6,32 @@
  * 覚えておきたいことだけを、小さな紙にひとこと書き留める。
  */
 
+import { useEffect } from 'react';
+
 import './GreetingScreen.css';
 import { customer as customerImage } from '../assets/paths';
 import { QuietBar } from '../components/QuietBar';
 import { TodayFlower } from '../components/TodayFlower';
 import { useGame } from '../game/GameContext';
+import { useBlink } from '../game/useBlink';
+import { useIdleActive } from '../game/useIdleActive';
 
 export function GreetingScreen() {
-  const { customer, dispatch } = useGame();
+  const { state, customer, dispatch } = useGame();
+
+  /*
+   * 瞬き・呼吸。花を見ている・タブが裏に回っているなど、
+   * 人物が主役でない場面では止める（→ useIdleActive.ts）。
+   * この画面自体では花を見ることはないが、念のため同じ条件で揃えておく。
+   */
+  const idleActive = useIdleActive(state.inspectingFlowerId === null);
+  const blinking = useBlink(idleActive);
+
+  // 差し替えの瞬間に読み込みが挟まって一瞬透けないよう、先に読んでおく。
+  useEffect(() => {
+    const img = new Image();
+    img.src = customerImage(customer.id, 'blink');
+  }, [customer.id]);
 
   return (
     <div className="greet">
@@ -22,10 +40,19 @@ export function GreetingScreen() {
       <p className="greet__entrance">{customer.entrance}</p>
 
       <div className="greet__figure">
-        <img
-          className="greet__person"
-          src={customerImage(customer.id, 'normal')}
-          alt={customer.name} draggable={false} />
+        {/*
+          呼吸は、瞬きとは別のレイヤー・別の transform で動かす。
+          瞬きは img の src を差し替えるだけ、呼吸はこの外側の箱を
+          ごくわずかに上下させるだけなので、互いに影響しない
+          （→ 登場アニメーション step-in も img 側の transform なので
+          同じ理由でぶつからない）。
+        */}
+        <div className={`greet__breathe ${idleActive ? '' : 'is-still'}`}>
+          <img
+            className="greet__person"
+            src={customerImage(customer.id, blinking ? 'blink' : 'normal')}
+            alt={customer.name} draggable={false} />
+        </div>
         <div className="greet__words">
           {customer.lines.map((line, index) => (
             <p key={line} style={{ animationDelay: `${0.5 + index * 0.55}s` }}>
