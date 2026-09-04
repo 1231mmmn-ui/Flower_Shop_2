@@ -81,7 +81,7 @@ export const CUSTOMERS: Customer[] = [
   {
     id: 'customer-01',
     name: 'はるかさん',
-    age: '20代',
+    age: '10代後半',
     persona: 'よく笑う同僚。ビタミンカラーの服',
     entrance: '仕事帰りのようで、鞄を抱えたまま、少し急いで入ってきました。',
     life: '大学時代の恩師が、今年で退職されるそうです。',
