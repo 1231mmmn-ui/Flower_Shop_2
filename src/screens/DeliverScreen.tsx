@@ -8,7 +8,7 @@
 import { useState } from 'react';
 
 import './DeliverScreen.css';
-import { customerArms, customer as customerImage } from '../assets/paths';
+import { customerBackArms, customerFrontHands, customer as customerImage } from '../assets/paths';
 import { Bouquet } from '../components/Bouquet';
 import { QuietBar } from '../components/QuietBar';
 import { TodayFlower } from '../components/TodayFlower';
@@ -51,14 +51,18 @@ export function DeliverScreen() {
           同じ空間にはいません。抱えている姿にするには、束が
           **体より手前、腕より奥**になければいけません。
 
-              人物 → 束 → 腕
+          腕を1枚の絵にしていたときは、束の前後どちらに置いても
+          不自然でした（前だと束が体から浮く。後ろだと指で挟んで
+          いるように見えない）。そこで腕を2枚に分けます。
 
-          腕を別の紙にしたのは、この順番を作るためだけです
-          （→ tools/placeholder_art/props.py の render_customer_arms）。
-          手を描き足すだけでは、手が束の後ろに隠れて何も変わりません。
+              人物 → 腕（肩〜前腕） → 束 → 指先
 
-          三枚は同じ枠（.deliver__figure）に置きます。人物と腕は
-          同じ 800×800 の絵なので、位置合わせは要りません。
+          肩から続く上腕・前腕は体の一部として束の後ろに、
+          束を挟む指先だけが束の手前に出ることで、
+          「本人の腕で抱えている」形になります。
+
+          四枚は同じ枠（.deliver__figure）に置きます。人物・腕・
+          指先は同じ 800×800 の絵なので、位置合わせは要りません。
         */}
         <div className="deliver__figure">
           <img
@@ -67,17 +71,24 @@ export function DeliverScreen() {
             alt={customer.name}
             draggable={false}
           />
+          <img
+            className="deliver__back-arms"
+            src={customerBackArms(customer.id)}
+            alt=""
+            aria-hidden
+            draggable={false}
+          />
           <div className="deliver__bouquet">
             {/*
               scale は結び目（＝手の位置）を軸に花だけを大きくする。
               枠を広げるのではなくこちらを使うのは、結び目が
-              腕の絵の手の位置とずれないようにするため。
+              指先の絵の位置とずれないようにするため。
             */}
             <Bouquet bouquet={state.bouquet} scale={1.3} />
           </div>
           <img
-            className="deliver__arms"
-            src={customerArms(customer.id)}
+            className="deliver__front-hands"
+            src={customerFrontHands(customer.id)}
             alt=""
             aria-hidden
             draggable={false}

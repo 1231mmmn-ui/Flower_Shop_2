@@ -82,17 +82,20 @@ export const customer = (id: string, mood: CustomerMood = 'normal') =>
   asset(`customers/${id}-${mood}.png`);
 
 /**
- * その人の、前腕と手だけ（800x800・透過）— §4（追記）
+ * その人の腕。肩からの続きが見える上腕・前腕側と、指先側の2枚に分けて持つ
+ * （どちらも800x800・透過、人物と同じ枠）— §4（追記）
  *
- * **人物と同じ枠です。** 同じ位置に重ねるだけで合います。
+ * 1枚の「腕」だけだと、束の前後どちらに置いても不自然だった
+ * （前に置くと束が体から浮く。後ろに置くと指で挟んでいるように見えない）。
  * お渡しの画面で
  *
- *   人物 → ブーケ → 腕
+ *   人物 → 腕（back-arms） → ブーケ → 指先（front-hands）
  *
- * の順に重ねると、束が腕の内側に入って「抱えている」姿になります。
- * 一枚の絵では、この順番が作れません。
+ * の順に重ねると、上腕は体の続きとして束の後ろに、指先だけが束の
+ * 手前に出て「抱えている」姿になる。
  */
-export const customerArms = (id: string) => asset(`customers/${id}-arms.png`);
+export const customerBackArms = (id: string) => asset(`customers/${id}-back-arms.png`);
+export const customerFrontHands = (id: string) => asset(`customers/${id}-front-hands.png`);
 
 /** 小物（512x512・透過）— §5 */
 export const basket = () => asset(`props/basket.png`);

@@ -73,7 +73,8 @@
 }
 
 .deliver__person,
-.deliver__arms {
+.deliver__back-arms,
+.deliver__front-hands {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -84,6 +85,15 @@
   filter: drop-shadow(8px 16px 20px rgba(96, 74, 54, 0.26));
   animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
   z-index: 1;
+}
+
+/* 肩から続く上腕・前腕。束の後ろ＝体の一部として見える側。 */
+.deliver__back-arms {
+  z-index: 2;
+  filter: drop-shadow(4px 10px 12px rgba(96, 74, 54, 0.18));
+  animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
+  animation-delay: var(--fs-duration-quick);
+  pointer-events: none;
 }
 
 /*
@@ -127,7 +137,7 @@
   left: 22%;
   right: 22%;
   bottom: -4%;
-  z-index: 2;
+  z-index: 3;
   filter: drop-shadow(0 14px 22px rgba(96, 74, 54, 0.22));
   animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
   animation-delay: var(--fs-duration-quick);
@@ -146,9 +156,9 @@
   --stem-width: 62%;
 }
 
-/* 腕。**束より手前。** これがあって、はじめて「抱えている」になる。 */
-.deliver__arms {
-  z-index: 3;
+/* 指先。**束より手前。** これがあって、はじめて「挟んでいる」になる。 */
+.deliver__front-hands {
+  z-index: 4;
   filter: drop-shadow(4px 10px 12px rgba(96, 74, 54, 0.18));
   animation: step-in var(--fs-duration-bloom) var(--fs-easing-rise) both;
   animation-delay: var(--fs-duration-quick);
@@ -316,7 +326,8 @@
  * その人はそこにいる。ただ、いま見ているのは束のほう。
  */
 .deliver.is-lingering .deliver__person,
-.deliver.is-lingering .deliver__arms {
+.deliver.is-lingering .deliver__back-arms,
+.deliver.is-lingering .deliver__front-hands {
   filter: blur(6px) saturate(0.86);
   opacity: 0.72;
   transition: filter 1.1s var(--fs-easing-soft),
@@ -324,7 +335,8 @@
 }
 
 .deliver__person,
-.deliver__arms {
+.deliver__back-arms,
+.deliver__front-hands {
   transition: filter 0.62s var(--fs-easing-soft),
     opacity 0.62s var(--fs-easing-soft);
 }
